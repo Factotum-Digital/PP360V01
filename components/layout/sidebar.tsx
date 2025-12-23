@@ -8,10 +8,10 @@ export const Sidebar: React.FC = () => (
           <div className="w-12 h-12 flex items-center justify-center border-4 border-[#262626] shadow-[4px_4px_0_0_rgba(38,38,38,0.2)] overflow-hidden bg-[#262626]">
                <Image
                     src="/logo.png"
-                    alt="PP360VE Logo"
+                    alt="PP360VE"
                     width={48}
                     height={48}
-                    className="object-cover"
+                    className="object-contain"
                />
           </div>
           <nav className="flex flex-col gap-8">
