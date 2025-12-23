@@ -20,6 +20,13 @@ export const Sidebar: React.FC = () => (
                />
           </Link>
 
+          {/* Navigation Buttons (decorative - no action yet) */}
+          <nav className="flex flex-col gap-8">
+               <div className="w-8 h-8 bg-[#262626] hover:bg-[#FF4D00] transition-colors cursor-pointer border-2 border-[#262626]"></div>
+               <div className="w-8 h-8 border-4 border-[#262626] hover:bg-[#FF4D00] transition-colors cursor-pointer"></div>
+               <div className="w-8 h-8 border-4 border-[#262626] opacity-20 hover:opacity-100 transition-opacity cursor-pointer"></div>
+          </nav>
+
           {/* Version Text */}
           <div className="mt-auto vertical-text font-black text-xs uppercase tracking-[0.3em] opacity-30 select-none">
                Secure Terminal v.4.0
