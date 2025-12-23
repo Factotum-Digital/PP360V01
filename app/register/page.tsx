@@ -132,7 +132,7 @@ export default function RegisterPage() {
                               <Slab
                                    dark
                                    className="w-full p-4 text-center font-black uppercase tracking-widest bg-[#FF4D00] cursor-pointer"
-                                   onClick={handleRegister}
+                                   onClick={() => handleRegister({ preventDefault: () => { } } as React.FormEvent)}
                               >
                                    {loading ? 'PROCESANDO...' : 'CREAR CUENTA'}
                               </Slab>

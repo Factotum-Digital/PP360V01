@@ -81,7 +81,7 @@ export default function LoginPage() {
                               <Slab
                                    dark
                                    className="w-full p-4 text-center font-black uppercase tracking-widest bg-[#FF4D00] cursor-pointer"
-                                   onClick={handleLogin}
+                                   onClick={() => handleLogin({ preventDefault: () => { } } as React.FormEvent)}
                               >
                                    {loading ? 'AUTENTICANDO...' : 'INICIAR SESIÓN'}
                               </Slab>
