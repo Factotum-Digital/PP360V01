@@ -1,0 +1,41 @@
+"use client";
+
+import React, { useState, useEffect } from 'react';
+import { Tag } from '@/components/ui/brutalist-system';
+import { ExchangeTerminal } from '@/components/features/exchange-calculator';
+import { LandingSections } from '@/components/landing/sections';
+import { Footer } from '@/components/layout/footer';
+
+export default function Home() {
+     const [session, setSession] = useState("FF-000-000");
+
+     useEffect(() => {
+          setSession(`SESS-${Math.floor(Math.random() * 9000 + 1000)}`);
+     }, []);
+
+     return (
+          <>
+               {/* Header */}
+               <header className="mb-16">
+                    <div className="flex items-center gap-4 mb-6">
+                         <Tag active>Auth: OK</Tag>
+                         <span className="mono text-xs text-gray-400 font-bold tracking-widest uppercase">{session} // PAYOUTI_KERNEL_ONLINE</span>
+                    </div>
+                    <h1 className="text-6xl md:text-9xl font-black uppercase tracking-tighter leading-[0.8] mb-4 text-[#262626]">
+                         PP360VE<br /><span className="text-transparent italic" style={{ WebkitTextStroke: '3px #FF4D00' }}>Terminal</span>
+                    </h1>
+                    <p className="text-xl font-bold uppercase tracking-tight max-w-lg mt-8 border-l-8 border-[#FF4D00] pl-4 text-[#262626]">
+                         Elevate your financial service with the PP360VE Brutalist Exchange Interface.
+                    </p>
+               </header>
+
+               {/* Terminal Section */}
+               <ExchangeTerminal />
+
+               {/* Unified Marketing Sections */}
+               <LandingSections />
+
+               <Footer />
+          </>
+     );
+}
