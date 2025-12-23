@@ -1,0 +1,297 @@
+
+import React, { useState, useEffect, useCallback } from 'react';
+import { Slab, Tag } from './BrutalistUI';
+import { AppStep, ExchangeData, TerminalLog } from '../types';
+import { CURRENT_RATE, COMMISSION_RATE, MINIMUM_USD, ICONS } from '../constants';
+import { getMarketInsight } from '../services/geminiService';
+import { LineChart, Line, ResponsiveContainer, YAxis, Tooltip } from 'recharts';
+
+const mockChartData = Array.from({ length: 12 }, (_, i) => ({
+  time: `${i + 8}:00`,
+  val: CURRENT_RATE + (Math.random() * 2 - 1)
+}));
+
+export const ExchangeTerminal: React.FC = () => {
+  const [step, setStep] = useState<AppStep>(AppStep.QUOTATION);
+  const [data, setData] = useState<ExchangeData>({
+    usdAmount: 100,
+    vesAmount: 0,
+    rate: CURRENT_RATE,
+    email: '',
+    bank: 'Banesco',
+    idNumber: '',
+    phone: ''
+  });
+  const [logs, setLogs] = useState<TerminalLog[]>([]);
+  const [insight, setInsight] = useState({
+    title: "LIQUIDITY ANALYSIS PENDING",
+    description: "WAITING FOR TERMINAL SYNC AND MARKET DATA STREAM...",
+    sentiment: "NEUTRAL"
+  });
+
+  const addLog = useCallback((msg: string, type: 'info' | 'success' | 'warning' = 'info') => {
+    setLogs(prev => [
+      { id: Math.random().toString(), timestamp: new Date().toLocaleTimeString(), message: msg, type },
+      ...prev.slice(0, 15)
+    ]);
+  }, []);
+
+  useEffect(() => {
+    const netUsd = data.usdAmount * (1 - COMMISSION_RATE);
+    setData(prev => ({ ...prev, vesAmount: netUsd * CURRENT_RATE }));
+  }, [data.usdAmount]);
+
+  useEffect(() => {
+    addLog("SYSTEM BOOTED", "success");
+    addLog("KERNEL_VERSION: 4.0.2");
+    addLog("LIQUIDITY_CHECK: PASSED");
+    
+    const interval = setInterval(() => {
+      const msgs = ["PEER CONNECTED", "PING: 14ms", "RATE SYNCED", "SECURE TUNNEL: ACTIVE"];
+      addLog(msgs[Math.floor(Math.random() * msgs.length)]);
+    }, 5000);
+
+    const fetchInsight = async () => {
+      const text = await getMarketInsight(data.usdAmount, data.rate);
+      if (text) {
+        setInsight({
+          title: `VES EROSION DETECTED AT ${CURRENT_RATE.toFixed(2)}`,
+          description: text.toUpperCase(),
+          sentiment: Math.random() > 0.5 ? "NEGATIVE" : "STABLE"
+        });
+      }
+    };
+    fetchInsight();
+
+    return () => clearInterval(interval);
+  }, [data.usdAmount, data.rate, addLog]);
+
+  const handleProcess = () => {
+    if (data.usdAmount < MINIMUM_USD) return;
+    addLog(`USER_ACTION: REQUEST_STEP_02`, "warning");
+    setStep(AppStep.VALIDATION);
+  };
+
+  const handleFinalize = () => {
+    addLog(`ENCRYPTING_ORDER_DATA...`, "info");
+    setTimeout(() => {
+      setStep(AppStep.SUCCESS);
+      addLog(`ORDER_COMMITTED_ID: ${Math.random().toString(36).substr(2, 9).toUpperCase()}`, "success");
+    }, 1500);
+  };
+
+  return (
+    <div className="grid lg:grid-cols-12 gap-8 md:gap-12">
+      {/* Transaction Unit */}
+      <div className="lg:col-span-8 space-y-12">
+        <Slab className="p-6 md:p-10 relative overflow-hidden min-h-[550px]">
+          <div className="absolute top-0 right-0 flex">
+            <div className={`px-4 py-2 border-l-4 border-b-4 border-[#262626] mono text-sm font-bold transition-all ${step === AppStep.QUOTATION ? 'bg-[#262626] text-white' : 'bg-white opacity-30'}`}>STEP_01</div>
+            <div className={`px-4 py-2 border-l-4 border-b-4 border-[#262626] mono text-sm font-bold transition-all ${step === AppStep.VALIDATION ? 'bg-[#262626] text-white' : 'bg-white opacity-30'}`}>STEP_02</div>
+          </div>
+
+          {step === AppStep.QUOTATION && (
+            <div className="mt-8 space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-500">
+              <div className="space-y-4">
+                <label className="mono text-xs font-black uppercase tracking-widest flex items-center gap-2">
+                  <span className="w-3 h-3 bg-[#FF4D00]"></span> Tú envías (PayPal USD)
+                </label>
+                <div className="relative group">
+                  <span className="absolute left-6 top-1/2 -translate-y-1/2 font-black text-4xl opacity-20">$</span>
+                  <input 
+                    type="number" 
+                    value={data.usdAmount} 
+                    onChange={e => setData({...data, usdAmount: Number(e.target.value)})}
+                    className="w-full bg-gray-50 border-b-8 border-[#262626] p-8 pl-16 text-5xl font-black mono focus:bg-white transition-all outline-none" 
+                  />
+                </div>
+                {data.usdAmount < MINIMUM_USD && <p className="text-[#FF4D00] mono text-[10px] font-bold uppercase">Monto mínimo: $10.00 USD</p>}
+              </div>
+
+              <div className="flex items-center gap-6">
+                <div className="h-1 flex-1 bg-[#262626]"></div>
+                <div className="w-16 h-16 border-4 border-[#262626] flex items-center justify-center rotate-45 hover:rotate-0 transition-transform duration-500 bg-white">
+                  <ICONS.Exchange className="-rotate-45" />
+                </div>
+                <div className="h-1 flex-1 bg-[#262626]"></div>
+              </div>
+
+              <div className="space-y-4">
+                <label className="mono text-xs font-black uppercase tracking-widest flex items-center gap-2">
+                  <span className="w-3 h-3 bg-[#FF4D00]"></span> Tú recibes (VES)
+                </label>
+                <div className="relative">
+                  <span className="absolute left-6 top-1/2 -translate-y-1/2 font-black text-4xl opacity-20">Bs</span>
+                  <input 
+                    type="text" 
+                    readOnly 
+                    value={data.vesAmount.toLocaleString('es-VE', { minimumFractionDigits: 2 })} 
+                    className="w-full bg-[#262626] text-white p-8 pl-24 text-5xl font-black mono outline-none" 
+                  />
+                </div>
+                <div className="flex justify-between items-center py-2 mono text-[10px] font-bold text-gray-400 uppercase">
+                  <span>RATE: 1 USD = {CURRENT_RATE.toFixed(2)} VES</span>
+                  <span>FEE: 5.00% INCL.</span>
+                </div>
+              </div>
+
+              <Slab dark className="p-8 text-xl font-black uppercase tracking-widest flex justify-between items-center bg-[#FF4D00] border-[#262626] text-white" onClick={handleProcess}>
+                <span>Continuar Proceso</span>
+                <ICONS.ArrowRight className="w-8 h-8" />
+              </Slab>
+            </div>
+          )}
+
+          {step === AppStep.VALIDATION && (
+            <div className="mt-8 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+              <h3 className="mono text-2xl font-black uppercase underline decoration-4 decoration-[#FF4D00] underline-offset-4">Datos de Destino</h3>
+              <div className="grid md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <label className="mono text-[10px] font-black uppercase">Email PayPal</label>
+                  <input className="w-full border-4 border-[#262626] p-4 font-bold mono focus:bg-gray-50 outline-none" placeholder="usuario@email.com" />
+                </div>
+                <div className="space-y-2">
+                  <label className="mono text-[10px] font-black uppercase">Banco</label>
+                  <select className="w-full border-4 border-[#262626] p-4 font-bold mono appearance-none bg-white outline-none">
+                    <option>Banesco</option>
+                    <option>Mercantil</option>
+                    <option>Banco de Venezuela</option>
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <label className="mono text-[10px] font-black uppercase">Cédula / RIF</label>
+                  <input className="w-full border-4 border-[#262626] p-4 font-bold mono focus:bg-gray-50 outline-none" placeholder="V-12345678" />
+                </div>
+                <div className="space-y-2">
+                  <label className="mono text-[10px] font-black uppercase">Teléfono Pago Móvil</label>
+                  <input className="w-full border-4 border-[#262626] p-4 font-bold mono focus:bg-gray-50 outline-none" placeholder="04121234567" />
+                </div>
+              </div>
+
+              <div className="bg-orange-50 p-4 border-l-8 border-[#FF4D00]">
+                <p className="mono text-[10px] font-bold leading-tight">ATENCIÓN: Solo aceptamos pagos de cuentas verificadas coincidentes con el titular bancario.</p>
+              </div>
+
+              <div className="flex gap-4 pt-4">
+                <Slab className="w-1/3 p-6 text-center font-black uppercase mono" onClick={() => setStep(AppStep.QUOTATION)}>Volver</Slab>
+                <Slab dark className="flex-1 p-6 text-center text-xl font-black uppercase tracking-widest bg-[#FF4D00]" onClick={handleFinalize}>Confirmar</Slab>
+              </div>
+            </div>
+          )}
+
+          {step === AppStep.SUCCESS && (
+            <div className="mt-8 space-y-8 flex flex-col items-center justify-center py-20 text-center animate-in zoom-in duration-500">
+              <div className="w-24 h-24 bg-[#FF4D00] border-4 border-[#262626] flex items-center justify-center mb-6 shadow-[8px_8px_0px_0px_#262626]">
+                <ICONS.Check className="w-16 h-16 text-white" />
+              </div>
+              <h3 className="text-4xl font-black uppercase italic tracking-tighter">Orden Generada</h3>
+              <p className="mono text-sm font-bold max-w-md">Instrucciones enviadas a su correo. TICKET_ID: <span className="bg-[#262626] text-white px-2">#P360-{Math.floor(Math.random()*9999)}</span></p>
+              <button 
+                onClick={() => setStep(AppStep.QUOTATION)} 
+                className="mt-8 underline font-black mono uppercase hover:text-[#FF4D00] transition-colors"
+              >
+                Nueva Operación
+              </button>
+            </div>
+          )}
+        </Slab>
+
+        <div className="grid md:grid-cols-3 gap-6">
+          <Slab className="p-6 bg-orange-100">
+            <div className="mono text-xs font-black mb-2 italic underline decoration-[#FF4D00]">MODO_SEGURO</div>
+            <p className="text-[10px] font-bold leading-tight uppercase">Encriptación AES-256 en cada segmento de datos.</p>
+          </Slab>
+          <Slab className="p-6">
+            <div className="mono text-xs font-black mb-2 italic underline decoration-[#FF4D00]">TIME_EFFICIENCY</div>
+            <p className="text-[10px] font-bold leading-tight uppercase">Promedio de liquidación: 14.2 minutos.</p>
+          </Slab>
+          <Slab className="p-6 bg-[#262626] text-white">
+            <div className="mono text-xs font-black mb-2 text-[#FF4D00] italic underline">NETWORK_STATUS</div>
+            <p className="text-[10px] font-bold leading-tight uppercase">Liquidez inmediata confirmada en nodos centrales.</p>
+          </Slab>
+        </div>
+      </div>
+
+      {/* Analytics Sidebar */}
+      <div className="lg:col-span-4 space-y-8">
+        <Slab dark className="p-8 overflow-hidden relative">
+          <div className="flex justify-between items-start mb-8">
+            <h3 className="mono text-sm font-bold tracking-tighter uppercase italic">Histórico Tasa</h3>
+            <span className="bg-[#FF4D00] text-white px-2 py-1 mono text-[10px] font-black">+2.4%</span>
+          </div>
+          <div className="h-40 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={mockChartData}>
+                <YAxis hide domain={['dataMin - 1', 'dataMax + 1']} />
+                <Tooltip 
+                  contentStyle={{ backgroundColor: '#262626', border: '2px solid #FF4D00', color: '#fff', fontSize: '10px' }}
+                  labelStyle={{ display: 'none' }}
+                />
+                <Line 
+                  type="stepAfter" 
+                  dataKey="val" 
+                  stroke="#FF4D00" 
+                  strokeWidth={4} 
+                  dot={false} 
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+          <div className="mt-4 flex justify-between mono text-[10px] text-gray-500 uppercase font-black">
+            <span>08:00</span>
+            <span>12:00</span>
+            <span>16:00</span>
+            <span>Real-time</span>
+          </div>
+        </Slab>
+
+        {/* Terminal Logs Slab - Ajustado para legibilidad total y texto negro */}
+        <Slab className="p-4 bg-white mono text-[11px] h-48 relative border-4 border-[#262626]">
+          <div className="h-full overflow-y-auto space-y-2 pr-2 scrollbar-thin scrollbar-thumb-gray-300">
+            {logs.length === 0 ? (
+              <div className="text-[#262626] opacity-30 italic">&gt; STANDBY: WAITING_FOR_KERNEL...</div>
+            ) : (
+              logs.map(log => (
+                <div key={log.id} className="text-[#262626] leading-relaxed break-words border-l-2 border-transparent pl-2">
+                  <span className="opacity-50 font-bold">{log.timestamp}</span> : {log.message}
+                </div>
+              ))
+            )}
+          </div>
+        </Slab>
+
+        {/* AI MARKET INTELLIGENCE BOX */}
+        <Slab className="p-6 bg-orange-50 border-[#FF4D00]">
+           <div className="space-y-4">
+              <div className="mono text-[10px] font-black flex items-center gap-2 text-[#262626]">
+                <span className="w-2 h-2 bg-[#262626]"></span> AI_MARKET_INTELLIGENCE
+              </div>
+              
+              <h4 className="text-xl font-black leading-none text-[#262626] uppercase">
+                {insight.title}
+              </h4>
+              
+              <p className="mono text-[11px] font-bold text-gray-500 leading-tight uppercase italic">
+                {insight.description}
+              </p>
+              
+              <div className={`inline-block px-3 py-1 text-[10px] font-black mono text-white uppercase ${insight.sentiment === 'NEGATIVE' ? 'bg-[#FF4D00]' : 'bg-[#262626]'}`}>
+                SENTIMENT: {insight.sentiment}
+              </div>
+           </div>
+        </Slab>
+
+        {/* AI Market Signal */}
+        <Slab className="p-8 bg-[#262626] text-[#FF4D00] border-[#262626]">
+           <h3 className="mono text-xs font-black mb-4 flex items-center gap-2">
+             <span className="animate-pulse w-2 h-2 bg-orange-400 rounded-full"></span> 
+             AI_MARKET_SIGNAL
+           </h3>
+           <p className="mono text-xl font-bold tracking-tighter leading-none italic uppercase">
+             Rate Optimized. {data.vesAmount.toLocaleString('es-VE', { maximumFractionDigits: 0 })} VES Secured. Hedge Established.
+           </p>
+        </Slab>
+      </div>
+    </div>
+  );
+};
