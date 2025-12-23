@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
 const WhatsAppIcon = () => (
      <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor">
@@ -17,22 +17,46 @@ const CloseIcon = () => (
 
 export const WhatsAppFloatingButton: React.FC = () => {
      const [isExpanded, setIsExpanded] = useState(false);
+     const containerRef = useRef<HTMLDivElement>(null);
 
      const whatsappNumber = "15557745095";
      const whatsappChannel = "https://whatsapp.com/channel/0029Vb6gXXSFMqrY7mFbEi0K";
      const defaultMessage = "Hola! Me interesa cambiar PayPal a Bolívares en PP360VE";
 
+     // Close menu when clicking outside
+     useEffect(() => {
+          const handleClickOutside = (event: MouseEvent) => {
+               if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+                    setIsExpanded(false);
+               }
+          };
+
+          if (isExpanded) {
+               document.addEventListener('mousedown', handleClickOutside);
+          }
+
+          return () => {
+               document.removeEventListener('mousedown', handleClickOutside);
+          };
+     }, [isExpanded]);
+
      const handleDirectChat = () => {
           const url = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(defaultMessage)}`;
           window.open(url, '_blank');
+          setIsExpanded(false);
      };
 
      const handleChannel = () => {
           window.open(whatsappChannel, '_blank');
+          setIsExpanded(false);
      };
 
      return (
-          <div className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-3">
+          <div
+               ref={containerRef}
+               className="fixed bottom-6 right-6 z-50 flex flex-col items-end gap-3"
+               onMouseLeave={() => setIsExpanded(false)}
+          >
                {/* Expanded Options */}
                {isExpanded && (
                     <div className="flex flex-col gap-2 animate-in slide-in-from-bottom-2 duration-200">
