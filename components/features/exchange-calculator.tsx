@@ -27,6 +27,7 @@ export const ExchangeTerminal: React.FC = () => {
           phone: ''
      });
      const [logs, setLogs] = useState<TerminalLog[]>([]);
+     const [errors, setErrors] = useState<{ [key: string]: string }>({});
      const [insight, setInsight] = useState({
           title: "LIQUIDITY ANALYSIS PENDING",
           description: "WAITING FOR TERMINAL SYNC AND MARKET DATA STREAM...",
@@ -90,7 +91,54 @@ export const ExchangeTerminal: React.FC = () => {
           setStep(AppStep.VALIDATION);
      };
 
+     const validateEmail = (email: string) => {
+          const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+          return re.test(email);
+     };
+
+     const validatePhone = (phone: string) => {
+          const re = /^04\d{9}$/;
+          return re.test(phone.replace(/\s/g, ''));
+     };
+
+     const validateIdNumber = (id: string) => {
+          const re = /^[VEJGC]-?\d{6,9}$/i;
+          return re.test(id.replace(/\s/g, ''));
+     };
+
      const handleFinalize = () => {
+          const newErrors: { [key: string]: string } = {};
+
+          // Validate email
+          if (!data.email || data.email.trim() === '') {
+               newErrors.email = 'Email PayPal es obligatorio';
+          } else if (!validateEmail(data.email)) {
+               newErrors.email = 'Email no válido';
+          }
+
+          // Validate ID number
+          if (!data.idNumber || data.idNumber.trim() === '') {
+               newErrors.idNumber = 'Cédula / RIF es obligatorio';
+          } else if (!validateIdNumber(data.idNumber)) {
+               newErrors.idNumber = 'Formato: V-12345678';
+          }
+
+          // Validate phone
+          if (!data.phone || data.phone.trim() === '') {
+               newErrors.phone = 'Teléfono es obligatorio';
+          } else if (!validatePhone(data.phone)) {
+               newErrors.phone = 'Formato: 04XX1234567';
+          }
+
+          // If there are errors, show them and stop
+          if (Object.keys(newErrors).length > 0) {
+               setErrors(newErrors);
+               addLog(`VALIDATION_FAILED: ${Object.keys(newErrors).length} FIELD(S) MISSING`, "warning");
+               return;
+          }
+
+          // Clear errors and proceed
+          setErrors({});
           addLog(`ENCRYPTING_ORDER_DATA...`, "info");
           setTimeout(() => {
                setStep(AppStep.SUCCESS);
@@ -165,24 +213,49 @@ export const ExchangeTerminal: React.FC = () => {
                                    <h3 className="mono text-2xl font-black uppercase underline decoration-4 decoration-[#FF4D00] underline-offset-4">Datos de Destino</h3>
                                    <div className="grid md:grid-cols-2 gap-6">
                                         <div className="space-y-2">
-                                             <label className="mono text-[10px] font-black uppercase">Email PayPal</label>
-                                             <input className="w-full border-4 border-[#262626] p-4 font-bold mono focus:bg-gray-50 outline-none" placeholder="usuario@email.com" />
+                                             <label className="mono text-[10px] font-black uppercase">Email PayPal <span className="text-[#FF4D00]">*</span></label>
+                                             <input
+                                                  className={`w-full border-4 ${errors.email ? 'border-[#FF4D00] bg-red-50' : 'border-[#262626]'} p-4 font-bold mono focus:bg-gray-50 outline-none`}
+                                                  placeholder="usuario@email.com"
+                                                  value={data.email}
+                                                  onChange={e => setData({ ...data, email: e.target.value })}
+                                             />
+                                             {errors.email && <p className="text-[#FF4D00] mono text-[10px] font-bold">{errors.email}</p>}
                                         </div>
                                         <div className="space-y-2">
-                                             <label className="mono text-[10px] font-black uppercase">Banco</label>
-                                             <select className="w-full border-4 border-[#262626] p-4 font-bold mono appearance-none bg-white outline-none">
+                                             <label className="mono text-[10px] font-black uppercase">Banco <span className="text-[#FF4D00]">*</span></label>
+                                             <select
+                                                  className="w-full border-4 border-[#262626] p-4 font-bold mono appearance-none bg-white outline-none"
+                                                  value={data.bank}
+                                                  onChange={e => setData({ ...data, bank: e.target.value })}
+                                             >
                                                   <option>Banesco</option>
                                                   <option>Mercantil</option>
                                                   <option>Banco de Venezuela</option>
+                                                  <option>Provincial</option>
+                                                  <option>BOD</option>
+                                                  <option>BNC</option>
                                              </select>
                                         </div>
                                         <div className="space-y-2">
-                                             <label className="mono text-[10px] font-black uppercase">Cédula / RIF</label>
-                                             <input className="w-full border-4 border-[#262626] p-4 font-bold mono focus:bg-gray-50 outline-none" placeholder="V-12345678" />
+                                             <label className="mono text-[10px] font-black uppercase">Cédula / RIF <span className="text-[#FF4D00]">*</span></label>
+                                             <input
+                                                  className={`w-full border-4 ${errors.idNumber ? 'border-[#FF4D00] bg-red-50' : 'border-[#262626]'} p-4 font-bold mono focus:bg-gray-50 outline-none`}
+                                                  placeholder="V-12345678"
+                                                  value={data.idNumber}
+                                                  onChange={e => setData({ ...data, idNumber: e.target.value })}
+                                             />
+                                             {errors.idNumber && <p className="text-[#FF4D00] mono text-[10px] font-bold">{errors.idNumber}</p>}
                                         </div>
                                         <div className="space-y-2">
-                                             <label className="mono text-[10px] font-black uppercase">Teléfono Pago Móvil</label>
-                                             <input className="w-full border-4 border-[#262626] p-4 font-bold mono focus:bg-gray-50 outline-none" placeholder="04121234567" />
+                                             <label className="mono text-[10px] font-black uppercase">Teléfono Pago Móvil <span className="text-[#FF4D00]">*</span></label>
+                                             <input
+                                                  className={`w-full border-4 ${errors.phone ? 'border-[#FF4D00] bg-red-50' : 'border-[#262626]'} p-4 font-bold mono focus:bg-gray-50 outline-none`}
+                                                  placeholder="04121234567"
+                                                  value={data.phone}
+                                                  onChange={e => setData({ ...data, phone: e.target.value })}
+                                             />
+                                             {errors.phone && <p className="text-[#FF4D00] mono text-[10px] font-bold">{errors.phone}</p>}
                                         </div>
                                    </div>
 
