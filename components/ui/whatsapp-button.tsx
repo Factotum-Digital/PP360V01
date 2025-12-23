@@ -46,7 +46,7 @@ export const WhatsAppFloatingButton: React.FC = () => {
                               </span>
                               <div className="text-left">
                                    <p className="mono text-[10px] font-black uppercase">Chat Directo</p>
-                                   <p className="mono text-[8px] font-bold opacity-60">+1 (555) 774-5095</p>
+                                   <p className="mono text-[8px] font-bold opacity-60">Respuesta inmediata</p>
                               </div>
                          </button>
 
