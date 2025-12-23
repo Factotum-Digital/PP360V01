@@ -66,7 +66,7 @@ export async function POST(request: NextRequest) {
 
           // Insertar orden en la base de datos
           const { data: order, error } = await supabase
-               .from("orders")
+               .from("exchange_orders")
                .insert({
                     ticket_id: ticketId,
                     user_id: null, // Guest order - sin usuario registrado
