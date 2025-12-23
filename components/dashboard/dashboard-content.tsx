@@ -151,17 +151,42 @@ export function DashboardContent({ user, orders, currentRate }: DashboardContent
 function NewOrderForm({ currentRate, onComplete }: { currentRate: number; onComplete: () => void }) {
      const [step, setStep] = useState(1);
      const [amount, setAmount] = useState(100);
+     const [emailPaypal, setEmailPaypal] = useState('');
      const [bank, setBank] = useState('Banesco');
      const [phone, setPhone] = useState('');
      const [idNumber, setIdNumber] = useState('');
      const [loading, setLoading] = useState(false);
+     const [errors, setErrors] = useState<{ email?: string; phone?: string; id?: string }>({});
      const supabase = createClient();
 
      const commission = 0.05;
      const netAmount = amount * (1 - commission);
      const vesAmount = netAmount * currentRate;
 
+     // Validación de campos obligatorios
+     const validateStep2 = () => {
+          const newErrors: { email?: string; phone?: string; id?: string } = {};
+
+          if (!emailPaypal.trim() || !emailPaypal.includes('@')) {
+               newErrors.email = 'Email PayPal es obligatorio';
+          }
+          if (!phone.trim() || phone.length < 10) {
+               newErrors.phone = 'Teléfono es obligatorio (mín. 10 dígitos)';
+          }
+          if (!idNumber.trim() || idNumber.length < 6) {
+               newErrors.id = 'Cédula/RIF es obligatorio';
+          }
+
+          setErrors(newErrors);
+          return Object.keys(newErrors).length === 0;
+     };
+
      const handleSubmit = async () => {
+          // Validar antes de enviar
+          if (!validateStep2()) {
+               return;
+          }
+
           setLoading(true);
 
           const { data: { user } } = await supabase.auth.getUser();
@@ -180,6 +205,7 @@ function NewOrderForm({ currentRate, onComplete }: { currentRate: number; onComp
                currency_received: 'VES',
                status: 'PENDING',
                destination_data: {
+                    email_paypal: emailPaypal,
                     bank,
                     phone,
                     id_number: idNumber,
@@ -245,9 +271,32 @@ function NewOrderForm({ currentRate, onComplete }: { currentRate: number; onComp
 
                {step === 2 && (
                     <div className="space-y-6">
-                         <h3 className="mono text-xl font-black uppercase">Paso 2: Datos de Pago</h3>
+                         <div className="flex justify-between items-center">
+                              <h3 className="mono text-xl font-black uppercase underline decoration-4">Datos de Destino</h3>
+                              <div className="flex gap-2">
+                                   <span className="mono text-[10px] font-bold text-gray-400">STEP_01</span>
+                                   <span className="mono text-[10px] font-black bg-[#262626] text-white px-2">STEP_02</span>
+                              </div>
+                         </div>
 
                          <div className="grid md:grid-cols-2 gap-4">
+                              {/* Email PayPal */}
+                              <div className="space-y-2">
+                                   <label className="mono text-[10px] font-black uppercase">
+                                        Email PayPal <span className="text-red-500">*</span>
+                                   </label>
+                                   <input
+                                        type="email"
+                                        value={emailPaypal}
+                                        onChange={(e) => { setEmailPaypal(e.target.value); setErrors({ ...errors, email: undefined }); }}
+                                        className={`w-full border-4 p-4 font-bold mono outline-none ${errors.email ? 'border-red-500 bg-red-50' : 'border-[#262626]'}`}
+                                        placeholder="usuario@email.com"
+                                        required
+                                   />
+                                   {errors.email && <p className="mono text-[10px] text-red-500 font-bold">{errors.email}</p>}
+                              </div>
+
+                              {/* Banco */}
                               <div className="space-y-2">
                                    <label className="mono text-[10px] font-black uppercase">Banco</label>
                                    <select
@@ -262,26 +311,45 @@ function NewOrderForm({ currentRate, onComplete }: { currentRate: number; onComp
                                         <option>BOD</option>
                                    </select>
                               </div>
+
+                              {/* Cédula/RIF */}
                               <div className="space-y-2">
-                                   <label className="mono text-[10px] font-black uppercase">Teléfono Pago Móvil</label>
-                                   <input
-                                        type="text"
-                                        value={phone}
-                                        onChange={(e) => setPhone(e.target.value)}
-                                        className="w-full border-4 border-[#262626] p-4 font-bold mono outline-none"
-                                        placeholder="04121234567"
-                                   />
-                              </div>
-                              <div className="space-y-2 md:col-span-2">
-                                   <label className="mono text-[10px] font-black uppercase">Cédula</label>
+                                   <label className="mono text-[10px] font-black uppercase">
+                                        Cédula / RIF <span className="text-red-500">*</span>
+                                   </label>
                                    <input
                                         type="text"
                                         value={idNumber}
-                                        onChange={(e) => setIdNumber(e.target.value)}
-                                        className="w-full border-4 border-[#262626] p-4 font-bold mono outline-none"
+                                        onChange={(e) => { setIdNumber(e.target.value); setErrors({ ...errors, id: undefined }); }}
+                                        className={`w-full border-4 p-4 font-bold mono outline-none ${errors.id ? 'border-red-500 bg-red-50' : 'border-[#262626]'}`}
                                         placeholder="V-12345678"
+                                        required
                                    />
+                                   {errors.id && <p className="mono text-[10px] text-red-500 font-bold">{errors.id}</p>}
                               </div>
+
+                              {/* Teléfono */}
+                              <div className="space-y-2">
+                                   <label className="mono text-[10px] font-black uppercase">
+                                        Teléfono Pago Móvil <span className="text-red-500">*</span>
+                                   </label>
+                                   <input
+                                        type="text"
+                                        value={phone}
+                                        onChange={(e) => { setPhone(e.target.value); setErrors({ ...errors, phone: undefined }); }}
+                                        className={`w-full border-4 p-4 font-bold mono outline-none ${errors.phone ? 'border-red-500 bg-red-50' : 'border-[#262626]'}`}
+                                        placeholder="04121234567"
+                                        required
+                                   />
+                                   {errors.phone && <p className="mono text-[10px] text-red-500 font-bold">{errors.phone}</p>}
+                              </div>
+                         </div>
+
+                         {/* Warning */}
+                         <div className="bg-orange-50 border-l-4 border-[#FF4D00] p-4">
+                              <p className="mono text-[10px] font-bold text-gray-600">
+                                   ATENCIÓN: Solo aceptamos pagos de cuentas verificadas coincidentes con el titular bancario.
+                              </p>
                          </div>
 
                          <div className="flex gap-4">
@@ -296,7 +364,7 @@ function NewOrderForm({ currentRate, onComplete }: { currentRate: number; onComp
                                    className="flex-1 p-4 text-center font-black uppercase bg-[#FF4D00] cursor-pointer"
                                    onClick={handleSubmit}
                               >
-                                   {loading ? 'PROCESANDO...' : 'CONFIRMAR ORDEN'}
+                                   {loading ? 'PROCESANDO...' : 'CONFIRMAR'}
                               </Slab>
                          </div>
                     </div>
