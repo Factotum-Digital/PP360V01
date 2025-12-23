@@ -44,7 +44,7 @@ export const Footer: React.FC = () => (
                                         className="flex items-center gap-2 hover:text-[#FF4D00] transition-colors"
                                    >
                                         <WhatsAppIcon />
-                                        <span>+1 (555) 774-5095</span>
+                                        <span>WhatsApp</span>
                                    </a>
                               </li>
                               <li>
