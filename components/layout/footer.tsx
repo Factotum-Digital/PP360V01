@@ -91,36 +91,10 @@ export const Footer: React.FC = () => (
           </div>
 
           {/* Bottom Bar */}
-          <div className="mt-12 pt-8 border-t-4 border-gray-200 flex flex-col md:flex-row justify-between items-center gap-4">
-               <p className="mono text-[10px] font-bold text-gray-400 uppercase">
+          <div className="mt-12 pt-8 border-t-4 border-gray-200">
+               <p className="mono text-[10px] font-bold text-gray-400 uppercase text-center">
                     © 2025 PP360VE Terminal. All rights reserved.
                </p>
-               <div className="flex gap-4">
-                    <a
-                         href="https://www.facebook.com/groups/paypal360ve"
-                         target="_blank"
-                         rel="noopener noreferrer"
-                         className="w-10 h-10 bg-[#262626] text-white flex items-center justify-center hover:bg-[#FF4D00] transition-colors"
-                    >
-                         <FacebookIcon />
-                    </a>
-                    <a
-                         href="https://www.instagram.com/paypal360ve/"
-                         target="_blank"
-                         rel="noopener noreferrer"
-                         className="w-10 h-10 bg-[#262626] text-white flex items-center justify-center hover:bg-[#FF4D00] transition-colors"
-                    >
-                         <InstagramIcon />
-                    </a>
-                    <a
-                         href="https://wa.me/15557745095"
-                         target="_blank"
-                         rel="noopener noreferrer"
-                         className="w-10 h-10 bg-[#25D366] text-white flex items-center justify-center hover:bg-[#128C7E] transition-colors"
-                    >
-                         <WhatsAppIcon />
-                    </a>
-               </div>
           </div>
      </footer>
 );
