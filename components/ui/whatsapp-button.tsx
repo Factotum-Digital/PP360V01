@@ -69,10 +69,13 @@ export const WhatsAppFloatingButton: React.FC = () => {
                {/* Main Button */}
                <button
                     onClick={() => setIsExpanded(!isExpanded)}
-                    className={`w-16 h-16 flex items-center justify-center border-4 border-[#262626] shadow-[4px_4px_0px_0px_#262626] transition-all hover:shadow-[2px_2px_0px_0px_#262626] hover:translate-x-[2px] hover:translate-y-[2px] active:bg-[#FF4D00] active:border-[#FF4D00] ${isExpanded
-                         ? 'bg-[#262626] text-white'
-                         : 'bg-[#25D366] text-white'
-                         }`}
+                    className={`w-16 h-16 flex items-center justify-center border-4 shadow-[4px_4px_0px_0px_#262626] transition-all text-white
+                         ${isExpanded
+                              ? 'bg-[#262626] border-[#262626]'
+                              : 'bg-[#25D366] border-[#262626] hover:bg-[#FF4D00] hover:border-[#FF4D00] active:bg-[#FF4D00] active:border-[#FF4D00]'
+                         }
+                         hover:shadow-[2px_2px_0px_0px_#262626] hover:translate-x-[2px] hover:translate-y-[2px]
+                    `}
                >
                     {isExpanded ? <CloseIcon /> : <WhatsAppIcon />}
                </button>
