@@ -12,6 +12,7 @@ export interface ExchangeData {
      bank: string;
      idNumber: string;
      phone: string;
+     whatsapp: string;
 }
 
 export interface TerminalLog {
