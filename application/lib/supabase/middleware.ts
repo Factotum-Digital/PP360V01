@@ -2,22 +2,18 @@ import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 import { isAdmin } from '@/lib/admin-config';
 
+// HARDCODED: Vercel env var is truncated, using direct values
+const SUPABASE_URL = 'https://gbqlvpceruyiburzlpjo.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdicWx2cGNlcnV5aWJ1cnpscGpvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY0OTU1MjYsImV4cCI6MjA4MjA3MTUyNn0.vKBbg26kZB9yabmhQFbd96xpkwrv1DOnSoyT1OCrxEk';
+
 export async function updateSession(request: NextRequest) {
      let supabaseResponse = NextResponse.next({
           request,
      });
 
-     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-     const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-
-     if (!supabaseUrl || !supabaseAnonKey) {
-          console.error('Missing Supabase environment variables in middleware');
-          return supabaseResponse;
-     }
-
      const supabase = createServerClient(
-          supabaseUrl,
-          supabaseAnonKey,
+          SUPABASE_URL,
+          SUPABASE_ANON_KEY,
           {
                cookies: {
                     getAll() {
