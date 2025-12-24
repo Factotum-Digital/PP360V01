@@ -1,6 +1,5 @@
 import React from 'react';
 
-export const CURRENT_RATE = 54.42;
 export const COMMISSION_RATE = 0.05;
 export const MINIMUM_USD = 5;
 
