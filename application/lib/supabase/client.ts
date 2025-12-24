@@ -1,21 +1,10 @@
 import { createBrowserClient } from '@supabase/ssr';
 
+// HARDCODED: Vercel env var is truncated, using direct values
+const SUPABASE_URL = 'https://gbqlvpceruyiburzlpjo.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdicWx2cGNlcnV5aWJ1cnpscGpvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY0OTU1MjYsImV4cCI6MjA4MjA3MTUyNn0.vKBbg26kZB9yabmhQFbd96xpkwrv1DOnSoyT1OCrxEk';
+
 export function createClient() {
-     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-     const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
-
-     console.log('Supabase Config:', {
-          hasUrl: !!supabaseUrl,
-          url: supabaseUrl,
-          hasKey: !!supabaseAnonKey,
-          keyLength: supabaseAnonKey?.length || 0,
-          keyStart: supabaseAnonKey?.substring(0, 30) + '...',
-          keyEnd: '...' + supabaseAnonKey?.substring(supabaseAnonKey.length - 20),
-     });
-
-     if (!supabaseUrl || !supabaseAnonKey) {
-          console.error('Missing Supabase environment variables');
-     }
-
-     return createBrowserClient(supabaseUrl, supabaseAnonKey);
+     return createBrowserClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 }
+
