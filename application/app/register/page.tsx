@@ -109,7 +109,7 @@ export default function RegisterPage() {
                          <p className="mono text-xs font-bold text-gray-400 uppercase tracking-widest">Create your terminal account</p>
                     </div>
 
-                    <div className="border-4 border-[#262626] bg-white p-6 sm:p-10 shadow-[10px_10px_0px_0px_#262626] relative">
+                    <div className="border-4 border-[#262626] bg-white p-6 sm:p-10 shadow-[10px_10px_0px_0px_#262626] relative transition-all duration-200 hover:shadow-[16px_16px_0px_0px_#262626] hover:-translate-x-1 hover:-translate-y-1">
 
                          {/* Quick Social Register */}
                          <div className="mb-10">
