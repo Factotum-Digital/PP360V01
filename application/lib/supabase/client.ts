@@ -8,6 +8,9 @@ export function createClient() {
           hasUrl: !!supabaseUrl,
           url: supabaseUrl,
           hasKey: !!supabaseAnonKey,
+          keyLength: supabaseAnonKey?.length || 0,
+          keyStart: supabaseAnonKey?.substring(0, 30) + '...',
+          keyEnd: '...' + supabaseAnonKey?.substring(supabaseAnonKey.length - 20),
      });
 
      if (!supabaseUrl || !supabaseAnonKey) {
