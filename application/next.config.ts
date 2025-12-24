@@ -1,3 +1,4 @@
+// Force rebuild: 2025-12-24T09:25:00
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
