@@ -110,19 +110,31 @@ export function AdminDashboard({ user, orders, stats, currentRate }: AdminDashbo
 
                {/* Stats Row */}
                <div className="grid md:grid-cols-6 gap-4">
-                    <Slab className="p-4 text-center">
+                    <Slab
+                         className={`p-4 text-center cursor-pointer transition-transform hover:scale-105 ${filter === 'ALL' ? 'ring-4 ring-black' : ''}`}
+                         onClick={() => setFilter('ALL')}
+                    >
                          <div className="text-2xl font-black">{stats.total}</div>
                          <div className="mono text-[10px] font-bold uppercase text-gray-500">Total</div>
                     </Slab>
-                    <Slab className="p-4 text-center bg-yellow-100">
+                    <Slab
+                         className={`p-4 text-center bg-yellow-100 cursor-pointer transition-transform hover:scale-105 ${filter === 'PENDING' ? 'ring-4 ring-yellow-600' : ''}`}
+                         onClick={() => setFilter('PENDING')}
+                    >
                          <div className="text-2xl font-black text-yellow-600">{stats.pending}</div>
                          <div className="mono text-[10px] font-bold uppercase">Pendientes</div>
                     </Slab>
-                    <Slab className="p-4 text-center bg-blue-100">
+                    <Slab
+                         className={`p-4 text-center bg-blue-100 cursor-pointer transition-transform hover:scale-105 ${filter === 'VERIFYING' ? 'ring-4 ring-blue-600' : ''}`}
+                         onClick={() => setFilter('VERIFYING')}
+                    >
                          <div className="text-2xl font-black text-blue-600">{stats.verifying}</div>
                          <div className="mono text-[10px] font-bold uppercase">Verificando</div>
                     </Slab>
-                    <Slab className="p-4 text-center bg-green-100">
+                    <Slab
+                         className={`p-4 text-center bg-green-100 cursor-pointer transition-transform hover:scale-105 ${filter === 'COMPLETED' ? 'ring-4 ring-green-600' : ''}`}
+                         onClick={() => setFilter('COMPLETED')}
+                    >
                          <div className="text-2xl font-black text-green-600">{stats.completed}</div>
                          <div className="mono text-[10px] font-bold uppercase">Completadas</div>
                     </Slab>
