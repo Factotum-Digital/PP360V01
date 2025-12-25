@@ -12,7 +12,7 @@ export const Sidebar: React.FC = () => {
                {/* Mobile Hamburger Button - Small, bottom corner */}
                <button
                     onClick={() => setIsOpen(!isOpen)}
-                    className="sm:hidden fixed top-6 right-4 z-50 w-12 h-12 bg-[#262626] border-2 border-[#262626] flex flex-col items-center justify-center gap-1 rounded-sm shadow-[3px_3px_0_0_#FF4D00]"
+                    className="hidden sm:hidden fixed top-4 right-20 z-50 w-12 h-12 bg-[#262626] border-2 border-[#262626] flex flex-col items-center justify-center gap-1 rounded-sm shadow-[3px_3px_0_0_#FF4D00]"
                     aria-label="Toggle menu"
                >
                     <span className={`w-5 h-0.5 bg-white transition-all duration-300 ${isOpen ? 'rotate-45 translate-y-1.5' : ''}`} />

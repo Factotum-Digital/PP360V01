@@ -82,10 +82,10 @@ export function AdminDashboard({ user, orders, stats, currentRate }: AdminDashbo
      return (
           <div className="space-y-8">
                {/* Header */}
-               <div className="flex justify-between items-start">
+               <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
                     <div>
                          <Tag active>ADMIN_TERMINAL</Tag>
-                         <h1 className="text-4xl font-black uppercase tracking-tighter mt-4">
+                         <h1 className="text-3xl sm:text-4xl font-black uppercase tracking-tighter mt-4">
                               Panel Administrativo
                          </h1>
                          <p className="mono text-xs font-bold text-gray-500 mt-2">

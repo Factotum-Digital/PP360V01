@@ -167,8 +167,8 @@ export const ExchangeTerminal: React.FC = () => {
                addLog("UPLOAD_ERROR: INVALID_FILE_TYPE", "warning");
                return;
           }
-          if (file.size > 5 * 1024 * 1024) {
-               addLog("UPLOAD_ERROR: FILE_TOO_LARGE (MAX 5MB)", "warning");
+          if (file.size > 2 * 1024 * 1024) {
+               alert('Error: El archivo es muy grande (máx 2MB)');
                return;
           }
 
@@ -182,13 +182,13 @@ export const ExchangeTerminal: React.FC = () => {
                const filePath = `${paymentInfo.ticketId}/${fileName}`;
 
                const { error: uploadError } = await supabase.storage
-                    .from('payment_proofs')
+                    .from('payment-proofs')
                     .upload(filePath, file);
 
                if (uploadError) throw uploadError;
 
                const { data: { publicUrl } } = supabase.storage
-                    .from('payment_proofs')
+                    .from('payment-proofs')
                     .getPublicUrl(filePath);
 
                // Update Order Status via API
@@ -436,7 +436,7 @@ export const ExchangeTerminal: React.FC = () => {
                                                                  disabled={uploading}
                                                             />
                                                        </label>
-                                                       <p className="mono text-[10px] text-center font-bold text-gray-500">FORMATOS: JPG, PNG | MAX: 5MB</p>
+                                                       <p className="mono text-[10px] text-center font-bold text-gray-500">FORMATOS: JPG, PNG | MAX: 2MB</p>
                                                   </div>
                                              ) : (
                                                   <div className="bg-green-100 p-4 border-l-8 border-green-500 text-center animate-in fade-in duration-500">

@@ -27,10 +27,11 @@ export default function RootLayout({
      children: React.ReactNode;
 }>) {
      return (
-          <html lang="es">
+          <html lang="es" suppressHydrationWarning>
                <body
                     className={`${inter.variable} ${jetbrainsMono.variable} antialiased min-h-screen selection:bg-[#FF4D00] selection:text-white`}
                     style={{ fontFamily: "'Inter', sans-serif" }}
+                    suppressHydrationWarning
                >
                     <div className="noise" />
                     <div className="flex">
