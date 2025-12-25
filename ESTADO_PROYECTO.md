@@ -1,54 +1,110 @@
-# PP360VE - Estado del Proyecto (23 Dic 2025)
+# PP360VE - Estado del Proyecto
 
-## ✅ COMPLETADO HOY
+**Última actualización:** 25 de Diciembre de 2025  
+**Avance estimado:** ~75%
 
-### Guest Checkout
-- [x] Crear orden sin cuenta (invitado)
-- [x] Generar ticket ID único (P360-XXXX)
-- [x] Validaciones: email, cédula, teléfono, WhatsApp
-- [x] RLS policies configuradas en Supabase
-- [x] Mínimo $5 USD (antes era $10)
+---
 
-### Admin Dashboard
-- [x] Filtros: ALL, PENDING, VERIFYING, COMPLETED, CANCELLED, GUESTS, REGISTERED
-- [x] Visualización de órdenes de invitados
-- [x] Badge "GUEST" para identificar
+## 📋 KANBAN - Estado de Funcionalidades
 
-### Carga de Comprobantes
-- [x] Bucket `payment_proofs` creado en Supabase Storage
-- [x] Botón "SUBIR COMPROBANTE" en pantalla de orden generada
-- [x] API `/api/orders/upload-proof` para guardar URL
-- [x] Visualización del comprobante en Admin (expandir orden)
-- [ ] **PENDIENTE PROBAR**: Subir imagen real y verificar en admin
+### ✅ COMPLETADO
 
-### Estructura del Proyecto
-- [x] Limpieza de archivos duplicados
-- [x] GitHub actualizado: https://github.com/Factotum-Digital/PP360V01
+| Funcionalidad | Descripción |
+|---------------|-------------|
+| **Landing Page** | Hero, calculadora, gráficos, sidebar, diseño Brutalist Terminal |
+| **Calculadora de Intercambio** | Input USD, conversión VES, comisión 5%, tasa dinámica DolarAPI |
+| **Sistema de Autenticación** | Registro, login, confirmación email, middleware, logout |
+| **Dashboard Usuario** | Vista órdenes, estadísticas, formulario multi-paso, historial |
+| **Panel Admin** | Filtros por estado, estadísticas globales, detalle órdenes, cambio estados |
+| **Guest Checkout** | Órdenes sin registro, ticket ID único (P360-XXXX), validaciones |
+| **API de Tasas** | Endpoint `/api/rates`, DolarAPI, fórmula paralelo×0.85, cache 5min |
+| **RLS Policies** | Políticas de seguridad configuradas en Supabase |
+| **Storage Bucket** | `payment_proofs` creado y público |
+| **Filtros Admin** | ALL, PENDING, VERIFYING, COMPLETED, CANCELLED, GUESTS, REGISTERED |
+| **Footer con Contacto** | WhatsApp, Facebook, Instagram, botón flotante animado |
 
-## 🔜 PRÓXIMOS PASOS
+---
 
-1. **Probar subida de comprobante** - Verificar flujo completo
-2. **Notificaciones por Email** - Avisar al admin cuando hay nueva orden
-3. **Vinculación automática** - Si un guest se registra y su email PayPal coincide, vincular órdenes
-4. **Deploy a Vercel** - Verificar que producción funciona igual
+### 🔄 EN PROGRESO
 
-## 📁 ARCHIVOS CLAVE
+| Funcionalidad | Estado | Notas |
+|---------------|--------|-------|
+| **Subida Comprobantes** | 80% | Bucket existe, UI lista, **falta probar flujo completo** |
+| **Login con Facebook** | 50% | Función `signInWithFacebook` agregada, **falta configurar en Supabase Dashboard** |
 
-- `/Users/wilfredy/PP360VE/application/` - Código fuente Next.js
-- Supabase: `gbqlvpceruyiburzlpjo`
-- GitHub: `Factotum-Digital/PP360V01`
-- Vercel: `pp360v01.vercel.app`
+---
 
-## 🔧 COMANDOS ÚTILES
+### 🔜 PENDIENTE - Alta Prioridad
+
+| # | Funcionalidad | Descripción |
+|---|---------------|-------------|
+| 1 | **Notificaciones Email** | Email al crear orden, email al cambiar estado (Resend/SendGrid) |
+| 2 | **Verificación PayPal API** | Validar transacciones automáticamente con PayPal |
+| 3 | **Testing Comprobantes** | Probar subida real de imagen y visualización en admin |
+
+---
+
+### 📋 PENDIENTE - Media Prioridad
+
+| # | Funcionalidad | Descripción |
+|---|---------------|-------------|
+| 4 | **Historial Tasas Real** | Guardar tasas en BD, gráfico con datos reales (no simulados) |
+| 5 | **Búsqueda/Paginación** | Buscar órdenes por ID/email, paginar en admin |
+| 6 | **Perfil de Usuario** | Editar datos, guardar banco/teléfono por defecto |
+| 7 | **Múltiples Métodos Pago** | Zelle, Binance Pay, Criptomonedas |
+
+---
+
+### 📝 BACKLOG - Baja Prioridad
+
+| # | Funcionalidad | Descripción |
+|---|---------------|-------------|
+| 8 | **Dashboard Estadísticas** | Gráficos de volumen, reportes CSV/PDF |
+| 9 | **Sistema Referidos** | Códigos de referido, comisiones |
+| 10 | **App Móvil PWA** | React Native o PWA, notificaciones push |
+| 11 | **Multiidioma** | Soporte inglés/portugués |
+| 12 | **Animaciones** | Transiciones entre páginas |
+| 13 | **Modo Oscuro/Claro** | Toggle de tema |
+| 14 | **Rate Limiting** | Limitar peticiones API |
+| 15 | **2FA** | Autenticación de dos factores |
+| 16 | **SEO Avanzado** | Metatags dinámicos, sitemap.xml, Open Graph |
+
+---
+
+## 🔧 Archivos Clave
+
+```
+/Users/wilfredy/PP360VE/
+├── application/           # Código fuente Next.js
+│   ├── app/              # Rutas y páginas
+│   ├── components/       # Componentes React
+│   ├── lib/              # Servicios y utilidades
+│   └── middleware.ts     # Protección de rutas
+├── DOCUMENTACION_PP360VE.md
+└── ESTADO_PROYECTO.md    # ← Este archivo
+```
+
+---
+
+## 🔗 Enlaces Importantes
+
+| Recurso | URL |
+|---------|-----|
+| **Producción** | https://pp360v01.vercel.app |
+| **GitHub** | https://github.com/Factotum-Digital/PP360V01 |
+| **Supabase** | https://supabase.com/dashboard/project/gbqlvpceruyiburzlpjo |
+| **Vercel** | https://vercel.com/factotum-digitals-projects/pp360v01 |
+
+---
+
+## ⚡ Comandos Útiles
 
 ```bash
 cd /Users/wilfredy/PP360VE/application
-npm run dev                    # Servidor local
+npm run dev                                    # Servidor local
 git add -A && git commit -m "msg" && git push  # Subir cambios
 ```
 
-## ⚠️ NOTAS IMPORTANTES
+---
 
-- El servidor `npm run dev` debe ejecutarse desde `/PP360VE/application/` (no desde la raíz)
-- Las políticas RLS ya están configuradas en Supabase
-- El bucket `payment_proofs` ya existe y es público
+*Actualizado con Antigravity AI - 25 Dic 2025*
