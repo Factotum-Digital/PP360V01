@@ -1,7 +1,7 @@
 # PP360VE - Estado del Proyecto
 
-**Última actualización:** 26 de Diciembre de 2025  
-**Avance estimado:** ~65% (Core funcional, pendientes features clave)
+**Última actualización:** 26 de Diciembre de 2025 (Fix PayPal Prod)
+**Avance estimado:** ~68% (Core funcional, PayPal Production Verified)
 
 ---
 
@@ -22,7 +22,8 @@
 | **Panel Admin** | Filtros, estadísticas, detalle órdenes, cambio estados |
 | **Guest Checkout** | Órdenes sin registro, ticket ID (P360-XXXX), validaciones |
 | **API de Tasas** | Endpoint `/api/rates`, DolarAPI, cache 5min, descuento 12% |
-| **RLS Policies** | Seguridad configurada en Supabase |
+| **RLS Policies** | Seguridad configurada en Supabase (Incluye Update Policy para dueños) |
+| **Verificación PayPal** | Integración automática API, Webhook simulado client-side, Auto-Verify |
 | **Storage Bucket** | `payment-proofs` para comprobantes |
 | **Filtros Admin** | ALL, PENDING, VERIFYING, COMPLETED, CANCELLED, GUESTS, REGISTERED |
 | **Footer Contacto** | WhatsApp, Facebook, Instagram, botón flotante animado |
@@ -31,6 +32,12 @@
 | **Gestión de Cuentas** | Guardado automático de datos bancarios (Pago Móvil/Transf) al crear orden |
 | **UX Formulario** | Monto mínimo 5 USD, Layout Grid optimizado, Validaciones en tiempo real |
 | **Teléfono Admin** | Visualización de teléfono en panel de administración para transferencias |
+
+### 🐞 Errores Críticos Resueltos
+
+| Error | Causa | Solución |
+|-------|-------|----------|
+| **Fallo Verificación Automática PayPal** (Prod) | 1. Conflicto env vars en Vercel.<br>2. Falta de política RLS para `UPDATE`. | 1. Restauración client cookie-based.<br>2. Nueva Policy `"Users can update own orders"`.<br>3. Truncate DB para limpieza. |
 
 ---
 
@@ -79,7 +86,7 @@
 | 19 | **Multiidioma** | Soporte inglés/portugués | ~8h |
 | 20 | **Modo Oscuro/Claro** | Toggle de tema | ~4h |
 | 21 | **2FA** | Autenticación de dos factores | ~6h |
-| 22 | **Verificación PayPal API** | Validar transacciones automáticamente | ~10h |
+
 
 ### 🎨 Diseño UI/UX Pendiente
 
