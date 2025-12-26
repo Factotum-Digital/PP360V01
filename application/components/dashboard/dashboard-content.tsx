@@ -293,7 +293,12 @@ function NewOrderForm({ currentRate, onComplete }: { currentRate: number; onComp
      const [idNumber, setIdNumber] = useState('');
      const [whatsapp, setWhatsapp] = useState('');
      const [loading, setLoading] = useState(false);
-     const [errors, setErrors] = useState<{ email?: string; phone?: string; id?: string; whatsapp?: string }>({});
+     const [errors, setErrors] = useState<{ email?: string; phone?: string; id?: string; whatsapp?: string; accountNumber?: string; accountHolder?: string }>({});
+     // Método de pago: 'pago_movil' o 'transferencia'
+     const [paymentMethod, setPaymentMethod] = useState<'pago_movil' | 'transferencia'>('pago_movil');
+     // Campos adicionales para transferencia bancaria
+     const [accountNumber, setAccountNumber] = useState('');
+     const [accountHolder, setAccountHolder] = useState('');
      const [paymentInfo, setPaymentInfo] = useState<{
           ticketId: string;
           paypalDestination: string;
@@ -309,19 +314,31 @@ function NewOrderForm({ currentRate, onComplete }: { currentRate: number; onComp
 
      // Validación de campos obligatorios
      const validateStep2 = () => {
-          const newErrors: { email?: string; phone?: string; id?: string; whatsapp?: string } = {};
+          const newErrors: { email?: string; phone?: string; id?: string; whatsapp?: string; accountNumber?: string; accountHolder?: string } = {};
 
           if (!emailPaypal.trim() || !emailPaypal.includes('@')) {
                newErrors.email = 'Email PayPal es obligatorio';
-          }
-          if (!phone.trim() || phone.length < 10) {
-               newErrors.phone = 'Teléfono es obligatorio (mín. 10 dígitos)';
           }
           if (!idNumber.trim() || idNumber.length < 6) {
                newErrors.id = 'Cédula/RIF es obligatorio';
           }
           if (!whatsapp.trim() || whatsapp.length < 10) {
                newErrors.whatsapp = 'WhatsApp es obligatorio (mín. 10 dígitos)';
+          }
+
+          // Validaciones específicas según método de pago
+          if (paymentMethod === 'pago_movil') {
+               if (!phone.trim() || phone.length < 10) {
+                    newErrors.phone = 'Teléfono Pago Móvil es obligatorio';
+               }
+          } else {
+               // Transferencia bancaria
+               if (!accountNumber.trim() || accountNumber.length < 10) {
+                    newErrors.accountNumber = 'Número de cuenta es obligatorio (mín. 10 dígitos)';
+               }
+               if (!accountHolder.trim() || accountHolder.length < 3) {
+                    newErrors.accountHolder = 'Nombre del titular es obligatorio';
+               }
           }
 
           setErrors(newErrors);
@@ -356,12 +373,19 @@ function NewOrderForm({ currentRate, onComplete }: { currentRate: number; onComp
                status: 'PENDING',
                paypal_email: emailPaypal,
                bank_name: bank,
-               phone_pago_movil: phone,
+               phone_pago_movil: paymentMethod === 'pago_movil' ? phone : null,
                id_number: idNumber,
                whatsapp: whatsapp,
                ticket_id: ticketId,
                is_guest: false,
                exchange_rate: currentRate,
+               destination_data: {
+                    payment_method: paymentMethod,
+                    ...(paymentMethod === 'transferencia' && {
+                         account_number: accountNumber,
+                         account_holder: accountHolder,
+                    }),
+               },
           }).select().single();
 
           if (error) {
@@ -466,6 +490,38 @@ function NewOrderForm({ currentRate, onComplete }: { currentRate: number; onComp
                               </div>
                          </div>
 
+                         {/* Selector de Método de Pago */}
+                         <div className="space-y-3">
+                              <label className="mono text-[10px] font-black uppercase block">¿Cómo quieres recibir tu pago?</label>
+                              <div className="grid grid-cols-2 gap-3">
+                                   <button
+                                        type="button"
+                                        onClick={() => setPaymentMethod('pago_movil')}
+                                        className={`border-4 border-[#262626] p-4 font-black uppercase mono text-xs transition-all shadow-[4px_4px_0px_0px_#262626] ${paymentMethod === 'pago_movil'
+                                             ? 'bg-[#FF4D00] text-white hover:bg-[#e04400]'
+                                             : 'bg-white text-[#262626] hover:bg-[#FF4D00] hover:text-white'
+                                             }`}
+                                   >
+                                        📱 Pago Móvil
+                                   </button>
+                                   <button
+                                        type="button"
+                                        onClick={() => setPaymentMethod('transferencia')}
+                                        className={`border-4 border-[#262626] p-4 font-black uppercase mono text-xs transition-all shadow-[4px_4px_0px_0px_#262626] ${paymentMethod === 'transferencia'
+                                             ? 'bg-[#FF4D00] text-white hover:bg-[#e04400]'
+                                             : 'bg-[#262626] text-white hover:bg-[#FF4D00]'
+                                             }`}
+                                   >
+                                        🏦 Transferencia
+                                   </button>
+                              </div>
+                              <p className="mono text-[10px] text-gray-500 italic">
+                                   {paymentMethod === 'pago_movil'
+                                        ? 'Recibirás en tu teléfono asociado al banco'
+                                        : 'Recibirás en tu cuenta bancaria (requiere más datos)'}
+                              </p>
+                         </div>
+
                          <Slab
                               dark
                               className="p-4 text-center font-black uppercase bg-[#FF4D00] cursor-pointer"
@@ -535,21 +591,56 @@ function NewOrderForm({ currentRate, onComplete }: { currentRate: number; onComp
                                    {errors.id && <p className="mono text-[10px] text-red-500 font-bold">{errors.id}</p>}
                               </div>
 
-                              {/* Teléfono */}
-                              <div className="space-y-2">
-                                   <label className="mono text-[10px] font-black uppercase">
-                                        Teléfono Pago Móvil <span className="text-red-500">*</span>
-                                   </label>
-                                   <input
-                                        type="text"
-                                        value={phone}
-                                        onChange={(e) => { setPhone(e.target.value); setErrors({ ...errors, phone: undefined }); }}
-                                        className={`w-full border-4 p-4 font-bold mono outline-none ${errors.phone ? 'border-red-500 bg-red-50' : 'border-[#262626]'}`}
-                                        placeholder="04121234567"
-                                        required
-                                   />
-                                   {errors.phone && <p className="mono text-[10px] text-red-500 font-bold">{errors.phone}</p>}
-                              </div>
+                              {/* Campos condicionales según método de pago */}
+                              {paymentMethod === 'pago_movil' ? (
+                                   /* Teléfono Pago Móvil */
+                                   <div className="space-y-2">
+                                        <label className="mono text-[10px] font-black uppercase">
+                                             📱 Teléfono Pago Móvil <span className="text-red-500">*</span>
+                                        </label>
+                                        <input
+                                             type="text"
+                                             value={phone}
+                                             onChange={(e) => { setPhone(e.target.value); setErrors({ ...errors, phone: undefined }); }}
+                                             className={`w-full border-4 p-4 font-bold mono outline-none ${errors.phone ? 'border-red-500 bg-red-50' : 'border-[#262626]'}`}
+                                             placeholder="04121234567"
+                                             required
+                                        />
+                                        {errors.phone && <p className="mono text-[10px] text-red-500 font-bold">{errors.phone}</p>}
+                                   </div>
+                              ) : (
+                                   /* Campos para Transferencia Bancaria */
+                                   <>
+                                        <div className="space-y-2">
+                                             <label className="mono text-[10px] font-black uppercase">
+                                                  🏦 Número de Cuenta <span className="text-red-500">*</span>
+                                             </label>
+                                             <input
+                                                  type="text"
+                                                  value={accountNumber}
+                                                  onChange={(e) => { setAccountNumber(e.target.value); setErrors({ ...errors, accountNumber: undefined }); }}
+                                                  className={`w-full border-4 p-4 font-bold mono outline-none ${errors.accountNumber ? 'border-red-500 bg-red-50' : 'border-[#262626]'}`}
+                                                  placeholder="01340123456789012345"
+                                                  required
+                                             />
+                                             {errors.accountNumber && <p className="mono text-[10px] text-red-500 font-bold">{errors.accountNumber}</p>}
+                                        </div>
+                                        <div className="space-y-2 md:col-span-2">
+                                             <label className="mono text-[10px] font-black uppercase">
+                                                  👤 Titular de la Cuenta <span className="text-red-500">*</span>
+                                             </label>
+                                             <input
+                                                  type="text"
+                                                  value={accountHolder}
+                                                  onChange={(e) => { setAccountHolder(e.target.value); setErrors({ ...errors, accountHolder: undefined }); }}
+                                                  className={`w-full border-4 p-4 font-bold mono outline-none ${errors.accountHolder ? 'border-red-500 bg-red-50' : 'border-[#262626]'}`}
+                                                  placeholder="Nombre como aparece en el banco"
+                                                  required
+                                             />
+                                             {errors.accountHolder && <p className="mono text-[10px] text-red-500 font-bold">{errors.accountHolder}</p>}
+                                        </div>
+                                   </>
+                              )}
                          </div>
 
                          {/* WhatsApp - Full width */}

@@ -1,122 +1,126 @@
 # PP360VE - Estado del Proyecto
 
 **Última actualización:** 26 de Diciembre de 2025  
-**Avance estimado:** ~75% (UX corregido)
+**Avance estimado:** ~65% (Core funcional, pendientes features clave)
 
 ---
 
-## ✅ BUGS CRÍTICOS CORREGIDOS (26 Dic 2025)
+## ✅ COMPLETADO
+
+### Bugs Críticos Corregidos
 
 | # | Bug | Archivo | Estado |
 |---|-----|---------|--------|
-| 1 | Inconsistencia tasa: ahora 12% en todos lados | `dashboard/page.tsx`, `admin/page.tsx` | ✅ Corregido |
-| 2 | `"use server"` incorrecto eliminado | `api/orders/guest/route.ts` | ✅ Corregido |
-| 3 | Campo `order.order_id` corregido | `api/orders/guest/route.ts` | ✅ Corregido |
-| 4 | Tipos TypeScript completos (campos guest) | `lib/supabase/database.types.ts` | ✅ Corregido |
-| 5 | Forgot Password implementado con modal | `app/login/page.tsx` | ✅ Corregido |
+| 1 | Tasa 12% unificada en todo el sistema | `dashboard/page.tsx`, `api/rates/route.ts` | ✅ |
+| 2 | Eliminado `"use server"` incorrecto | `api/orders/guest/route.ts` | ✅ |
+| 3 | Campo `order.order_id` correcto | `api/orders/guest/route.ts` | ✅ |
+| 4 | Tipos TypeScript completos (campos guest) | `lib/supabase/database.types.ts` | ✅ |
+| 5 | Forgot Password con modal funcional | `app/login/page.tsx` | ✅ |
 
----
-
-## ✅ PROBLEMAS DE UX CORREGIDOS (26 Dic 2025)
+### Problemas de UX Corregidos
 
 | # | Problema | Ubicación | Estado |
 |---|----------|-----------|--------|
-| 1 | Navegación agregada (INICIO + ADMIN + LOGOUT) | Dashboard Usuario | ✅ Corregido |
-| 2 | Link al Admin visible para administradores | Dashboard Usuario | ✅ Corregido |
-| 3 | Ahora guarda `is_guest: false` + `exchange_rate` | `dashboard-content.tsx` | ✅ Corregido |
-| 4 | Admin muestra email, tasa, badge GUEST/REGISTRADO | Panel Admin | ✅ Corregido |
-| 5 | Botón WhatsApp para contactar cliente | Panel Admin | ✅ Corregido |
+| 1 | Navegación (ADMIN + LOGOUT) | Dashboard Usuario | ✅ |
+| 2 | Link Admin visible para administradores | Dashboard Usuario | ✅ |
+| 3 | Guarda `is_guest: false` + `exchange_rate` | `dashboard-content.tsx` | ✅ |
+| 4 | Admin muestra email, tasa, badge GUEST/REGISTRADO | Panel Admin | ✅ |
+| 5 | Botón WhatsApp "Contactar Cliente" | Panel Admin | ✅ |
 
----
-
-## 📋 KANBAN - Estado de Funcionalidades
-
-### ✅ COMPLETADO
+### Funcionalidades Implementadas
 
 | Funcionalidad | Descripción |
 |---------------|-------------|
 | **Landing Page** | Hero, calculadora, gráficos, sidebar, diseño Brutalist Terminal |
-| **Calculadora de Intercambio** | Input USD, conversión VES, comisión 5%, tasa dinámica DolarAPI |
-| **Sistema de Autenticación** | Registro, login, middleware, logout |
-| **Dashboard Usuario** | Vista órdenes, estadísticas, formulario multi-paso, historial |
-| **Panel Admin** | Filtros por estado, estadísticas globales, detalle órdenes, cambio estados |
-| **Guest Checkout** | Órdenes sin registro, ticket ID único (P360-XXXX), validaciones |
-| **API de Tasas** | Endpoint `/api/rates`, DolarAPI, cache 5min |
-| **RLS Policies** | Políticas de seguridad configuradas en Supabase |
-| **Storage Bucket** | `payment-proofs` creado |
+| **Calculadora** | Input USD, conversión VES, comisión 5%, tasa DolarAPI |
+| **Autenticación** | Registro, login, logout, middleware, OAuth (Google, Facebook, Microsoft) |
+| **Magic Link** | Login sin contraseña por email |
+| **Forgot Password** | Recuperación de contraseña con modal |
+| **Dashboard Usuario** | Órdenes, estadísticas, formulario multi-paso, historial |
+| **Panel Admin** | Filtros, estadísticas, detalle órdenes, cambio estados |
+| **Guest Checkout** | Órdenes sin registro, ticket ID (P360-XXXX), validaciones |
+| **API de Tasas** | Endpoint `/api/rates`, DolarAPI, cache 5min, descuento 12% |
+| **RLS Policies** | Seguridad configurada en Supabase |
+| **Storage Bucket** | `payment-proofs` para comprobantes |
 | **Filtros Admin** | ALL, PENDING, VERIFYING, COMPLETED, CANCELLED, GUESTS, REGISTERED |
-| **Footer con Contacto** | WhatsApp, Facebook, Instagram, botón flotante animado |
-| **Fondo Animado Grid Comets** | Estelas de energía alineadas al grid |
+| **Footer Contacto** | WhatsApp, Facebook, Instagram, botón flotante animado |
+| **Grid Comets** | Fondo animado con estelas de energía |
 
 ---
 
-### 🔄 EN PROGRESO
+## 🔄 EN PROGRESO
 
 | Funcionalidad | Estado | Notas |
 |---------------|--------|-------|
-| **Subida Comprobantes** | 90% | UI implementada, falta testing real |
-| **Login con Facebook** | 50% | Código listo, falta config en Supabase |
-| **Corrección de Bugs Críticos** | 0% | Identificados 5 bugs en auditoría |
+| **Subida Comprobantes** | 95% | UI funcional, falta testing producción |
+| **Login con Facebook** | 50% | Código listo, pendiente config Supabase |
 
 ---
 
-### 🔜 PENDIENTE - Alta Prioridad
+## 🔜 PENDIENTE
+
+### Alta Prioridad
 
 | # | Funcionalidad | Descripción |
 |---|---------------|-------------|
-| 1 | **Corregir Bugs Críticos** | Los 5 bugs listados arriba |
-| 2 | **Recuperar Contraseña** | Implementar flujo completo |
-| 3 | **Perfil de Usuario** | Editar datos personales, datos de pago por defecto |
-| 4 | **Notificaciones Email** | Email al crear orden, email al cambiar estado |
-| 5 | **Navegación Dashboard** | Agregar links: Home, Admin (si aplica) |
+| 1 | **Perfil de Usuario** | Editar datos personales, datos de pago por defecto |
+| 2 | **Notificaciones Email** | Email al crear orden, email al cambiar estado |
+| 3 | **Modal Comprobantes Admin** | Ver comprobante en modal grande (actual abre en nueva pestaña) |
 
----
-
-### 📋 PENDIENTE - Media Prioridad
+### Media Prioridad
 
 | # | Funcionalidad | Descripción |
 |---|---------------|-------------|
-| 6 | **Historial Tasas Real** | Guardar tasas en BD, gráfico con datos reales |
-| 7 | **Búsqueda/Paginación Admin** | Buscar órdenes por ID/email, paginar |
-| 8 | **Verificación PayPal API** | Validar transacciones automáticamente |
-| 9 | **Múltiples Métodos Pago** | Zelle, Binance Pay |
+| 4 | **Paginación Admin** | Paginar lista de órdenes |
+| 5 | **Búsqueda Admin** | Buscar por ID/email/ticket |
+| 6 | **Exportar CSV** | Descargar órdenes en CSV |
+| 7 | **Historial Tasas Real** | Guardar tasas en BD, gráfico con datos reales |
+| 8 | **Múltiples Métodos Pago** | Zelle, Binance Pay |
 
----
-
-### 📝 BACKLOG - Baja Prioridad
+### Baja Prioridad (Backlog)
 
 | # | Funcionalidad | Descripción |
 |---|---------------|-------------|
-| 10 | **Dashboard Estadísticas** | Gráficos de volumen, reportes CSV/PDF |
-| 11 | **Sistema Referidos** | Códigos de referido, comisiones |
-| 12 | **App Móvil PWA** | Notificaciones push |
-| 13 | **Multiidioma** | Soporte inglés/portugués |
-| 14 | **Modo Oscuro/Claro** | Toggle de tema |
-| 15 | **2FA** | Autenticación de dos factores |
+| 9 | **Estadísticas Dashboard** | Gráficos de volumen, reportes PDF |
+| 10 | **Sistema Referidos** | Códigos de referido, comisiones |
+| 11 | **PWA** | App móvil con notificaciones push |
+| 12 | **Multiidioma** | Soporte inglés/portugués |
+| 13 | **Modo Oscuro/Claro** | Toggle de tema |
+| 14 | **2FA** | Autenticación de dos factores |
+| 15 | **Verificación PayPal API** | Validar transacciones automáticamente |
 
 ---
 
-## 🔧 Archivos Clave
+## 🔧 Estructura del Proyecto
 
 ```
 /Users/wilfredy/PP360VE/
 ├── application/
 │   ├── app/
-│   │   ├── api/orders/guest/route.ts    ← BUG: "use server" + campo id
-│   │   ├── api/rates/route.ts           ← BUG: 12% vs 15%
-│   │   ├── login/page.tsx               ← BUG: Forgot? no funciona
-│   │   └── dashboard/page.tsx
+│   │   ├── api/orders/guest/route.ts   ← Guest checkout API
+│   │   ├── api/rates/route.ts          ← Tasas DolarAPI
+│   │   ├── login/page.tsx              ← Login + Forgot Password
+│   │   ├── register/page.tsx           ← Registro
+│   │   ├── dashboard/page.tsx          ← Dashboard usuario
+│   │   └── admin/page.tsx              ← Panel admin
 │   ├── components/
-│   │   ├── dashboard/dashboard-content.tsx  ← MEJORAR: navegación
-│   │   └── admin/admin-dashboard.tsx        ← MEJORAR: mostrar email
-│   └── lib/supabase/database.types.ts   ← BUG: tipos incompletos
+│   │   ├── dashboard/dashboard-content.tsx
+│   │   ├── admin/admin-dashboard.tsx
+│   │   └── ui/
+│   ├── lib/
+│   │   ├── supabase/
+│   │   │   ├── client.ts
+│   │   │   ├── server.ts
+│   │   │   └── database.types.ts
+│   │   └── admin-config.ts
+│   └── supabase/migrations/
 ├── DOCUMENTACION_PP360VE.md
 └── ESTADO_PROYECTO.md
 ```
 
 ---
 
-## 🔗 Enlaces Importantes
+## 🔗 Enlaces
 
 | Recurso | URL |
 |---------|-----|
@@ -127,14 +131,14 @@
 
 ---
 
-## ⚡ Comandos Útiles
+## ⚡ Comandos
 
 ```bash
 cd /Users/wilfredy/PP360VE/application
-npm run dev                                    # Servidor local
-git add -A && git commit -m "msg" && git push  # Subir cambios
+npm run dev                                    # Dev server
+git add -A && git commit -m "msg" && git push  # Deploy
 ```
 
 ---
 
-*Actualizado con Antigravity AI - 26 Dic 2025*
+*Actualizado: 26 Dic 2025 - Antigravity AI*
