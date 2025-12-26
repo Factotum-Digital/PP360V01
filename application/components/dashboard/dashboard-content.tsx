@@ -312,6 +312,31 @@ function NewOrderForm({ currentRate, onComplete }: { currentRate: number; onComp
      const netAmount = amount * (1 - commission);
      const vesAmount = netAmount * currentRate;
 
+     // Cargar datos bancarios guardados del usuario
+     React.useEffect(() => {
+          const loadUserPaymentData = async () => {
+               const { data: { user } } = await supabase.auth.getUser();
+               if (!user) return;
+
+               const { data: paymentData } = await supabase
+                    .from('user_payment_data')
+                    .select('*')
+                    .eq('user_id', user.id)
+                    .single();
+
+               if (paymentData) {
+                    // Pre-llenar datos bancarios guardados
+                    if (paymentData.bank_name) setBank(paymentData.bank_name);
+                    if (paymentData.id_number) setIdNumber(paymentData.id_number);
+                    if (paymentData.phone_pago_movil) setPhone(paymentData.phone_pago_movil);
+                    if (paymentData.account_number) setAccountNumber(paymentData.account_number);
+                    if (paymentData.account_holder) setAccountHolder(paymentData.account_holder);
+               }
+          };
+
+          loadUserPaymentData();
+     }, []);
+
      // Validación de campos obligatorios
      const validateStep2 = () => {
           const newErrors: { email?: string; phone?: string; id?: string; whatsapp?: string; accountNumber?: string; accountHolder?: string } = {};
@@ -392,6 +417,18 @@ function NewOrderForm({ currentRate, onComplete }: { currentRate: number; onComp
                alert('Error al crear la orden: ' + error.message);
                setLoading(false);
           } else {
+               // Guardar/actualizar datos bancarios del usuario
+               await supabase.from('user_payment_data').upsert({
+                    user_id: user.id,
+                    bank_name: bank,
+                    id_number: idNumber,
+                    phone_pago_movil: paymentMethod === 'pago_movil' ? phone : null,
+                    account_number: paymentMethod === 'transferencia' ? accountNumber : null,
+                    account_holder: paymentMethod === 'transferencia' ? accountHolder : null,
+               }, {
+                    onConflict: 'user_id'
+               });
+
                // Guardar info de pago para mostrar instrucciones
                setPaymentInfo({
                     ticketId: ticketId,

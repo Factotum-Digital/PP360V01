@@ -106,6 +106,41 @@ export interface Database {
                          exchange_rate?: number | null
                     }
                }
+               user_payment_data: {
+                    Row: {
+                         id: string
+                         user_id: string
+                         bank_name: string | null
+                         id_number: string | null
+                         phone_pago_movil: string | null
+                         account_number: string | null
+                         account_holder: string | null
+                         created_at: string
+                         updated_at: string
+                    }
+                    Insert: {
+                         id?: string
+                         user_id: string
+                         bank_name?: string | null
+                         id_number?: string | null
+                         phone_pago_movil?: string | null
+                         account_number?: string | null
+                         account_holder?: string | null
+                         created_at?: string
+                         updated_at?: string
+                    }
+                    Update: {
+                         id?: string
+                         user_id?: string
+                         bank_name?: string | null
+                         id_number?: string | null
+                         phone_pago_movil?: string | null
+                         account_number?: string | null
+                         account_holder?: string | null
+                         created_at?: string
+                         updated_at?: string
+                    }
+               }
           }
      }
 }
@@ -113,3 +148,5 @@ export interface Database {
 export type ExchangeRate = Database['public']['Tables']['exchange_rates']['Row']
 export type ExchangeOrder = Database['public']['Tables']['exchange_orders']['Row']
 export type NewExchangeOrder = Database['public']['Tables']['exchange_orders']['Insert']
+export type UserPaymentData = Database['public']['Tables']['user_payment_data']['Row']
+export type NewUserPaymentData = Database['public']['Tables']['user_payment_data']['Insert']
