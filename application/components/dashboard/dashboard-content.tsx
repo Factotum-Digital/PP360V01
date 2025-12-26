@@ -286,7 +286,7 @@ export function DashboardContent({ user, orders, currentRate }: DashboardContent
 // New Order Form Component
 function NewOrderForm({ currentRate, onComplete }: { currentRate: number; onComplete: () => void }) {
      const [step, setStep] = useState(1);
-     const [amount, setAmount] = useState(100);
+     const [amount, setAmount] = useState(0);
      const [emailPaypal, setEmailPaypal] = useState('');
      const [bank, setBank] = useState('Banesco');
      const [phone, setPhone] = useState('');
@@ -512,7 +512,7 @@ function NewOrderForm({ currentRate, onComplete }: { currentRate: number; onComp
                                    value={amount}
                                    onChange={(e) => setAmount(Number(e.target.value))}
                                    className="w-full border-4 border-[#262626] p-4 text-2xl font-black mono outline-none"
-                                   min={10}
+                                   min={5}
                               />
                          </div>
 
@@ -561,8 +561,14 @@ function NewOrderForm({ currentRate, onComplete }: { currentRate: number; onComp
 
                          <Slab
                               dark
-                              className="p-4 text-center font-black uppercase bg-[#FF4D00] cursor-pointer"
-                              onClick={() => setStep(2)}
+                              className={`p-4 text-center font-black uppercase cursor-pointer ${amount >= 5 ? 'bg-[#FF4D00]' : 'bg-gray-400 cursor-not-allowed'}`}
+                              onClick={() => {
+                                   if (amount >= 5) {
+                                        setStep(2);
+                                   } else {
+                                        alert('El monto mínimo es de 5 USD');
+                                   }
+                              }}
                          >
                               CONTINUAR
                          </Slab>
