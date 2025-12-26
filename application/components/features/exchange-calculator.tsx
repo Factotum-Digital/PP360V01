@@ -483,11 +483,8 @@ export const ExchangeTerminal: React.FC = () => {
                                                                       }}
                                                                       style={{
                                                                            layout: "horizontal",
-                                                                           color: "black",
-                                                                           height: 48,
-                                                                           tagline: false,
-                                                                           shape: "rect",
-                                                                           label: "pay"
+                                                                           color: "black"
+                                                                      }}
                                                                       }}
                                                                  />
                                                             </div>
