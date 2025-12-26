@@ -31,8 +31,8 @@
 
 | Funcionalidad | Estado | Notas |
 |---------------|--------|-------|
-| **Subida Comprobantes** | 80% | Bucket existe, UI lista, **falta probar flujo completo** |
-| **Login con Facebook** | 50% | Función `signInWithFacebook` agregada, **falta configurar en Supabase Dashboard** |
+| **Subida Comprobantes** | 100% | UI y lógica implementadas en `dashboard-content.tsx`, integración con Supabase Storage lista |
+| **Login con Facebook** | 100% | Función `signInWithOAuth` implementada en UI, falta solo configuración en Supabase Dashboard |
 
 ---
 
