@@ -117,3 +117,44 @@ body {
      /* Larger movement range */
      box-shadow: 0px 0px 0px 0px #262626;
 }
+
+/* GRID COMETS ANIMATIONS */
+@keyframes moveHorizontal {
+     0% {
+          transform: translateX(0);
+          opacity: 0;
+     }
+
+     10% {
+          opacity: 0.7;
+     }
+
+     90% {
+          opacity: 0.7;
+     }
+
+     100% {
+          transform: translateX(120vw);
+          opacity: 0;
+     }
+}
+
+@keyframes moveVertical {
+     0% {
+          transform: translateY(0);
+          opacity: 0;
+     }
+
+     10% {
+          opacity: 0.7;
+     }
+
+     90% {
+          opacity: 0.7;
+     }
+
+     100% {
+          transform: translateY(120vh);
+          opacity: 0;
+     }
+}

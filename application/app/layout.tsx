@@ -4,6 +4,8 @@ import "./globals.css";
 import { Sidebar } from "@/components/layout/sidebar";
 import { WhatsAppFloatingButton } from "@/components/ui/whatsapp-button";
 
+import { GridComets } from "@/components/ui/grid-comets";
+
 const inter = Inter({
      variable: "--font-inter",
      subsets: ["latin"],
@@ -29,12 +31,13 @@ export default function RootLayout({
      return (
           <html lang="es" suppressHydrationWarning>
                <body
-                    className={`${inter.variable} ${jetbrainsMono.variable} antialiased min-h-screen selection:bg-[#FF4D00] selection:text-white`}
+                    className={`${inter.variable} ${jetbrainsMono.variable} antialiased min-h-screen selection:bg-[#FF4D00] selection:text-white relative`}
                     style={{ fontFamily: "'Inter', sans-serif" }}
                     suppressHydrationWarning
                >
+                    <GridComets />
                     <div className="noise" />
-                    <div className="flex">
+                    <div className="flex relative z-10">
                          <Sidebar />
                          <main className="flex-1 p-6 md:p-12 lg:p-20 overflow-hidden">
                               <div className="max-w-6xl mx-auto">
