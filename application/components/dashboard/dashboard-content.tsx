@@ -563,7 +563,7 @@ function NewOrderForm({ currentRate, onComplete }: { currentRate: number; onComp
 
                          <Slab
                               dark
-                              className={`p-4 text-center font-black uppercase cursor-pointer ${amountNum >= 5 ? 'bg-[#FF4D00]' : 'bg-gray-400 cursor-not-allowed'}`}
+                              className="p-4 text-center font-black uppercase bg-[#FF4D00] cursor-pointer"
                               onClick={() => {
                                    if (amountNum >= 5) {
                                         setStep(2);
