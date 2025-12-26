@@ -2,7 +2,7 @@ import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import { DashboardContent } from '@/components/dashboard/dashboard-content';
 
-// Fetch the current pay rate from DolarAPI (parallel - 15%)
+// Fetch the current pay rate from DolarAPI (parallel - 12%)
 async function getCurrentPayRate(): Promise<number> {
      try {
           const res = await fetch('https://ve.dolarapi.com/v1/dolares/paralelo', {
@@ -11,8 +11,8 @@ async function getCurrentPayRate(): Promise<number> {
           if (!res.ok) throw new Error('API Error');
           const data = await res.json();
           const paraleloRate = data.promedio;
-          // Apply 15% discount
-          return paraleloRate * 0.85;
+          // Apply 12% discount (consistent with /api/rates)
+          return paraleloRate * 0.88;
      } catch {
           return 50; // Fallback rate
      }

@@ -1,5 +1,3 @@
-"use server";
-
 import { createClient } from "@/lib/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -110,9 +108,9 @@ export async function POST(request: NextRequest) {
           return NextResponse.json({
                success: true,
                order: {
-                    id: order.id,
+                    id: order.order_id,
                     ticketId: ticketId,
-                    status: "pending"
+                    status: "PENDING"
                },
                paymentInfo
           });

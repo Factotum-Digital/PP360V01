@@ -74,6 +74,15 @@ export interface Database {
                          payment_proof_url?: string | null
                          destination_data?: Json | null
                          created_at?: string
+                         // Guest order fields
+                         ticket_id?: string | null
+                         paypal_email?: string | null
+                         bank_name?: string | null
+                         id_number?: string | null
+                         phone_pago_movil?: string | null
+                         whatsapp?: string | null
+                         is_guest?: boolean
+                         exchange_rate?: number | null
                     }
                     Update: {
                          order_id?: string
@@ -86,6 +95,15 @@ export interface Database {
                          payment_proof_url?: string | null
                          destination_data?: Json | null
                          created_at?: string
+                         // Guest order fields
+                         ticket_id?: string | null
+                         paypal_email?: string | null
+                         bank_name?: string | null
+                         id_number?: string | null
+                         phone_pago_movil?: string | null
+                         whatsapp?: string | null
+                         is_guest?: boolean
+                         exchange_rate?: number | null
                     }
                }
           }

@@ -49,11 +49,19 @@ const Comet = ({ axis = 'horizontal', delay = 0, speed = 8 }: { axis?: 'horizont
                     : 'w-[1px] h-24 bg-gradient-to-b from-transparent via-[#FF4D00] to-transparent'
                     }`}
                style={style}
+               suppressHydrationWarning
           />
      );
 };
 
 export const GridComets = () => {
+     // Use mounted state to prevent hydration mismatch
+     const [mounted, setMounted] = useState(false);
+
+     useEffect(() => {
+          setMounted(true);
+     }, []);
+
      // Configuración de los cometas
      const comets = [
           { axis: 'horizontal' as const, delay: 0, speed: 10 },
@@ -68,11 +76,17 @@ export const GridComets = () => {
           { axis: 'vertical' as const, delay: 15, speed: 25 },
      ];
 
+     // Don't render on server to avoid hydration mismatch from Math.random()
+     if (!mounted) {
+          return <div className="fixed inset-0 pointer-events-none overflow-hidden z-[1]" suppressHydrationWarning />;
+     }
+
      return (
-          <div className="fixed inset-0 pointer-events-none overflow-hidden z-[1]">
+          <div className="fixed inset-0 pointer-events-none overflow-hidden z-[1]" suppressHydrationWarning>
                {comets.map((c, i) => (
                     <Comet key={i} {...c} />
                ))}
           </div>
      );
 };
+

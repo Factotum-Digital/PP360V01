@@ -15,6 +15,11 @@ export default function LoginPage() {
      const [magicLinkSent, setMagicLinkSent] = useState(false);
      const [magicLinkLoading, setMagicLinkLoading] = useState(false);
      const [showMagicLinkInput, setShowMagicLinkInput] = useState(false);
+     // Forgot password states
+     const [showForgotPassword, setShowForgotPassword] = useState(false);
+     const [forgotEmail, setForgotEmail] = useState('');
+     const [forgotLoading, setForgotLoading] = useState(false);
+     const [forgotSent, setForgotSent] = useState(false);
      const router = useRouter();
      const supabase = createClient();
 
@@ -85,6 +90,26 @@ export default function LoginPage() {
           }
      };
 
+     const handleForgotPassword = async (e: React.FormEvent) => {
+          e.preventDefault();
+          if (!forgotEmail) return;
+
+          setError('');
+          setForgotLoading(true);
+
+          const { error } = await supabase.auth.resetPasswordForEmail(forgotEmail, {
+               redirectTo: `${window.location.origin}/auth/callback?type=recovery`,
+          });
+
+          if (error) {
+               setError(error.message);
+               setForgotLoading(false);
+          } else {
+               setForgotSent(true);
+               setForgotLoading(false);
+          }
+     };
+
      return (
           <div className="min-h-screen flex items-start justify-center p-4 sm:p-8 pt-20 sm:pt-28">
                <div className="w-full max-w-md">
@@ -119,7 +144,13 @@ export default function LoginPage() {
                               <div className="space-y-2">
                                    <label className="mono text-[11px] font-black uppercase flex justify-between">
                                         <span>Password</span>
-                                        <a href="#" className="text-[#FF4D00] hover:underline normal-case font-bold italic">Forgot?</a>
+                                        <button
+                                             type="button"
+                                             onClick={() => setShowForgotPassword(true)}
+                                             className="text-[#FF4D00] hover:underline normal-case font-bold italic bg-transparent border-none cursor-pointer"
+                                        >
+                                             Forgot?
+                                        </button>
                                    </label>
                                    <input
                                         type="password"
@@ -241,6 +272,60 @@ export default function LoginPage() {
                          </div>
                     </div>
                </div>
+
+               {/* Forgot Password Modal */}
+               {showForgotPassword && (
+                    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                         <div className="bg-white border-4 border-[#262626] p-6 sm:p-8 max-w-md w-full shadow-[8px_8px_0px_0px_#262626]">
+                              <div className="flex justify-between items-center mb-6">
+                                   <h2 className="text-xl font-black uppercase">Recuperar Contraseña</h2>
+                                   <button
+                                        onClick={() => { setShowForgotPassword(false); setForgotSent(false); setError(''); }}
+                                        className="text-2xl font-black hover:text-[#FF4D00]"
+                                   >
+                                        ×
+                                   </button>
+                              </div>
+
+                              {forgotSent ? (
+                                   <div className="bg-green-50 border-4 border-green-500 p-4 text-center">
+                                        <p className="mono text-xs font-bold text-green-700 uppercase">
+                                             ✓ EMAIL ENVIADO
+                                        </p>
+                                        <p className="mono text-[10px] text-green-600 mt-2">
+                                             Revisa tu correo {forgotEmail} para restablecer tu contraseña
+                                        </p>
+                                   </div>
+                              ) : (
+                                   <form onSubmit={handleForgotPassword} className="space-y-4">
+                                        <p className="mono text-xs text-gray-600">
+                                             Ingresa tu email y te enviaremos un enlace para restablecer tu contraseña.
+                                        </p>
+                                        <input
+                                             type="email"
+                                             value={forgotEmail}
+                                             onChange={(e) => setForgotEmail(e.target.value)}
+                                             className="w-full border-4 border-[#262626] p-4 font-bold mono text-sm outline-none focus:border-[#FF4D00]"
+                                             placeholder="tu@email.com"
+                                             required
+                                        />
+                                        {error && (
+                                             <div className="bg-red-50 border-l-4 border-red-500 p-3">
+                                                  <p className="mono text-[10px] font-bold text-red-600">{error}</p>
+                                             </div>
+                                        )}
+                                        <button
+                                             type="submit"
+                                             disabled={forgotLoading}
+                                             className="w-full border-4 border-[#262626] bg-[#FF4D00] text-white p-4 font-black uppercase shadow-[4px_4px_0px_0px_#262626] hover:shadow-none hover:translate-x-1 hover:translate-y-1 transition-all disabled:opacity-50"
+                                        >
+                                             {forgotLoading ? 'ENVIANDO...' : 'ENVIAR ENLACE'}
+                                        </button>
+                                   </form>
+                              )}
+                         </div>
+                    </div>
+               )}
           </div>
      );
 }

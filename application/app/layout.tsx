@@ -35,10 +35,10 @@ export default function RootLayout({
                     style={{ fontFamily: "'Inter', sans-serif" }}
                     suppressHydrationWarning
                >
-                    <div className="grid-background" />
+                    <div className="grid-background" suppressHydrationWarning />
                     <GridComets />
-                    <div className="noise" />
-                    <div className="flex relative z-10">
+                    <div className="noise" suppressHydrationWarning />
+                    <div className="flex relative z-10" suppressHydrationWarning>
                          <Sidebar />
                          <main className="flex-1 p-6 md:p-12 lg:p-20 overflow-hidden">
                               <div className="max-w-6xl mx-auto">

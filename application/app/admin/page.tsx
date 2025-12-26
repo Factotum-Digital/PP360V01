@@ -28,7 +28,7 @@ export default async function AdminPage() {
           });
           if (res.ok) {
                const data = await res.json();
-               currentRate = data.promedio * 0.85; // Pay rate
+               currentRate = data.promedio * 0.88; // Pay rate (12% discount)
           }
      } catch {
           // Use fallback

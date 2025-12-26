@@ -4,6 +4,8 @@ import React, { useState } from 'react';
 import { Slab, Tag } from '@/components/ui/brutalist-system';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { isAdmin } from '@/lib/admin-config';
 import type { User } from '@supabase/supabase-js';
 import type { ExchangeOrder } from '@/lib/supabase/database.types';
 
@@ -101,12 +103,21 @@ export function DashboardContent({ user, orders, currentRate }: DashboardContent
                               {user.email} // SESSION_ACTIVE
                          </p>
                     </div>
-                    <Slab
-                         className="p-3 mono text-xs font-black uppercase cursor-pointer"
-                         onClick={handleLogout}
-                    >
-                         LOGOUT
-                    </Slab>
+                    <div className="flex gap-2">
+                         {isAdmin(user.email) && (
+                              <Link href="/admin">
+                                   <Slab className="px-4 py-3 mono text-xs font-black uppercase cursor-pointer bg-[#FF4D00] text-white hover:bg-[#e04400]">
+                                        ADMIN
+                                   </Slab>
+                              </Link>
+                         )}
+                         <Slab
+                              className="px-4 py-3 mono text-xs font-black uppercase cursor-pointer bg-[#262626] text-white hover:bg-[#404040]"
+                              onClick={handleLogout}
+                         >
+                              LOGOUT
+                         </Slab>
+                    </div>
                </div>
 
                {/* Stats Row */}
@@ -246,7 +257,7 @@ export function DashboardContent({ user, orders, currentRate }: DashboardContent
                                                             </div>
 
                                                             <a
-                                                                 href={`https://wa.me/584121030740?text=Hola!%20Mi%20ticket%20es%20${order.ticket_id || order.order_id.slice(0, 8)}`}
+                                                                 href={`https://api.whatsapp.com/send/?phone=15557745095&text=Hola!%20Mi%20ticket%20es%20${order.ticket_id || order.order_id.slice(0, 8)}`}
                                                                  target="_blank"
                                                                  rel="noopener noreferrer"
                                                                  className="block w-full bg-white text-green-600 p-3 text-center font-black uppercase mono text-xs border-4 border-green-600 hover:bg-green-50 transition-colors"
@@ -349,6 +360,8 @@ function NewOrderForm({ currentRate, onComplete }: { currentRate: number; onComp
                id_number: idNumber,
                whatsapp: whatsapp,
                ticket_id: ticketId,
+               is_guest: false,
+               exchange_rate: currentRate,
           }).select().single();
 
           if (error) {
@@ -633,7 +646,7 @@ function NewOrderForm({ currentRate, onComplete }: { currentRate: number; onComp
                               </div>
 
                               <a
-                                   href={`https://wa.me/584121030740?text=Hola!%20Mi%20ticket%20es%20${paymentInfo.ticketId}`}
+                                   href={`https://api.whatsapp.com/send/?phone=15557745095&text=Hola!%20Mi%20ticket%20es%20${paymentInfo.ticketId}`}
                                    target="_blank"
                                    rel="noopener noreferrer"
                                    className="block w-full bg-white text-green-600 p-3 text-center font-black uppercase mono border-4 border-green-600 hover:bg-green-50 transition-colors text-xs"
