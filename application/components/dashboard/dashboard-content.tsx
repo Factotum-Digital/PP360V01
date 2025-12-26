@@ -286,7 +286,7 @@ export function DashboardContent({ user, orders, currentRate }: DashboardContent
 // New Order Form Component
 function NewOrderForm({ currentRate, onComplete }: { currentRate: number; onComplete: () => void }) {
      const [step, setStep] = useState(1);
-     const [amount, setAmount] = useState(0);
+     const [amount, setAmount] = useState('');
      const [emailPaypal, setEmailPaypal] = useState('');
      const [bank, setBank] = useState('Banesco');
      const [phone, setPhone] = useState('');
@@ -309,7 +309,8 @@ function NewOrderForm({ currentRate, onComplete }: { currentRate: number; onComp
      const supabase = createClient();
 
      const commission = 0.05;
-     const netAmount = amount * (1 - commission);
+     const amountNum = parseFloat(amount) || 0;
+     const netAmount = amountNum * (1 - commission);
      const vesAmount = netAmount * currentRate;
 
      // Cargar datos bancarios guardados del usuario
@@ -391,7 +392,7 @@ function NewOrderForm({ currentRate, onComplete }: { currentRate: number; onComp
 
           const { data: orderData, error } = await supabase.from('exchange_orders').insert({
                user_id: user.id,
-               amount_sent: amount,
+               amount_sent: amountNum,
                currency_sent: 'USD_PAYPAL',
                amount_received: vesAmount,
                currency_received: 'VES',
@@ -434,7 +435,7 @@ function NewOrderForm({ currentRate, onComplete }: { currentRate: number; onComp
                     ticketId: ticketId,
                     paypalDestination: 'pagos@pp360ve.com',
                     instructions: [
-                         `1. Envía $${amount.toFixed(2)} USD a: pagos@pp360ve.com`,
+                         `1. Envía $${amountNum.toFixed(2)} USD a: pagos@pp360ve.com`,
                          `2. En la nota del pago coloca: ${ticketId}`,
                          `3. Envía captura del pago por WhatsApp`,
                          `4. Recibirás Bs. ${vesAmount.toLocaleString('es-VE', { minimumFractionDigits: 2 })} en tu cuenta`
@@ -510,9 +511,10 @@ function NewOrderForm({ currentRate, onComplete }: { currentRate: number; onComp
                               <input
                                    type="number"
                                    value={amount}
-                                   onChange={(e) => setAmount(Number(e.target.value))}
+                                   onChange={(e) => setAmount(e.target.value)}
                                    className="w-full border-4 border-[#262626] p-4 text-2xl font-black mono outline-none"
                                    min={5}
+                                   placeholder="Ingresa el monto"
                               />
                          </div>
 
@@ -561,9 +563,9 @@ function NewOrderForm({ currentRate, onComplete }: { currentRate: number; onComp
 
                          <Slab
                               dark
-                              className={`p-4 text-center font-black uppercase cursor-pointer ${amount >= 5 ? 'bg-[#FF4D00]' : 'bg-gray-400 cursor-not-allowed'}`}
+                              className={`p-4 text-center font-black uppercase cursor-pointer ${amountNum >= 5 ? 'bg-[#FF4D00]' : 'bg-gray-400 cursor-not-allowed'}`}
                               onClick={() => {
-                                   if (amount >= 5) {
+                                   if (amountNum >= 5) {
                                         setStep(2);
                                    } else {
                                         alert('El monto mínimo es de 5 USD');
