@@ -1,5 +1,11 @@
-import { createClient } from "@/lib/supabase/server";
+import { createClient } from "@supabase/supabase-js";
 import { NextRequest, NextResponse } from "next/server";
+
+// Use service_role to bypass RLS for server-side updates
+const supabaseAdmin = createClient(
+     process.env.NEXT_PUBLIC_SUPABASE_URL!,
+     process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
 
 export async function POST(request: NextRequest) {
      try {
@@ -16,10 +22,9 @@ export async function POST(request: NextRequest) {
                );
           }
 
-          const supabase = await createClient();
 
           // 1. Verificar orden
-          const { data: order, error: findError } = await supabase
+          const { data: order, error: findError } = await supabaseAdmin
                .from("exchange_orders")
                .select("order_id")
                .eq("ticket_id", ticketId)
@@ -33,7 +38,7 @@ export async function POST(request: NextRequest) {
           }
 
           // 2. Actualizar estado y URL
-          const { error: updateError } = await supabase
+          const { error: updateError } = await supabaseAdmin
                .from("exchange_orders")
                .update({
                     payment_proof_url: proofUrl,

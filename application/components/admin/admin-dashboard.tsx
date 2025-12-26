@@ -321,16 +321,43 @@ function OrderCard({
                          {order.payment_proof_url && (
                               <div className="mt-4 pt-4 border-t-2 border-gray-200">
                                    <h4 className="mono text-xs font-black uppercase underline decoration-[#FF4D00] mb-2">Comprobante de Pago</h4>
-                                   {order.payment_proof_url.startsWith('PAYPAL_AUTO_') ? (
-                                        <div className="bg-blue-50 border-l-4 border-blue-500 p-3">
-                                             <p className="mono text-[10px] font-black text-blue-800 uppercase mb-1">
-                                                  ✓ Pago Verificado por PayPal
-                                             </p>
-                                             <p className="mono text-xs font-bold text-gray-600">
-                                                  ID Transacción: <span className="text-black">{order.payment_proof_url.replace('PAYPAL_AUTO_', '')}</span>
-                                             </p>
-                                        </div>
-                                   ) : (
+                                   {order.payment_proof_url.startsWith('PAYPAL_') ? (() => {
+                                        // Parse PayPal data (new JSON format or old format)
+                                        let paypalInfo;
+                                        if (order.payment_proof_url.startsWith('PAYPAL_AUTO_')) {
+                                             // Old format: just ID
+                                             paypalInfo = {
+                                                  transactionId: order.payment_proof_url.replace('PAYPAL_AUTO_', ''),
+                                                  status: 'COMPLETED',
+                                                  payerEmail: 'N/A',
+                                                  payerName: 'N/A',
+                                                  amount: 'N/A',
+                                                  currency: 'USD',
+                                                  captureDate: 'N/A'
+                                             };
+                                        } else {
+                                             // New JSON format: PAYPAL_{...json...}
+                                             try {
+                                                  paypalInfo = JSON.parse(order.payment_proof_url.replace('PAYPAL_', ''));
+                                             } catch {
+                                                  paypalInfo = { transactionId: order.payment_proof_url, status: 'UNKNOWN' };
+                                             }
+                                        }
+                                        return (
+                                             <div className="bg-blue-50 border-l-4 border-blue-500 p-3">
+                                                  <p className="mono text-[10px] font-black text-blue-800 uppercase mb-1">
+                                                       ✓ Pago Verificado por PayPal
+                                                  </p>
+                                                  <p className="mono text-xs text-gray-700 flex flex-wrap gap-x-4">
+                                                       <span><b>ID:</b> {paypalInfo.transactionId}</span>
+                                                       <span><b>Estado:</b> <span className="text-green-600">{paypalInfo.status}</span></span>
+                                                       <span><b>Email:</b> {paypalInfo.payerEmail}</span>
+                                                       <span><b>Monto:</b> {paypalInfo.amount} {paypalInfo.currency}</span>
+                                                       <span><b>Fecha:</b> {paypalInfo.captureDate !== 'N/A' ? new Date(paypalInfo.captureDate).toLocaleString() : 'N/A'}</span>
+                                                  </p>
+                                             </div>
+                                        );
+                                   })() : (
                                         <a
                                              href={order.payment_proof_url}
                                              target="_blank"

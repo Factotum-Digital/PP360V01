@@ -49,8 +49,19 @@ export function PayPalServiceButton({ amount, description, ticketId, onSuccess, 
                                    const orderTicket = ticketId || description;
                                    if (orderTicket) {
                                         try {
-                                             const proofUrl = 'PAYPAL_AUTO_' + details.id;
-                                             console.log('[PayPal] Updating order:', orderTicket, proofUrl);
+                                             // Create comprehensive proof with all PayPal data
+                                             const paypalData = {
+                                                  type: 'PAYPAL_AUTO',
+                                                  transactionId: details.id,
+                                                  status: details.status,
+                                                  payerEmail: details.payer?.email_address || 'N/A',
+                                                  payerName: details.payer?.name?.given_name + ' ' + details.payer?.name?.surname || 'N/A',
+                                                  amount: details.purchase_units?.[0]?.amount?.value || amount,
+                                                  currency: details.purchase_units?.[0]?.amount?.currency_code || 'USD',
+                                                  captureDate: new Date().toISOString()
+                                             };
+                                             const proofUrl = 'PAYPAL_' + JSON.stringify(paypalData);
+                                             console.log('[PayPal] Updating order:', orderTicket, paypalData);
 
                                              const updateRes = await fetch('/api/orders/upload-proof', {
                                                   method: 'POST',

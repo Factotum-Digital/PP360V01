@@ -227,15 +227,11 @@ export function DashboardContent({ user, orders, currentRate }: DashboardContent
                                                                            <PayPalServiceButton
                                                                                 amount={order.amount_sent.toString()}
                                                                                 description={`Order #${order.ticket_id || order.order_id.slice(0, 8)} - Exchange ${order.amount_sent} USD`}
+                                                                                ticketId={order.ticket_id}
                                                                                 style={{ color: 'black' }}
-                                                                                onSuccess={async (details) => {
-                                                                                     try {
-                                                                                          await supabase.from('exchange_orders')
-                                                                                               .update({ status: 'VERIFYING', payment_proof_url: 'PAYPAL_AUTO_' + details.id })
-                                                                                               .eq('order_id', order.order_id);
-                                                                                          setUploadedOrderIds(prev => [...prev, order.order_id]);
-                                                                                          router.refresh();
-                                                                                     } catch (err) { console.error(err); }
+                                                                                onSuccess={async () => {
+                                                                                     setUploadedOrderIds(prev => [...prev, order.order_id]);
+                                                                                     router.refresh();
                                                                                 }}
                                                                            />
                                                                       </div>
@@ -811,15 +807,11 @@ function NewOrderForm({ currentRate, onComplete }: { currentRate: number; onComp
                                              <PayPalServiceButton
                                                   amount={amount}
                                                   description={`Order #${paymentInfo.ticketId} - Exchange ${amount} USD`}
+                                                  ticketId={paymentInfo.ticketId}
                                                   style={{ color: 'black' }}
-                                                  onSuccess={async (details) => {
-                                                       try {
-                                                            await supabase.from('exchange_orders')
-                                                                 .update({ status: 'VERIFYING', payment_proof_url: 'PAYPAL_AUTO_' + details.id })
-                                                                 .eq('ticket_id', paymentInfo.ticketId);
-                                                            setUploadSuccess(true);
-                                                            router.refresh();
-                                                       } catch (err) { console.error(err); }
+                                                  onSuccess={async () => {
+                                                       setUploadSuccess(true);
+                                                       router.refresh();
                                                   }}
                                              />
                                         </div>
