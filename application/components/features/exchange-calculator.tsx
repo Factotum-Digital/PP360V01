@@ -485,7 +485,6 @@ export const ExchangeTerminal: React.FC = () => {
                                                                            layout: "horizontal",
                                                                            color: "black"
                                                                       }}
-                                                                      }}
                                                                  />
                                                             </div>
                                                             <p className="text-[9px] italic text-gray-500 leading-tight">
