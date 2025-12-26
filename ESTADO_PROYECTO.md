@@ -115,15 +115,15 @@
 │   │   │   │   ├── guest/route.ts       ← Guest checkout API
 │   │   │   │   └── upload-proof/route.ts ← Subida comprobantes
 │   │   │   ├── rates/route.ts           ← Tasas DolarAPI
-│   │   │   └── referrals/               ← 🆕 (pendiente)
+│   │   │   └── referrals/               ← ❌ PENDIENTE (No existe)
 │   │   ├── admin/page.tsx               ← Panel admin
 │   │   ├── auth/callback/               ← OAuth callback
 │   │   ├── dashboard/page.tsx           ← Dashboard usuario
 │   │   ├── login/page.tsx               ← Login + Forgot Password
 │   │   ├── register/page.tsx            ← Registro
-│   │   ├── terms/page.tsx               ← 🆕 T&C (pendiente)
-│   │   ├── privacy/page.tsx             ← 🆕 Privacidad (pendiente)
-│   │   ├── help/page.tsx                ← 🆕 Ayuda (pendiente)
+│   │   ├── terms/page.tsx               ← ❌ PENDIENTE (No existe)
+│   │   ├── privacy/page.tsx             ← ❌ PENDIENTE (No existe)
+│   │   ├── help/page.tsx                ← ❌ PENDIENTE (No existe)
 │   │   ├── globals.css                  ← Estilos globales
 │   │   ├── layout.tsx                   ← Layout principal
 │   │   └── page.tsx                     ← Landing page
@@ -141,7 +141,7 @@
 │   │   │   ├── grid-comets.tsx          ← Fondo animado
 │   │   │   ├── icons.tsx                ← Iconos SVG
 │   │   │   └── whatsapp-button.tsx      ← Botón flotante WA
-│   │   └── referrals/                   ← 🆕 (pendiente)
+│   │   └── referrals/                   ← ❌ PENDIENTE (No existe)
 │   │
 │   ├── lib/
 │   │   ├── supabase/
@@ -153,16 +153,17 @@
 │   │   ├── services/                    ← Servicios externos
 │   │   ├── admin-config.ts              ← Config admin
 │   │   ├── utils.ts                     ← Utilidades
-│   │   └── referrals/                   ← 🆕 (pendiente)
+│   │   └── referrals/                   ← ❌ PENDIENTE (No existe)
 │   │
 │   ├── supabase/migrations/
 │   │   ├── 003_guest_checkout.sql       ← Guest orders
-│   │   └── 004_storage_bucket.sql       ← Payment proofs
+│   │   ├── 004_storage_bucket.sql       ← Payment proofs
+│   │   └── 005_user_payment_data.sql    ← User payment data (Nuevo)
 │   │
 │   ├── middleware.ts                    ← Next.js middleware
 │   ├── constants.tsx                    ← Constantes globales
 │   └── types.ts                         ← Tipos globales
-│
+```│
 ├── DOCUMENTACION_PP360VE.md
 └── ESTADO_PROYECTO.md
 ```
