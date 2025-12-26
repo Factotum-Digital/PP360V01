@@ -418,6 +418,16 @@ export const ExchangeTerminal: React.FC = () => {
                                              </div>
 
                                              <div className="bg-orange-50 p-4 border-l-4 border-[#FF4D00] space-y-4">
+                                                  {/* Manual Instructions Section */}
+                                                  <div className="space-y-2 border-b-2 border-orange-200 pb-4 mb-2">
+                                                       <h4 className="mono text-sm font-black uppercase underline decoration-[#FF4D00]">Instrucciones de Pago:</h4>
+                                                       <ol className="space-y-1">
+                                                            {paymentInfo.instructions.map((instruction, i) => (
+                                                                 <li key={i} className="mono text-[11px] font-bold text-gray-700">{instruction}</li>
+                                                            ))}
+                                                       </ol>
+                                                  </div>
+
                                                   <div className="flex flex-col md:flex-row gap-6 items-start">
                                                        {/* QR Code Section */}
                                                        <div className="bg-white p-2 border-4 border-[#262626] shadow-[4px_4px_0px_0px_#262626] flex-shrink-0 mx-auto md:mx-0">
