@@ -321,11 +321,11 @@ function OrderCard({
                          {order.payment_proof_url && (
                               <div className="mt-4 pt-4 border-t-2 border-gray-200">
                                    <h4 className="mono text-xs font-black uppercase underline decoration-[#FF4D00] mb-2">Comprobante de Pago</h4>
-                                   {order.payment_proof_url.startsWith('PAYPAL_') ? (() => {
-                                        // Parse PayPal data (new JSON format or old format)
+                                   {order.payment_proof_url.startsWith('PAYPAL') ? (() => {
+                                        // Parse PayPal data (multiple formats supported)
                                         let paypalInfo;
                                         if (order.payment_proof_url.startsWith('PAYPAL_AUTO_')) {
-                                             // Old format: just ID
+                                             // Old format: PAYPAL_AUTO_{transactionId}
                                              paypalInfo = {
                                                   transactionId: order.payment_proof_url.replace('PAYPAL_AUTO_', ''),
                                                   status: 'COMPLETED',
@@ -335,13 +335,28 @@ function OrderCard({
                                                   currency: 'USD',
                                                   captureDate: 'N/A'
                                              };
-                                        } else {
+                                        } else if (order.payment_proof_url.startsWith('PAYPAL_MANUAL_RECONCILED_')) {
+                                             // Manual reconciliation format
+                                             const amount = order.payment_proof_url.replace('PAYPAL_MANUAL_RECONCILED_', '');
+                                             paypalInfo = {
+                                                  transactionId: 'Reconciliado Manualmente',
+                                                  status: 'COMPLETED',
+                                                  payerEmail: 'N/A',
+                                                  payerName: 'N/A',
+                                                  amount: amount.replace('USD', ''),
+                                                  currency: 'USD',
+                                                  captureDate: 'N/A'
+                                             };
+                                        } else if (order.payment_proof_url.startsWith('PAYPAL_')) {
                                              // New JSON format: PAYPAL_{...json...}
                                              try {
                                                   paypalInfo = JSON.parse(order.payment_proof_url.replace('PAYPAL_', ''));
                                              } catch {
-                                                  paypalInfo = { transactionId: order.payment_proof_url, status: 'UNKNOWN' };
+                                                  paypalInfo = { transactionId: order.payment_proof_url.replace('PAYPAL_', ''), status: 'VERIFIED' };
                                              }
+                                        } else {
+                                             // Fallback
+                                             paypalInfo = { transactionId: order.payment_proof_url, status: 'UNKNOWN' };
                                         }
                                         return (
                                              <div className="bg-blue-50 border-l-4 border-blue-500 p-3">
