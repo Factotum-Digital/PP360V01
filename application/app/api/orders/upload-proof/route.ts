@@ -2,13 +2,10 @@ import { createClient } from "@supabase/supabase-js";
 import { NextRequest, NextResponse } from "next/server";
 
 // Use service_role to bypass RLS for server-side updates
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
-
-console.log('[API-INIT] Supabase URL:', supabaseUrl ? 'SET' : 'MISSING');
-console.log('[API-INIT] Service Role Key:', supabaseKey ? `SET (${supabaseKey.slice(0, 20)}...)` : 'MISSING');
-
-const supabaseAdmin = createClient(supabaseUrl, supabaseKey);
+const supabaseAdmin = createClient(
+     process.env.NEXT_PUBLIC_SUPABASE_URL!,
+     process.env.SUPABASE_SERVICE_ROLE_KEY!
+);
 
 export async function POST(request: NextRequest) {
      try {
@@ -16,7 +13,6 @@ export async function POST(request: NextRequest) {
           const { ticketId, proofUrl } = body;
 
           console.log('[UPLOAD-PROOF] Received:', { ticketId, proofUrl });
-          console.log('[UPLOAD-PROOF] Using URL:', supabaseUrl ? 'SET' : 'MISSING');
 
           if (!ticketId || !proofUrl) {
                console.log('[UPLOAD-PROOF] Missing fields:', { ticketId, proofUrl });
@@ -28,19 +24,15 @@ export async function POST(request: NextRequest) {
 
 
           // 1. Verificar orden
-          console.log('[UPLOAD-PROOF] Querying order with ticket_id:', ticketId);
           const { data: order, error: findError } = await supabaseAdmin
                .from("exchange_orders")
                .select("order_id")
                .eq("ticket_id", ticketId)
                .single();
 
-          console.log('[UPLOAD-PROOF] Query result:', { order, findError });
-
           if (findError || !order) {
-               console.error('[UPLOAD-PROOF] Order not found or error:', findError);
                return NextResponse.json(
-                    { error: "Orden no encontrada", details: findError?.message },
+                    { error: "Orden no encontrada" },
                     { status: 404 }
                );
           }
