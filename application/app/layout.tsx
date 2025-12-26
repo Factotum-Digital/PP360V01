@@ -35,6 +35,7 @@ export default function RootLayout({
                     style={{ fontFamily: "'Inter', sans-serif" }}
                     suppressHydrationWarning
                >
+                    <div className="grid-background" />
                     <GridComets />
                     <div className="noise" />
                     <div className="flex relative z-10">

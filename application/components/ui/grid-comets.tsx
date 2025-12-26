@@ -45,8 +45,8 @@ const Comet = ({ axis = 'horizontal', delay = 0, speed = 8 }: { axis?: 'horizont
      return (
           <div
                className={`absolute opacity-0 pointer-events-none z-0 ${axis === 'horizontal'
-                         ? 'h-[1px] w-24 bg-gradient-to-r from-transparent via-[#FF4D00] to-transparent'
-                         : 'w-[1px] h-24 bg-gradient-to-b from-transparent via-[#FF4D00] to-transparent'
+                    ? 'h-[1px] w-24 bg-gradient-to-r from-transparent via-[#FF4D00] to-transparent'
+                    : 'w-[1px] h-24 bg-gradient-to-b from-transparent via-[#FF4D00] to-transparent'
                     }`}
                style={style}
           />
