@@ -9,6 +9,7 @@ interface PayPalServiceButtonProps {
      onSuccess?: (details: any) => void;
      style?: {
           color?: "gold" | "blue" | "silver" | "white" | "black";
+          layout?: "horizontal" | "vertical";
      };
 }
 
