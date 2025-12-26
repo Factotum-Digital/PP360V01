@@ -265,6 +265,20 @@ function OrderCard({
                                         <p><span className="opacity-50">Fecha:</span> {new Date(order.created_at).toLocaleString()}</p>
                                         {order.is_guest && <span className="inline-block bg-purple-200 text-purple-800 px-2 py-0.5 font-bold text-[10px] mt-1">GUEST</span>}
                                         {!order.is_guest && order.user_id && <span className="inline-block bg-blue-200 text-blue-800 px-2 py-0.5 font-bold text-[10px] mt-1">REGISTRADO</span>}
+
+                                        {/* Payment Method Badge */}
+                                        {(() => {
+                                             const data = order.destination_data as any;
+                                             const method = data?.payment_method;
+
+                                             // GUESTS are always Pago Móvil
+                                             if (order.is_guest || method === 'pago_movil') {
+                                                  return <span className="inline-block bg-orange-100 text-orange-800 px-2 py-0.5 font-bold text-[10px] mt-1 ml-2">PAGO MÓVIL</span>;
+                                             } else if (method === 'transferencia') {
+                                                  return <span className="inline-block bg-gray-200 text-gray-800 px-2 py-0.5 font-bold text-[10px] mt-1 ml-2">TRANSFERENCIA</span>;
+                                             }
+                                             return null;
+                                        })()}
                                    </div>
                               </div>
 
@@ -273,6 +287,10 @@ function OrderCard({
                                    <h4 className="mono text-xs font-black uppercase underline decoration-[#FF4D00]">Datos de Pago</h4>
                                    {hasPaymentData ? (
                                         <div className="mono text-xs space-y-1">
+                                             <p><span className="opacity-50">Método:</span> <span className="font-bold uppercase bg-gray-100 px-1">{
+                                                  order.is_guest || (order.destination_data as any)?.payment_method === 'pago_movil' ? 'Pago Móvil' :
+                                                       (order.destination_data as any)?.payment_method === 'transferencia' ? 'Transferencia' : 'N/A'
+                                             }</span></p>
                                              <p><span className="opacity-50">Banco:</span> <span className="font-bold">{order.bank_name || 'N/A'}</span></p>
                                              <p><span className="opacity-50">Cédula:</span> <span className="font-bold">{order.id_number || 'N/A'}</span></p>
                                              <p><span className="opacity-50">Teléfono:</span> <span className="font-bold">{order.phone_pago_movil || 'N/A'}</span></p>

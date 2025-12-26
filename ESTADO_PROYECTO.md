@@ -26,6 +26,7 @@
 | 3 | Guarda `is_guest: false` + `exchange_rate` | `dashboard-content.tsx` | ✅ |
 | 4 | Admin muestra email, tasa, badge GUEST/REGISTRADO | Panel Admin | ✅ |
 | 5 | Botón WhatsApp "Contactar Cliente" | Panel Admin | ✅ |
+| 6 | Visualización Método Pago (Badge + Datos) | Panel Admin | ✅ |
 
 ### Funcionalidades Implementadas
 
