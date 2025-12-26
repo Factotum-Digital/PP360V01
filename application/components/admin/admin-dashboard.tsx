@@ -321,18 +321,29 @@ function OrderCard({
                          {order.payment_proof_url && (
                               <div className="mt-4 pt-4 border-t-2 border-gray-200">
                                    <h4 className="mono text-xs font-black uppercase underline decoration-[#FF4D00] mb-2">Comprobante de Pago</h4>
-                                   <a
-                                        href={order.payment_proof_url}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="inline-block"
-                                   >
-                                        <img
-                                             src={order.payment_proof_url}
-                                             alt="Comprobante"
-                                             className="max-h-48 border-2 border-black hover:scale-105 transition-transform"
-                                        />
-                                   </a>
+                                   {order.payment_proof_url.startsWith('PAYPAL_AUTO_') ? (
+                                        <div className="bg-blue-50 border-l-4 border-blue-500 p-3">
+                                             <p className="mono text-[10px] font-black text-blue-800 uppercase mb-1">
+                                                  ✓ Pago Verificado por PayPal
+                                             </p>
+                                             <p className="mono text-xs font-bold text-gray-600">
+                                                  ID Transacción: <span className="text-black">{order.payment_proof_url.replace('PAYPAL_AUTO_', '')}</span>
+                                             </p>
+                                        </div>
+                                   ) : (
+                                        <a
+                                             href={order.payment_proof_url}
+                                             target="_blank"
+                                             rel="noopener noreferrer"
+                                             className="inline-block"
+                                        >
+                                             <img
+                                                  src={order.payment_proof_url}
+                                                  alt="Comprobante"
+                                                  className="max-h-48 border-2 border-black hover:scale-105 transition-transform"
+                                             />
+                                        </a>
+                                   )}
                               </div>
                          )}
 

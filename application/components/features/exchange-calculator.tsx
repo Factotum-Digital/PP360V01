@@ -6,6 +6,8 @@ import { AppStep, ExchangeData, TerminalLog } from '@/types';
 import { COMMISSION_RATE, MINIMUM_USD, ICONS } from '@/constants';
 import { LineChart, Line, ResponsiveContainer, YAxis, Tooltip } from 'recharts';
 import { createClient } from '@/lib/supabase/client';
+import { PayPalServiceButton } from './paypal-service-button';
+import { QRCodeSVG } from 'qrcode.react';
 
 const FALLBACK_RATE = 54.42;
 
@@ -415,13 +417,75 @@ export const ExchangeTerminal: React.FC = () => {
                                                   <p className="mono text-sm font-bold">TICKET_ID: <span className="text-[#FF4D00]">#{paymentInfo.ticketId}</span></p>
                                              </div>
 
-                                             <div className="bg-orange-50 p-4 border-4 border-[#262626] space-y-3">
-                                                  <h4 className="mono text-sm font-black uppercase underline">Instrucciones de Pago:</h4>
-                                                  <ol className="space-y-2">
-                                                       {paymentInfo.instructions.map((instruction, i) => (
-                                                            <li key={i} className="mono text-[11px] font-bold">{instruction}</li>
-                                                       ))}
-                                                  </ol>
+                                             <div className="bg-orange-50 p-4 border-l-4 border-[#FF4D00] space-y-4">
+                                                  <div className="flex flex-col md:flex-row gap-6 items-start">
+                                                       {/* QR Code Section */}
+                                                       <div className="bg-white p-2 border-4 border-[#262626] shadow-[4px_4px_0px_0px_#262626] flex-shrink-0 mx-auto md:mx-0">
+                                                            <QRCodeSVG
+                                                                 value={`https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=sb-43h8a33591630@business.example.com&item_name=Orden+${paymentInfo.ticketId}&amount=${data.usdAmount}&currency_code=USD`}
+                                                                 size={140}
+                                                                 level="M"
+                                                                 includeMargin={true}
+                                                            />
+                                                            <p className="text-[9px] font-bold text-center mt-2 mono">ESCANEAR PARA PAGAR</p>
+                                                       </div>
+
+                                                       {/* PayPal Button Section */}
+                                                       <div className="flex-1 space-y-3 w-full">
+                                                            <div className="text-center md:text-left space-y-1">
+                                                                 <h4 className="mono text-sm font-black uppercase underline decoration-[#FF4D00]">Realizar Pago:</h4>
+                                                                 <p className="mono text-[10px] font-bold text-gray-600">Clic para pagar con PayPal (Auto-Verificación):</p>
+                                                            </div>
+                                                            <div className="w-full relative z-0">
+                                                                 <PayPalServiceButton
+                                                                      amount={String(data.usdAmount)}
+                                                                      description={paymentInfo.ticketId}
+                                                                      onSuccess={async (details) => {
+                                                                           // Auto-update status to VERIFYING
+                                                                           try {
+                                                                                const response = await fetch('/api/orders/upload-proof', {
+                                                                                     method: 'POST',
+                                                                                     headers: { 'Content-Type': 'application/json' },
+                                                                                     body: JSON.stringify({
+                                                                                          ticketId: paymentInfo.ticketId,
+                                                                                          proofUrl: 'PAYPAL_AUTO_' + details.id
+                                                                                     })
+                                                                                });
+                                                                                if (response.ok) {
+                                                                                     setUploadSuccess(true);
+                                                                                     // Call notification API
+                                                                                     fetch('/api/notify-payment', {
+                                                                                          method: 'POST',
+                                                                                          headers: { 'Content-Type': 'application/json' },
+                                                                                          body: JSON.stringify({
+                                                                                               orderId: details.id,
+                                                                                               email: details.payer?.email_address,
+                                                                                               amount: data.usdAmount,
+                                                                                               ticketId: paymentInfo.ticketId,
+                                                                                               concept: `Guest Order ${paymentInfo.ticketId}`
+                                                                                          })
+                                                                                     }).catch(console.error);
+                                                                                }
+                                                                           } catch (err) {
+                                                                                console.error(err);
+                                                                                alert('Error actualizando pago automático');
+                                                                           }
+                                                                      }}
+                                                                      style={{
+                                                                           layout: "horizontal",
+                                                                           color: "black",
+                                                                           height: 48,
+                                                                           tagline: false,
+                                                                           shape: "rect",
+                                                                           label: "pay"
+                                                                      }}
+                                                                 />
+                                                            </div>
+                                                            <p className="text-[9px] italic text-gray-500 leading-tight">
+                                                                 * Al completar el pago, el sistema verificará tu orden automáticamente.
+                                                            </p>
+                                                       </div>
+                                                  </div>
                                              </div>
 
                                              {!uploadSuccess ? (
