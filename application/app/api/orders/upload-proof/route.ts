@@ -6,7 +6,10 @@ export async function POST(request: NextRequest) {
           const body = await request.json();
           const { ticketId, proofUrl } = body;
 
+          console.log('[UPLOAD-PROOF] Received:', { ticketId, proofUrl });
+
           if (!ticketId || !proofUrl) {
+               console.log('[UPLOAD-PROOF] Missing fields:', { ticketId, proofUrl });
                return NextResponse.json(
                     { error: "Ticket ID y URL son requeridos" },
                     { status: 400 }
