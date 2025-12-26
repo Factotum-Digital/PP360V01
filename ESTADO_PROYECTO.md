@@ -46,6 +46,9 @@
 | **Footer Contacto** | WhatsApp, Facebook, Instagram, botón flotante animado |
 | **Grid Comets** | Fondo animado con estelas de energía |
 | **Selector Método Pago** | Usuario registrado elige Pago Móvil o Transferencia Bancaria |
+| **Gestión de Cuentas** | Guardado automático de datos bancarios (Pago Móvil/Transf) al crear orden |
+| **UX Formulario** | Monto mínimo 5 USD, Layout Grid optimizado, Validaciones en tiempo real |
+| **Teléfono Admin** | Visualización de teléfono en panel de administración para transferencias |
 
 ---
 
@@ -65,8 +68,7 @@
 | # | Funcionalidad | Descripción | Est. |
 |---|---------------|-------------|------|
 | 1 | **🆕 Sistema de Referidos** | Programa de 3 niveles (hasta $30 USD/referido), link compartible, panel de ganancias, retiros | ~22h |
-| 2 | **🆕 Gestión de Cuentas** | CRUD de métodos de pago del usuario (como Saldoar) | ~8h |
-| 3 | **Perfil de Usuario** | Editar datos personales, datos de pago por defecto | ~4h |
+| 2 | **Perfil de Usuario** | Editar datos personales, datos de pago por defecto | ~4h |
 | 4 | **Notificaciones Email** | Email al crear orden, email al cambiar estado | ~6h |
 | 5 | **Modal Comprobantes Admin** | Ver comprobante en modal grande (actual abre en nueva pestaña) | ~2h |
 
