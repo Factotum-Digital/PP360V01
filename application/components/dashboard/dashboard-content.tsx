@@ -227,7 +227,7 @@ export function DashboardContent({ user, orders, currentRate }: DashboardContent
                                                                            <PayPalServiceButton
                                                                                 amount={order.amount_sent.toString()}
                                                                                 description={`Order #${order.ticket_id || order.order_id.slice(0, 8)} - Exchange ${order.amount_sent} USD`}
-                                                                                ticketId={order.ticket_id}
+                                                                                ticketId={order.ticket_id ?? undefined}
                                                                                 style={{ color: 'black' }}
                                                                                 onSuccess={async () => {
                                                                                      setUploadedOrderIds(prev => [...prev, order.order_id]);
