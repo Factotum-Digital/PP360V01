@@ -18,7 +18,7 @@ export function PayPalServiceButton({ amount, description, onSuccess, style = { 
           <div className="w-full relative z-0 mt-4">
                <PayPalButtons
                     style={{
-                         layout: "horizontal",
+                         layout: style.layout || "horizontal",
                          height: 48,
                          tagline: false,
                          shape: "rect",
