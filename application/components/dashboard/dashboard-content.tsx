@@ -44,40 +44,31 @@ export function DashboardContent({ user, orders, currentRate }: DashboardContent
           }
      };
 
+
+     const uploadProof = async (file: File, path: string) => {
+          if (!file.type.startsWith('image/')) throw new Error('Solo se permiten imágenes');
+          if (file.size > 2 * 1024 * 1024) throw new Error('El archivo es muy grande (máx 2MB)');
+
+          const { error: uploadError } = await supabase.storage.from('payment-proofs').upload(path, file);
+          if (uploadError) throw uploadError;
+
+          const { data: { publicUrl } } = supabase.storage.from('payment-proofs').getPublicUrl(path);
+          return publicUrl;
+     };
+
      const handleOrderUpload = async (e: React.ChangeEvent<HTMLInputElement>, orderId: string, ticketId: string | null) => {
           if (!e.target.files || e.target.files.length === 0) return;
-
-          const file = e.target.files[0];
-          if (!file.type.startsWith('image/')) {
-               alert('Error: Solo se permiten imágenes');
-               return;
-          }
-          if (file.size > 2 * 1024 * 1024) {
-               alert('Error: El archivo es muy grande (máx 2MB)');
-               return;
-          }
-
           setUploadingOrderId(orderId);
 
           try {
+               const file = e.target.files[0];
                const fileExt = file.name.split('.').pop();
                const ticketRef = ticketId || orderId.slice(0, 8);
                const fileName = `${ticketRef}_${Date.now()}.${fileExt}`;
-               const filePath = `${ticketRef}/${fileName}`;
 
-               const { error: uploadError } = await supabase.storage
-                    .from('payment-proofs')
-                    .upload(filePath, file);
+               const publicUrl = await uploadProof(file, `${ticketRef}/${fileName}`);
 
-               if (uploadError) throw uploadError;
-
-               const { data: { publicUrl } } = supabase.storage
-                    .from('payment-proofs')
-                    .getPublicUrl(filePath);
-
-               // Actualizar orden
-               await supabase
-                    .from('exchange_orders')
+               await supabase.from('exchange_orders')
                     .update({ payment_proof_url: publicUrl, status: 'VERIFYING' })
                     .eq('order_id', orderId);
 
@@ -363,8 +354,8 @@ function NewOrderForm({ currentRate, onComplete }: { currentRate: number; onComp
                     newErrors.phone = 'Teléfono asociado es obligatorio';
                }
                // Transferencia bancaria
-               if (!accountNumber.trim() || accountNumber.length < 10) {
-                    newErrors.accountNumber = 'Número de cuenta es obligatorio (mín. 10 dígitos)';
+               if (!accountNumber.trim() || accountNumber.length < 20) {
+                    newErrors.accountNumber = 'Número de cuenta inválido (min 20 dígitos)';
                }
                if (!accountHolder.trim() || accountHolder.length < 3) {
                     newErrors.accountHolder = 'Nombre del titular es obligatorio';
@@ -428,8 +419,8 @@ function NewOrderForm({ currentRate, onComplete }: { currentRate: number; onComp
                     bank_name: bank,
                     id_number: idNumber,
                     phone_pago_movil: phone,
-                    account_number: paymentMethod === 'transferencia' ? accountNumber : null,
-                    account_holder: paymentMethod === 'transferencia' ? accountHolder : null,
+                    account_number: accountNumber || null,
+                    account_holder: accountHolder || null,
                }, {
                     onConflict: 'user_id'
                });
@@ -466,21 +457,24 @@ function NewOrderForm({ currentRate, onComplete }: { currentRate: number; onComp
           setUploading(true);
 
           try {
+               const file = e.target.files[0];
                const fileExt = file.name.split('.').pop();
                const fileName = `${paymentInfo.ticketId}_${Date.now()}.${fileExt}`;
+
+               // Reutilizar lógica de subida (inline por no poder acceder a uploadProof de arriba fácilmente sin refactor mayor)
+               // Idealmente mover uploadProof fuera de los componentes.
+               if (!file.type.startsWith('image/')) throw new Error('Solo se permiten imágenes');
+               if (file.size > 2 * 1024 * 1024) throw new Error('El archivo es muy grande (máx 2MB)');
+
                const filePath = `${paymentInfo.ticketId}/${fileName}`;
-
-               const { error: uploadError } = await supabase.storage
-                    .from('payment-proofs')
-                    .upload(filePath, file);
-
+               const { error: uploadError } = await supabase.storage.from('payment-proofs').upload(filePath, file);
                if (uploadError) throw uploadError;
 
-               const { data: { publicUrl } } = supabase.storage
-                    .from('payment-proofs')
-                    .getPublicUrl(filePath);
+               const { data: { publicUrl } } = supabase.storage.from('payment-proofs').getPublicUrl(filePath);
 
                // Actualizar orden con la URL del comprobante
+
+
                await supabase
                     .from('exchange_orders')
                     .update({ payment_proof_url: publicUrl, status: 'VERIFYING' })
