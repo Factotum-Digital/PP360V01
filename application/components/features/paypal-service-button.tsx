@@ -38,10 +38,34 @@ export function PayPalServiceButton({ amount, description, onSuccess, style = { 
                          });
                     }}
                     onApprove={async (data, actions) => {
-                         if (!actions.order) return;
-                         const details = await actions.order.capture();
-                         alert(`Pago Exitoso por ${details.payer?.name?.given_name}! (ID: ${details.id})`);
-                         if (onSuccess) onSuccess(details);
+                         if (actions.order) {
+                              try {
+                                   const details = await actions.order.capture();
+                                   // 1. Execute parent onSuccess logic (DB Update)
+                                   if (onSuccess) await onSuccess(details);
+
+                                   // 2. Send Email Notification
+                                   try {
+                                        await fetch('/api/notify-payment', {
+                                             method: 'POST',
+                                             headers: { 'Content-Type': 'application/json' },
+                                             body: JSON.stringify({
+                                                  orderId: details.id,
+                                                  email: details.payer?.email_address,
+                                                  amount: amount,
+                                                  ticketId: description || 'N/A', // Using description field for simplicity or pass specific prop
+                                                  concept: description
+                                             })
+                                        });
+                                   } catch (notifyError) {
+                                        console.error('Notification Failed:', notifyError);
+                                        // Non-blocking error
+                                   }
+
+                              } catch (error) {
+                                   console.error("PayPal Capture Error:", error);
+                              }
+                         }
                     }}
                     onError={(err) => {
                          console.error(err);
