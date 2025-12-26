@@ -16,6 +16,9 @@
 | 3 | Campo `order.order_id` correcto | `api/orders/guest/route.ts` | ✅ |
 | 4 | Tipos TypeScript completos (campos guest) | `lib/supabase/database.types.ts` | ✅ |
 | 5 | Forgot Password con modal funcional | `app/login/page.tsx` | ✅ |
+| 6 | Data Loss: Datos de pago se borraban al usar Pago Móvil | `dashboard-content.tsx` | ✅ |
+| 7 | Validación: Cta. Bancaria requiere 20 dígitos | `dashboard-content.tsx` | ✅ |
+| 8 | Refactor: Lógica de subida archivos duplicada | `dashboard-content.tsx` | ✅ |
 
 ### Problemas de UX Corregidos
 
