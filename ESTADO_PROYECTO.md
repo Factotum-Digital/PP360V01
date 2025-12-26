@@ -23,6 +23,7 @@
 | **Filtros Admin** | ALL, PENDING, VERIFYING, COMPLETED, CANCELLED, GUESTS, REGISTERED |
 | **Footer con Contacto** | WhatsApp, Facebook, Instagram, botón flotante animado |
 | **Botones Login/SignUp** | Estilo Super Brutalist V2, sombra profunda y efectos de movimiento |
+| **Fondo Animado Grid Comets** | Estelas de energía alineadas perfectamente al grid de fondo |
 
 ---
 
