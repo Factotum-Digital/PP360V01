@@ -106,13 +106,13 @@ export function DashboardContent({ user, orders, currentRate }: DashboardContent
                     <div className="flex gap-2">
                          {isAdmin(user.email) && (
                               <Link href="/admin">
-                                   <Slab className="px-4 py-3 mono text-xs font-black uppercase cursor-pointer bg-[#FF4D00] text-white hover:bg-[#e04400]">
+                                   <Slab className="w-24 py-3 text-center justify-center mono text-xs font-black uppercase cursor-pointer bg-[#FF4D00] text-white hover:bg-[#e04400]">
                                         ADMIN
                                    </Slab>
                               </Link>
                          )}
                          <Slab
-                              className="px-4 py-3 mono text-xs font-black uppercase cursor-pointer bg-[#262626] text-white hover:bg-[#404040]"
+                              className="w-24 py-3 text-center justify-center mono text-xs font-black uppercase cursor-pointer bg-[#262626] text-white hover:bg-[#404040]"
                               onClick={handleLogout}
                          >
                               LOGOUT
