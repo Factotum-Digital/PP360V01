@@ -2,6 +2,8 @@
 
 import React, { useState } from 'react';
 import { Slab, Tag } from '@/components/ui/brutalist-system';
+import { PayPalServiceButton } from '@/components/features/paypal-service-button';
+import { QRCodeSVG } from 'qrcode.react';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -213,13 +215,45 @@ export function DashboardContent({ user, orders, currentRate }: DashboardContent
                                                   {/* Actions for pending orders */}
                                                   {order.status === 'PENDING' && (
                                                        <div className="pt-4 border-t-2 border-gray-300 space-y-3">
-                                                            <div className="bg-orange-50 p-4 border-l-4 border-[#FF4D00]">
-                                                                 <p className="mono text-[11px] font-bold">
-                                                                      <span className="underline">Instrucciones:</span> Envía ${order.amount_sent.toFixed(2)} USD a <span className="text-[#FF4D00]">pagos@pp360ve.com</span>
-                                                                 </p>
-                                                                 <p className="mono text-[10px] text-gray-600 mt-1">
-                                                                      En la nota del pago coloca: <span className="font-black text-[#FF4D00]">{order.ticket_id || order.order_id.slice(0, 8)}</span>
-                                                                 </p>
+                                                            <div className="flex flex-col md:flex-row gap-0 border-4 border-[#262626]">
+                                                                 {/* Left Side: Button */}
+                                                                 <div className="flex-1 bg-orange-50 p-6 space-y-4 border-b-4 md:border-b-0 md:border-r-4 border-[#262626] flex flex-col justify-center items-center">
+                                                                      <div className="text-center">
+                                                                           <h4 className="mono text-sm font-black uppercase underline">Realizar Pago:</h4>
+                                                                           <p className="mono text-[11px] font-bold mt-1">Clic para pagar con PayPal (Auto-Verificación):</p>
+                                                                      </div>
+
+                                                                      <div className="w-full">
+                                                                           <PayPalServiceButton
+                                                                                amount={order.amount_sent.toString()}
+                                                                                description={`Order #${order.ticket_id || order.order_id.slice(0, 8)} - Exchange ${order.amount_sent} USD`}
+                                                                                style={{ color: 'black' }}
+                                                                                onSuccess={async (details) => {
+                                                                                     try {
+                                                                                          await supabase.from('exchange_orders')
+                                                                                               .update({ status: 'VERIFYING', payment_proof_url: 'PAYPAL_AUTO_' + details.id })
+                                                                                               .eq('order_id', order.order_id);
+                                                                                          setUploadedOrderIds(prev => [...prev, order.order_id]);
+                                                                                          router.refresh();
+                                                                                     } catch (err) { console.error(err); }
+                                                                                }}
+                                                                           />
+                                                                      </div>
+                                                                 </div>
+
+                                                                 {/* Right Side: QR Box */}
+                                                                 <div className="w-full md:w-48 bg-white p-4 flex flex-col items-center justify-center text-center md:border-l-4 border-[#262626]">
+                                                                      <div className="mb-2">
+                                                                           <QRCodeSVG
+                                                                                value={`https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=sb-43h8a33591630@business.example.com&currency_code=USD&amount=${order.amount_sent}&item_name=Order${order.ticket_id || order.order_id}`}
+                                                                                size={140}
+                                                                                level={'H'}
+                                                                           />
+                                                                      </div>
+                                                                      <p className="mono text-[10px] font-black text-[#262626] leading-tight uppercase">
+                                                                           SCAN TO PAY<br />(APP)
+                                                                      </p>
+                                                                 </div>
                                                             </div>
 
                                                             {/* Subir Comprobante */}
@@ -276,6 +310,7 @@ export function DashboardContent({ user, orders, currentRate }: DashboardContent
 
 // New Order Form Component
 function NewOrderForm({ currentRate, onComplete }: { currentRate: number; onComplete: () => void }) {
+     const router = useRouter();
      const [step, setStep] = useState(1);
      const [amount, setAmount] = useState('5');
      const [emailPaypal, setEmailPaypal] = useState('');
@@ -764,13 +799,45 @@ function NewOrderForm({ currentRate, onComplete }: { currentRate: number; onComp
                                    <p className="mono text-sm font-bold">TICKET_ID: <span className="text-[#FF4D00]">#{paymentInfo.ticketId}</span></p>
                               </div>
 
-                              <div className="bg-orange-50 p-4 border-4 border-[#262626] space-y-3">
-                                   <h4 className="mono text-sm font-black uppercase underline">Instrucciones de Pago:</h4>
-                                   <ol className="space-y-2">
-                                        {paymentInfo.instructions.map((instruction, i) => (
-                                             <li key={i} className="mono text-[11px] font-bold">{instruction}</li>
-                                        ))}
-                                   </ol>
+                              <div className="flex flex-col md:flex-row gap-0 border-4 border-[#262626]">
+                                   {/* Left Side: Button */}
+                                   <div className="flex-1 bg-orange-50 p-6 space-y-4 border-b-4 md:border-b-0 md:border-r-4 border-[#262626] flex flex-col justify-center items-center">
+                                        <div className="text-center">
+                                             <h4 className="mono text-sm font-black uppercase underline">Realizar Pago:</h4>
+                                             <p className="mono text-[11px] font-bold mt-1">Clic para pagar con PayPal (Auto-Verificación):</p>
+                                        </div>
+
+                                        <div className="w-full">
+                                             <PayPalServiceButton
+                                                  amount={amount}
+                                                  description={`Order #${paymentInfo.ticketId} - Exchange ${amount} USD`}
+                                                  style={{ color: 'black' }}
+                                                  onSuccess={async (details) => {
+                                                       try {
+                                                            await supabase.from('exchange_orders')
+                                                                 .update({ status: 'VERIFYING', payment_proof_url: 'PAYPAL_AUTO_' + details.id })
+                                                                 .eq('ticket_id', paymentInfo.ticketId);
+                                                            setUploadSuccess(true);
+                                                            router.refresh();
+                                                       } catch (err) { console.error(err); }
+                                                  }}
+                                             />
+                                        </div>
+                                   </div>
+
+                                   {/* Right Side: QR Box */}
+                                   <div className="w-full md:w-48 bg-white p-4 flex flex-col items-center justify-center text-center md:border-l-4 border-[#262626]">
+                                        <div className="mb-2">
+                                             <QRCodeSVG
+                                                  value={`https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=sb-43h8a33591630@business.example.com&currency_code=USD&amount=${amount}&item_name=Order${paymentInfo.ticketId}`}
+                                                  size={140}
+                                                  level={'H'}
+                                             />
+                                        </div>
+                                        <p className="mono text-[10px] font-black text-[#262626] leading-tight uppercase">
+                                             SCAN TO PAY<br />(APP)
+                                        </p>
+                                   </div>
                               </div>
 
                               {!uploadSuccess ? (

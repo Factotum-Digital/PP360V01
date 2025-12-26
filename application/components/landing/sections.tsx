@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { Slab, Tag } from '@/components/ui/brutalist-system';
+import { PayPalServiceButton } from '@/components/features/paypal-service-button';
 
 export const LandingSections: React.FC = () => (
      <div className="space-y-24 mt-32">
@@ -74,7 +75,13 @@ export const LandingSections: React.FC = () => (
                                         {i > 0 && <li>- AI Market Forecast</li>}
                                         {i > 1 && <li>- Direct Node API</li>}
                                    </ul>
-                                   <button className={`w-full py-4 font-black border-4 border-[#262626] uppercase italic transition-colors ${i === 2 ? 'bg-[#FF4D00] text-white' : 'bg-[#262626] text-white hover:bg-[#FF4D00]'}`}>Deploy</button>
+
+                                   <PayPalServiceButton
+                                        amount={((i + 1) * 99).toString()}
+                                        description={`${plan.toUpperCase()} PLAN - First Month`}
+                                        style={{ color: i === 2 ? 'white' : 'black' }}
+                                   />
+
                               </Slab>
                          ))}
                     </div>

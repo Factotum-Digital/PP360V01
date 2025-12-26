@@ -43,8 +43,10 @@ export default function Home() {
                {/* Terminal Section */}
                <ExchangeTerminal />
 
+
                {/* Unified Marketing Sections */}
                <LandingSections />
+
 
                <Footer />
           </>

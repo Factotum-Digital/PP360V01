@@ -5,6 +5,7 @@ import { Sidebar } from "@/components/layout/sidebar";
 import { WhatsAppFloatingButton } from "@/components/ui/whatsapp-button";
 
 import { GridComets } from "@/components/ui/grid-comets";
+import { PayPalProviderWrapper } from "@/components/features/paypal-provider-wrapper";
 
 const inter = Inter({
      variable: "--font-inter",
@@ -38,14 +39,16 @@ export default function RootLayout({
                     <div className="grid-background" suppressHydrationWarning />
                     <GridComets />
                     <div className="noise" suppressHydrationWarning />
-                    <div className="flex relative z-10" suppressHydrationWarning>
-                         <Sidebar />
-                         <main className="flex-1 p-6 md:p-12 lg:p-20 overflow-hidden">
-                              <div className="max-w-6xl mx-auto">
-                                   {children}
-                              </div>
-                         </main>
-                    </div>
+                    <PayPalProviderWrapper>
+                         <div className="flex relative z-10" suppressHydrationWarning>
+                              <Sidebar />
+                              <main className="flex-1 p-6 md:p-12 lg:p-20 overflow-hidden">
+                                   <div className="max-w-6xl mx-auto">
+                                        {children}
+                                   </div>
+                              </main>
+                         </div>
+                    </PayPalProviderWrapper>
                     <WhatsAppFloatingButton />
                </body>
           </html>
