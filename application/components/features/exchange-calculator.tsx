@@ -450,37 +450,8 @@ export const ExchangeTerminal: React.FC = () => {
                                                                  <PayPalServiceButton
                                                                       amount={String(data.usdAmount)}
                                                                       description={paymentInfo.ticketId}
-                                                                      onSuccess={async (details) => {
-                                                                           // Auto-update status to VERIFYING
-                                                                           try {
-                                                                                const response = await fetch('/api/orders/upload-proof', {
-                                                                                     method: 'POST',
-                                                                                     headers: { 'Content-Type': 'application/json' },
-                                                                                     body: JSON.stringify({
-                                                                                          ticketId: paymentInfo.ticketId,
-                                                                                          proofUrl: 'PAYPAL_AUTO_' + details.id
-                                                                                     })
-                                                                                });
-                                                                                if (response.ok) {
-                                                                                     setUploadSuccess(true);
-                                                                                     // Call notification API
-                                                                                     fetch('/api/notify-payment', {
-                                                                                          method: 'POST',
-                                                                                          headers: { 'Content-Type': 'application/json' },
-                                                                                          body: JSON.stringify({
-                                                                                               orderId: details.id,
-                                                                                               email: details.payer?.email_address,
-                                                                                               amount: data.usdAmount,
-                                                                                               ticketId: paymentInfo.ticketId,
-                                                                                               concept: `Guest Order ${paymentInfo.ticketId}`
-                                                                                          })
-                                                                                     }).catch(console.error);
-                                                                                }
-                                                                           } catch (err) {
-                                                                                console.error(err);
-                                                                                alert('Error actualizando pago automático');
-                                                                           }
-                                                                      }}
+                                                                      ticketId={paymentInfo.ticketId}
+                                                                      onSuccess={() => setUploadSuccess(true)}
                                                                       style={{
                                                                            layout: "horizontal",
                                                                            color: "black"
