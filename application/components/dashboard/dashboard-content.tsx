@@ -516,6 +516,11 @@ function NewOrderForm({ currentRate, onComplete }: { currentRate: number; onComp
                                    min={5}
                                    placeholder="Ingresa el monto"
                               />
+                              {amountNum < 5 && (
+                                   <p className="mono text-[10px] font-black text-[#FF4D00] uppercase mt-1">
+                                        (monto minimo 5$)
+                                   </p>
+                              )}
                          </div>
 
                          <div className="bg-[#262626] text-white p-4">
@@ -563,7 +568,7 @@ function NewOrderForm({ currentRate, onComplete }: { currentRate: number; onComp
 
                          <Slab
                               dark
-                              className="p-4 text-center font-black uppercase bg-[#FF4D00] cursor-pointer"
+                              className="p-4 text-center font-black uppercase cursor-pointer bg-[#262626] text-white hover:bg-[#FF4D00] transition-colors"
                               onClick={() => {
                                    if (amountNum >= 5) {
                                         setStep(2);
