@@ -1,7 +1,7 @@
 # PP360VE - Estado del Proyecto
 
-**Última actualización:** 25 de Diciembre de 2025  
-**Avance estimado:** ~75%
+**Última actualización:** 26 de Diciembre de 2025  
+**Avance estimado:** ~77%
 
 ---
 
@@ -22,6 +22,7 @@
 | **Storage Bucket** | `payment_proofs` creado y público |
 | **Filtros Admin** | ALL, PENDING, VERIFYING, COMPLETED, CANCELLED, GUESTS, REGISTERED |
 | **Footer con Contacto** | WhatsApp, Facebook, Instagram, botón flotante animado |
+| **Botones Login/SignUp** | Estilo Super Brutalist V2, sombra profunda y efectos de movimiento |
 
 ---
 
