@@ -62,6 +62,7 @@ export interface Database {
                          whatsapp: string | null
                          is_guest: boolean
                          exchange_rate: number | null
+                         is_archived: boolean
                     }
                     Insert: {
                          order_id?: string
@@ -115,6 +116,7 @@ export interface Database {
                          phone_pago_movil: string | null
                          account_number: string | null
                          account_holder: string | null
+                         paypal_verified: boolean
                          created_at: string
                          updated_at: string
                     }
