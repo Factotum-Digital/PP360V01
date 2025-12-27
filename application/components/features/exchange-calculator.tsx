@@ -541,12 +541,12 @@ export const ExchangeTerminal: React.FC = () => {
 
                {/* Analytics Sidebar - Visible en todos los tamaños */}
                <div className="col-span-1 lg:col-span-4 space-y-6">
-                    <Slab dark className="p-4 sm:p-8 overflow-hidden relative">
-                         <div className="flex justify-between items-start mb-8">
-                              <h3 className="mono text-sm font-bold tracking-tighter uppercase italic">Histórico Tasa</h3>
-                              <span className="bg-[#FF4D00] text-white px-2 py-1 mono text-[10px] font-black">+2.4%</span>
+                    <Slab dark className="p-4 overflow-hidden relative">
+                         <div className="flex justify-between items-start mb-4">
+                              <h3 className="mono text-xs font-bold tracking-tighter uppercase italic">Histórico Tasa</h3>
+                              <span className="bg-[#FF4D00] text-white px-2 py-1 mono text-[9px] font-black">+2.4%</span>
                          </div>
-                         <div className="h-40 w-full">
+                         <div className="h-24 w-full">
                               <ResponsiveContainer width="100%" height="100%">
                                    <LineChart data={chartData}>
                                         <YAxis hide domain={['dataMin - 1', 'dataMax + 1']} />
