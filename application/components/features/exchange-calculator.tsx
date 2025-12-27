@@ -291,18 +291,17 @@ export const ExchangeTerminal: React.FC = () => {
                                         <label className="mono text-[10px] sm:text-xs font-black uppercase tracking-widest flex items-center gap-2">
                                              <span className="w-2 h-2 sm:w-3 sm:h-3 bg-[#FF4D00]"></span> Tú recibes (VES)
                                         </label>
-                                        <div className="relative">
-                                             <span className="absolute left-4 sm:left-6 top-1/2 -translate-y-1/2 font-black text-2xl sm:text-4xl opacity-20">Bs</span>
-                                             <input
-                                                  type="text"
-                                                  readOnly
-                                                  value={data.vesAmount.toLocaleString('es-VE', { minimumFractionDigits: 2 })}
-                                                  className="w-full bg-[#262626] text-white p-4 sm:p-8 pl-16 sm:pl-24 text-3xl sm:text-5xl font-black mono outline-none"
-                                             />
-                                        </div>
+                                        <Slab dark className="p-4 sm:p-8 bg-[#262626] border-[#262626] text-white">
+                                             <div className="flex flex-row items-center justify-start gap-4 sm:gap-6">
+                                                  <span className="font-black text-xl sm:text-2xl opacity-20 leading-none">Bs</span>
+                                                  <span className="text-2xl sm:text-4xl font-black mono leading-none">
+                                                       {data.vesAmount.toLocaleString('es-VE', { minimumFractionDigits: 2 })}
+                                                  </span>
+                                             </div>
+                                        </Slab>
                                         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-1 py-2 mono text-[9px] sm:text-[10px] font-bold text-gray-400 uppercase">
                                              <span>RATE: 1 USD = {currentRate.toFixed(2)} VES</span>
-                                             <span>FEE: 5.00% INCL.</span>
+                                             <span>FEE: INCLUIDA</span>
                                         </div>
                                    </div>
 
