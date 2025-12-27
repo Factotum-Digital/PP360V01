@@ -105,6 +105,7 @@ export interface Database {
                          whatsapp?: string | null
                          is_guest?: boolean
                          exchange_rate?: number | null
+                         is_archived?: boolean
                     }
                }
                user_payment_data: {

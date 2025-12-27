@@ -29,6 +29,8 @@ interface AdminDashboardProps {
 export function AdminDashboard({ user, orders, stats, currentRate }: AdminDashboardProps) {
      const [filter, setFilter] = useState<string>('ALL');
      const [updating, setUpdating] = useState<string | null>(null);
+     const [showArchived, setShowArchived] = useState(false);
+     const [archivedFilter, setArchivedFilter] = useState<'CANCELLED' | 'PENDING' | 'COMPLETED' | 'VERIFYING'>('CANCELLED');
      const router = useRouter();
      const supabase = createClient();
 
@@ -55,6 +57,32 @@ export function AdminDashboard({ user, orders, stats, currentRate }: AdminDashbo
           setUpdating(null);
      };
 
+     const archiveOrder = async (orderId: string) => {
+          const { error } = await supabase
+               .from('exchange_orders')
+               .update({ is_archived: true })
+               .eq('order_id', orderId);
+
+          if (error) {
+               alert('Error al archivar: ' + error.message);
+          } else {
+               router.refresh();
+          }
+     };
+
+     const unarchiveOrder = async (orderId: string) => {
+          const { error } = await supabase
+               .from('exchange_orders')
+               .update({ is_archived: false })
+               .eq('order_id', orderId);
+
+          if (error) {
+               alert('Error al desarchivar: ' + error.message);
+          } else {
+               router.refresh();
+          }
+     };
+
      const getStatusColor = (status: string) => {
           const upperStatus = status?.toUpperCase();
           switch (upperStatus) {
@@ -71,13 +99,32 @@ export function AdminDashboard({ user, orders, stats, currentRate }: AdminDashbo
           }
      };
 
-     const filteredOrders = filter === 'ALL'
-          ? orders
-          : filter === 'GUESTS'
-               ? orders.filter(o => o.is_guest === true)
-               : filter === 'REGISTERED'
-                    ? orders.filter(o => o.is_guest !== true && o.user_id !== null)
-                    : orders.filter(o => o.status?.toUpperCase() === filter);
+     // Calcular estadísticas de archivados
+     const archivedStats = {
+          total: orders.filter(o => o.is_archived).length,
+          cancelled: orders.filter(o => o.is_archived && o.status === 'CANCELLED').length,
+          pending: orders.filter(o => o.is_archived && o.status === 'PENDING').length,
+          completed: orders.filter(o => o.is_archived && o.status === 'COMPLETED').length,
+          verifying: orders.filter(o => o.is_archived && o.status === 'VERIFYING').length,
+     };
+
+     // Filtrar órdenes
+     const filteredOrders = orders.filter(order => {
+          // Primero filtrar por archivado
+          if (showArchived && !order.is_archived) return false;
+          if (!showArchived && order.is_archived) return false;
+
+          // Si estamos en vista archivados, filtrar por estado
+          if (showArchived) {
+               return order.status === archivedFilter;
+          }
+
+          // Filtros normales
+          if (filter === 'ALL') return true;
+          if (filter === 'GUESTS') return order.is_guest === true;
+          if (filter === 'REGISTERED') return order.is_guest !== true && order.user_id !== null;
+          return order.status?.toUpperCase() === filter;
+     });
 
      return (
           <div className="space-y-8">
@@ -112,28 +159,40 @@ export function AdminDashboard({ user, orders, stats, currentRate }: AdminDashbo
                <div className="grid md:grid-cols-6 gap-4">
                     <Slab
                          className={`p-4 text-center cursor-pointer transition-transform hover:scale-105 ${filter === 'ALL' ? 'ring-4 ring-black' : ''}`}
-                         onClick={() => setFilter('ALL')}
+                         onClick={() => {
+                              setFilter('ALL');
+                              setShowArchived(false);
+                         }}
                     >
                          <div className="text-2xl font-black">{stats.total}</div>
                          <div className="mono text-[10px] font-bold uppercase text-gray-500">Total</div>
                     </Slab>
                     <Slab
                          className={`p-4 text-center bg-yellow-100 cursor-pointer transition-transform hover:scale-105 ${filter === 'PENDING' ? 'ring-4 ring-yellow-600' : ''}`}
-                         onClick={() => setFilter('PENDING')}
+                         onClick={() => {
+                              setFilter('PENDING');
+                              setShowArchived(false);
+                         }}
                     >
                          <div className="text-2xl font-black text-yellow-600">{stats.pending}</div>
                          <div className="mono text-[10px] font-bold uppercase">Pendientes</div>
                     </Slab>
                     <Slab
                          className={`p-4 text-center bg-blue-100 cursor-pointer transition-transform hover:scale-105 ${filter === 'VERIFYING' ? 'ring-4 ring-blue-600' : ''}`}
-                         onClick={() => setFilter('VERIFYING')}
+                         onClick={() => {
+                              setFilter('VERIFYING');
+                              setShowArchived(false);
+                         }}
                     >
                          <div className="text-2xl font-black text-blue-600">{stats.verifying}</div>
                          <div className="mono text-[10px] font-bold uppercase">Verificando</div>
                     </Slab>
                     <Slab
                          className={`p-4 text-center bg-green-100 cursor-pointer transition-transform hover:scale-105 ${filter === 'COMPLETED' ? 'ring-4 ring-green-600' : ''}`}
-                         onClick={() => setFilter('COMPLETED')}
+                         onClick={() => {
+                              setFilter('COMPLETED');
+                              setShowArchived(false);
+                         }}
                     >
                          <div className="text-2xl font-black text-green-600">{stats.completed}</div>
                          <div className="mono text-[10px] font-bold uppercase">Completadas</div>
@@ -149,24 +208,68 @@ export function AdminDashboard({ user, orders, stats, currentRate }: AdminDashbo
                </div>
 
                {/* Filter Buttons */}
-               <div className="flex gap-2 flex-wrap">
-                    {['ALL', 'GUESTS', 'REGISTERED', 'PENDING', 'VERIFYING', 'COMPLETED', 'CANCELLED'].map((status) => (
-                         <button
-                              key={status}
-                              onClick={() => setFilter(status)}
-                              className={`px-4 py-2 mono text-xs font-black uppercase border-4 border-[#262626] transition-colors ${filter === status
-                                   ? status === 'GUESTS' ? 'bg-purple-600 text-white'
-                                        : status === 'REGISTERED' ? 'bg-blue-600 text-white'
-                                             : 'bg-[#262626] text-white'
-                                   : status === 'GUESTS' ? 'bg-purple-100 hover:bg-purple-200'
-                                        : status === 'REGISTERED' ? 'bg-blue-100 hover:bg-blue-200'
-                                             : 'bg-white hover:bg-gray-100'
-                                   }`}
-                         >
-                              {status === 'ALL' ? 'TODAS' : status === 'GUESTS' ? '👤 GUESTS' : status === 'REGISTERED' ? '✓ REGISTERED' : status}
-                         </button>
-                    ))}
+               <div className="flex gap-4 flex-wrap items-center">
+                    <div className="flex gap-2 flex-wrap">
+                         {['ALL', 'GUESTS', 'REGISTERED', 'PENDING', 'VERIFYING', 'COMPLETED', 'CANCELLED'].map((status) => (
+                              <button
+                                   key={status}
+                                   onClick={() => {
+                                        setFilter(status);
+                                        setShowArchived(false); // Desactivar archivados al cambiar filtro normal
+                                   }}
+                                   disabled={showArchived}
+                                   className={`px-4 py-2 mono text-xs font-black uppercase border-4 border-[#262626] transition-colors ${showArchived ? 'opacity-30 cursor-not-allowed' :
+                                        filter === status
+                                             ? status === 'GUESTS' ? 'bg-purple-600 text-white'
+                                                  : status === 'REGISTERED' ? 'bg-blue-600 text-white'
+                                                       : 'bg-[#262626] text-white'
+                                             : status === 'GUESTS' ? 'bg-purple-100 hover:bg-purple-200'
+                                                  : status === 'REGISTERED' ? 'bg-blue-100 hover:bg-blue-200'
+                                                       : 'bg-white hover:bg-gray-100'
+                                        }`}
+                              >
+                                   {status === 'ALL' ? 'TODAS' : status === 'GUESTS' ? '👤 GUESTS' : status === 'REGISTERED' ? '✓ REGISTERED' : status}
+                              </button>
+                         ))}
+                    </div>
+
+                    {/* Separador */}
+                    <div className="h-8 w-px bg-[#262626]"></div>
+
+                    {/* Toggle Archivados */}
+                    <button
+                         onClick={() => setShowArchived(!showArchived)}
+                         className={`px-4 py-2 mono text-xs font-black uppercase border-4 border-[#262626] transition-colors ${showArchived
+                              ? 'bg-[#262626] text-white'
+                              : 'bg-white hover:bg-gray-100'
+                              }`}
+                    >
+                         📦 Archivados ({archivedStats.total})
+                    </button>
                </div>
+
+               {/* Tabs de Estado para Archivados */}
+               {showArchived && (
+                    <div className="flex gap-2 flex-wrap">
+                         {[
+                              { status: 'CANCELLED', icon: '🗑️', label: 'Canceladas', count: archivedStats.cancelled },
+                              { status: 'PENDING', icon: '⏸️', label: 'Pendientes', count: archivedStats.pending },
+                              { status: 'COMPLETED', icon: '✅', label: 'Completadas', count: archivedStats.completed },
+                              { status: 'VERIFYING', icon: '🔍', label: 'Verificando', count: archivedStats.verifying },
+                         ].map(tab => (
+                              <button
+                                   key={tab.status}
+                                   onClick={() => setArchivedFilter(tab.status as any)}
+                                   className={`px-4 py-2 mono text-xs font-bold uppercase border-4 transition-all ${archivedFilter === tab.status
+                                        ? 'bg-[#FF4D00] text-white border-[#FF4D00]'
+                                        : 'bg-gray-100 hover:bg-gray-200 border-gray-300'
+                                        }`}
+                              >
+                                   {tab.icon} {tab.label} ({tab.count})
+                              </button>
+                         ))}
+                    </div>
+               )}
 
                {/* Orders List */}
                <Slab className="p-6">
@@ -188,6 +291,8 @@ export function AdminDashboard({ user, orders, stats, currentRate }: AdminDashbo
                                         key={order.order_id}
                                         order={order}
                                         onUpdateStatus={updateOrderStatus}
+                                        onArchive={archiveOrder}
+                                        onUnarchive={unarchiveOrder}
                                         updating={updating === order.order_id}
                                         getStatusColor={getStatusColor}
                                    />
@@ -203,11 +308,15 @@ export function AdminDashboard({ user, orders, stats, currentRate }: AdminDashbo
 function OrderCard({
      order,
      onUpdateStatus,
+     onArchive,
+     onUnarchive,
      updating,
      getStatusColor
 }: {
      order: ExchangeOrder;
      onUpdateStatus: (id: string, status: string) => void;
+     onArchive: (id: string) => void;
+     onUnarchive: (id: string) => void;
      updating: boolean;
      getStatusColor: (status: string) => string;
 }) {
@@ -434,9 +543,29 @@ function OrderCard({
                                    </>
                               )}
                               {(order.status === 'COMPLETED' || order.status === 'CANCELLED') && (
-                                   <span className="mono text-xs text-gray-400 italic">
-                                        Orden finalizada - No hay acciones disponibles
-                                   </span>
+                                   <div className="flex items-center gap-4">
+                                        <span className="mono text-xs text-gray-400 italic">
+                                             Orden finalizada
+                                        </span>
+                                        {/* Archive Button */}
+                                        {order.is_archived ? (
+                                             <button
+                                                  onClick={() => onUnarchive(order.order_id)}
+                                                  disabled={updating}
+                                                  className="px-4 py-2 bg-gray-200 text-gray-800 mono text-xs font-black uppercase hover:bg-gray-300 disabled:opacity-50"
+                                             >
+                                                  ↪ DESARCHIVAR
+                                             </button>
+                                        ) : (
+                                             <button
+                                                  onClick={() => onArchive(order.order_id)}
+                                                  disabled={updating}
+                                                  className="px-4 py-2 bg-gray-800 text-white mono text-xs font-black uppercase hover:bg-black disabled:opacity-50"
+                                             >
+                                                  📦 ARCHIVAR
+                                             </button>
+                                        )}
+                                   </div>
                               )}
                          </div>
                     </div>
