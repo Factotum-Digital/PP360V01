@@ -24,6 +24,7 @@ export function DashboardContent({ user, orders, currentRate }: DashboardContent
      const [uploadedOrderIds, setUploadedOrderIds] = useState<string[]>([]);
      const [showProfile, setShowProfile] = useState(false);
      const [showArchived, setShowArchived] = useState(false);
+     const [statusFilter, setStatusFilter] = useState<'all' | 'COMPLETED' | 'PENDING' | null>(null);
      const router = useRouter();
      const supabase = createClient();
 
@@ -145,17 +146,26 @@ export function DashboardContent({ user, orders, currentRate }: DashboardContent
 
                {/* Stats Row - 5 cards */}
                <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-                    <Slab className="p-6 text-center">
+                    <Slab
+                         className={`p-6 text-center cursor-pointer transition-all ${statusFilter === 'all' ? 'ring-4 ring-[#FF4D00]' : 'hover:ring-2 hover:ring-gray-300'}`}
+                         onClick={() => { setStatusFilter(statusFilter === 'all' ? null : 'all'); setShowArchived(false); }}
+                    >
                          <div className="text-3xl font-black">{orders.filter(o => !o.is_archived).length}</div>
                          <div className="mono text-[10px] font-bold uppercase text-gray-500">Total Órdenes</div>
                     </Slab>
-                    <Slab className="p-6 text-center bg-[#262626] text-white">
+                    <Slab
+                         className={`p-6 text-center bg-[#262626] text-white cursor-pointer transition-all ${statusFilter === 'COMPLETED' ? 'ring-4 ring-[#FF4D00]' : 'hover:ring-2 hover:ring-gray-500'}`}
+                         onClick={() => { setStatusFilter(statusFilter === 'COMPLETED' ? null : 'COMPLETED'); setShowArchived(false); }}
+                    >
                          <div className="text-3xl font-black text-[#FF4D00]">
                               {orders.filter(o => o.status === 'COMPLETED' && !o.is_archived).length}
                          </div>
                          <div className="mono text-[10px] font-bold uppercase">Completadas</div>
                     </Slab>
-                    <Slab className="p-6 text-center bg-[#FF4D00] text-white">
+                    <Slab
+                         className={`p-6 text-center bg-[#FF4D00] text-white cursor-pointer transition-all ${statusFilter === 'PENDING' ? 'ring-4 ring-[#262626]' : 'hover:ring-2 hover:ring-orange-300'}`}
+                         onClick={() => { setStatusFilter(statusFilter === 'PENDING' ? null : 'PENDING'); setShowArchived(false); }}
+                    >
                          <div className="text-3xl font-black">
                               {orders.filter(o => o.status === 'PENDING').length}
                          </div>
@@ -192,183 +202,210 @@ export function DashboardContent({ user, orders, currentRate }: DashboardContent
                          <h2 className="mono text-sm font-black uppercase flex items-center gap-2">
                               <span className="w-2 h-2 bg-[#FF4D00]"></span>
                               Historial de Órdenes
+                              {statusFilter && (
+                                   <span className="text-[#FF4D00] text-xs">
+                                        ({statusFilter === 'all' ? 'Todas' : statusFilter === 'COMPLETED' ? 'Completadas' : 'Pendientes'})
+                                   </span>
+                              )}
                          </h2>
-                         <button
-                              onClick={() => setShowArchived(!showArchived)}
-                              className={`mono text-[10px] font-bold uppercase px-3 py-1 border-2 transition-colors ${showArchived
-                                   ? 'bg-[#262626] text-white border-[#262626]'
-                                   : 'bg-white text-gray-500 border-gray-300 hover:border-[#262626]'
-                                   }`}
-                         >
-                              {showArchived ? '📁 Ocultar Archivados' : '📁 Ver Archivados'}
-                         </button>
+                         <div className="flex gap-2">
+                              {statusFilter && (
+                                   <button
+                                        onClick={() => setStatusFilter(null)}
+                                        className="mono text-[10px] font-bold uppercase px-3 py-1 border-2 border-red-400 text-red-500 hover:bg-red-50"
+                                   >
+                                        ✕ Limpiar Filtro
+                                   </button>
+                              )}
+                              <button
+                                   onClick={() => { setShowArchived(!showArchived); setStatusFilter(null); }}
+                                   className={`mono text-[10px] font-bold uppercase px-3 py-1 border-2 transition-colors ${showArchived
+                                        ? 'bg-[#262626] text-white border-[#262626]'
+                                        : 'bg-white text-gray-500 border-gray-300 hover:border-[#262626]'
+                                        }`}
+                              >
+                                   {showArchived ? '📁 Ocultar Archivados' : '📁 Ver Archivados'}
+                              </button>
+                         </div>
                     </div>
 
-                    {orders.filter(o => showArchived ? o.is_archived : !o.is_archived).length === 0 ? (
-                         <div className="text-center py-12">
-                              <p className="mono text-sm font-bold text-gray-400">
-                                   {showArchived ? 'No tienes órdenes archivadas.' : 'No tienes órdenes todavía. ¡Crea tu primera orden!'}
-                              </p>
-                         </div>
-                    ) : (
-                         <div className="space-y-4">
-                              {orders.filter(o => showArchived ? o.is_archived : !o.is_archived).map((order) => (
-                                   <div key={order.order_id} className={`border-4 ${order.is_archived ? 'border-gray-300 opacity-70' : 'border-[#262626]'}`}>
-                                        {/* Order Header - Clickeable */}
-                                        <div
-                                             className="p-4 bg-white hover:bg-gray-50 cursor-pointer flex justify-between items-center"
-                                             onClick={() => setExpandedOrderId(expandedOrderId === order.order_id ? null : order.order_id)}
-                                        >
-                                             <div className="flex items-center gap-4">
-                                                  <span className={`${getStatusColor(order.status)} text-white px-2 py-1 text-[10px] font-black`}>
-                                                       {order.status}
-                                                  </span>
-                                                  <span className="mono text-xs font-bold">
-                                                       #{order.ticket_id || order.order_id.slice(0, 8)}
-                                                  </span>
-                                             </div>
-                                             <div className="flex items-center gap-4 mono text-xs">
-                                                  <span className="font-black">${order.amount_sent.toFixed(2)} USD</span>
-                                                  <span className="text-[#FF4D00] font-black">{order.amount_received.toLocaleString('es-VE')} VES</span>
-                                                  <span className="text-gray-400 hidden sm:inline">{new Date(order.created_at).toLocaleDateString()}</span>
-                                                  <button
-                                                       onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            order.is_archived ? unarchiveOrder(order.order_id) : archiveOrder(order.order_id);
-                                                       }}
-                                                       className={`px-2 py-1 text-[10px] font-bold border-2 transition-colors ${order.is_archived
-                                                            ? 'border-green-500 text-green-500 hover:bg-green-50'
-                                                            : 'border-gray-300 text-gray-400 hover:border-gray-500 hover:text-gray-600'
-                                                            }`}
-                                                       title={order.is_archived ? 'Desarchivar' : 'Archivar'}
-                                                  >
-                                                       {order.is_archived ? '↩️' : '🗑️'}
-                                                  </button>
-                                                  <span className="text-xl">{expandedOrderId === order.order_id ? '−' : '+'}</span>
-                                             </div>
-                                        </div>
+                    {(() => {
+                         const filteredOrders = orders.filter(o => {
+                              // Si está mostrando archivados
+                              if (showArchived) return o.is_archived;
+                              // Filtro por status
+                              if (statusFilter === 'COMPLETED') return o.status === 'COMPLETED' && !o.is_archived;
+                              if (statusFilter === 'PENDING') return o.status === 'PENDING' && !o.is_archived;
+                              // Por defecto: no archivadas
+                              return !o.is_archived;
+                         });
 
-                                        {/* Order Details - Expandible */}
-                                        {expandedOrderId === order.order_id && (
-                                             <div className="border-t-4 border-[#262626] p-6 bg-gray-50 space-y-4">
-                                                  <div className="grid md:grid-cols-2 gap-6">
-                                                       <div className="space-y-2">
-                                                            <h4 className="mono text-xs font-black uppercase underline">Datos de la Orden</h4>
-                                                            <p className="mono text-[11px]"><span className="text-gray-500">ID:</span> <span className="font-bold">{order.order_id}</span></p>
-                                                            {order.ticket_id && <p className="mono text-[11px]"><span className="text-gray-500">Ticket:</span> <span className="font-bold text-[#FF4D00]">{order.ticket_id}</span></p>}
-                                                            <p className="mono text-[11px]"><span className="text-gray-500">Envía:</span> <span className="font-bold">${order.amount_sent.toFixed(2)} {order.currency_sent}</span></p>
-                                                            <p className="mono text-[11px]"><span className="text-gray-500">Recibe:</span> <span className="font-bold">{order.amount_received.toLocaleString('es-VE')} {order.currency_received}</span></p>
-                                                            <p className="mono text-[11px]"><span className="text-gray-500">Fecha:</span> <span className="font-bold">{new Date(order.created_at).toLocaleString()}</span></p>
-                                                       </div>
-                                                       <div className="space-y-2">
-                                                            <h4 className="mono text-xs font-black uppercase underline">Datos de Pago</h4>
-                                                            <p className="mono text-[11px]"><span className="text-gray-500">PayPal:</span> <span className="font-bold">{order.paypal_email || 'N/A'}</span></p>
-                                                            <p className="mono text-[11px]"><span className="text-gray-500">Banco:</span> <span className="font-bold">{order.bank_name || 'N/A'}</span></p>
-                                                            <p className="mono text-[11px]"><span className="text-gray-500">Cédula:</span> <span className="font-bold">{order.id_number || 'N/A'}</span></p>
-                                                            <p className="mono text-[11px]"><span className="text-gray-500">Teléfono:</span> <span className="font-bold">{order.phone_pago_movil || 'N/A'}</span></p>
-                                                            <p className="mono text-[11px]"><span className="text-gray-500">WhatsApp:</span> <span className="font-bold">{order.whatsapp || 'N/A'}</span></p>
-                                                       </div>
+                         return filteredOrders.length === 0 ? (
+                              <div className="text-center py-12">
+                                   <p className="mono text-sm font-bold text-gray-400">
+                                        {showArchived ? 'No tienes órdenes archivadas.' : statusFilter ? `No tienes órdenes ${statusFilter === 'COMPLETED' ? 'completadas' : 'pendientes'}.` : 'No tienes órdenes todavía. ¡Crea tu primera orden!'}
+                                   </p>
+                              </div>
+                         ) : (
+                              <div className="space-y-4">
+                                   {filteredOrders.map((order) => (
+                                        <div key={order.order_id} className={`border-4 ${order.is_archived ? 'border-gray-300 opacity-70' : 'border-[#262626]'}`}>
+                                             {/* Order Header - Clickeable */}
+                                             <div
+                                                  className="p-4 bg-white hover:bg-gray-50 cursor-pointer flex justify-between items-center"
+                                                  onClick={() => setExpandedOrderId(expandedOrderId === order.order_id ? null : order.order_id)}
+                                             >
+                                                  <div className="flex items-center gap-4">
+                                                       <span className={`${getStatusColor(order.status)} text-white px-2 py-1 text-[10px] font-black`}>
+                                                            {order.status}
+                                                       </span>
+                                                       <span className="mono text-xs font-bold">
+                                                            #{order.ticket_id || order.order_id.slice(0, 8)}
+                                                       </span>
                                                   </div>
-
-                                                  {/* Actions for pending orders */}
-                                                  {order.status === 'PENDING' && (
-                                                       <div className="pt-4 border-t-2 border-gray-300 space-y-3">
-                                                            <div className="bg-orange-50 p-4 border-l-4 border-[#FF4D00] space-y-4">
-                                                                 {/* Manual Instructions Section */}
-                                                                 <div className="space-y-2 border-b-2 border-orange-200 pb-4 mb-2">
-                                                                      <h4 className="mono text-sm font-black uppercase underline decoration-[#FF4D00]">Instrucciones de Pago:</h4>
-                                                                      <ol className="space-y-1">
-                                                                           <li className="mono text-[11px] font-bold text-gray-700">1. Envía ${order.amount_sent.toFixed(2)} USD a: pagos@pp360ve.com</li>
-                                                                           <li className="mono text-[11px] font-bold text-gray-700">2. En la nota del pago coloca: {order.ticket_id || order.order_id.slice(0, 8)}</li>
-                                                                           <li className="mono text-[11px] font-bold text-gray-700">3. Envía captura del pago por WhatsApp</li>
-                                                                           <li className="mono text-[11px] font-bold text-gray-700">4. Recibirás Bs. {order.amount_received.toLocaleString('es-VE')} en tu cuenta</li>
-                                                                      </ol>
-                                                                 </div>
-
-                                                                 <div className="flex flex-col md:flex-row gap-6 items-start">
-                                                                      {/* QR Code Section */}
-                                                                      <div className="bg-white p-2 border-4 border-[#262626] shadow-[4px_4px_0px_0px_#262626] flex-shrink-0 mx-auto md:mx-0">
-                                                                           <QRCodeSVG
-                                                                                value={`https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=sb-43h8a33591630@business.example.com&currency_code=USD&amount=${order.amount_sent}&item_name=Order${order.ticket_id || order.order_id}`}
-                                                                                size={140}
-                                                                                level={'H'}
-                                                                                includeMargin={true}
-                                                                           />
-                                                                           <p className="text-[9px] font-bold text-center mt-2 mono">ESCANEAR PARA PAGAR</p>
-                                                                      </div>
-
-                                                                      {/* PayPal Button Section */}
-                                                                      <div className="flex-1 space-y-3 w-full">
-                                                                           <div className="text-center md:text-left space-y-1">
-                                                                                <h4 className="mono text-sm font-black uppercase underline decoration-[#FF4D00]">Realizar Pago:</h4>
-                                                                                <p className="mono text-[10px] font-bold text-gray-600">Clic para pagar con PayPal (Auto-Verificación):</p>
-                                                                           </div>
-                                                                           <div className="w-full relative z-0">
-                                                                                <PayPalServiceButton
-                                                                                     amount={order.amount_sent.toString()}
-                                                                                     description={`Order #${order.ticket_id || order.order_id.slice(0, 8)} - Exchange ${order.amount_sent} USD`}
-                                                                                     ticketId={order.ticket_id ?? undefined}
-                                                                                     style={{ color: 'black', layout: "horizontal" }}
-                                                                                     onSuccess={async () => {
-                                                                                          setUploadedOrderIds(prev => [...prev, order.order_id]);
-                                                                                          router.refresh();
-                                                                                     }}
-                                                                                />
-                                                                           </div>
-                                                                           <p className="text-[9px] italic text-gray-500 leading-tight">
-                                                                                * Al completar el pago, el sistema verificará tu orden automáticamente.
-                                                                           </p>
-                                                                      </div>
-                                                                 </div>
-                                                            </div>
-
-                                                            {/* Subir Comprobante */}
-                                                            {!uploadedOrderIds.includes(order.order_id) ? (
-                                                                 <label className={`block w-full p-3 text-center font-black uppercase mono text-xs border-4 border-[#262626] cursor-pointer transition-colors ${uploadingOrderId === order.order_id ? 'bg-gray-400 text-gray-800' : 'bg-[#262626] text-white hover:bg-black'}`}>
-                                                                      {uploadingOrderId === order.order_id ? 'SUBIENDO...' : '📁 SUBIR COMPROBANTE'}
-                                                                      <input
-                                                                           type="file"
-                                                                           accept="image/*"
-                                                                           className="hidden"
-                                                                           onChange={(e) => handleOrderUpload(e, order.order_id, order.ticket_id)}
-                                                                           disabled={uploadingOrderId === order.order_id}
-                                                                      />
-                                                                 </label>
-                                                            ) : (
-                                                                 <div className="bg-green-100 p-3 border-l-4 border-green-500">
-                                                                      <p className="mono text-xs font-black text-green-700">✓ COMPROBANTE SUBIDO</p>
-                                                                 </div>
-                                                            )}
-                                                            <p className="mono text-[10px] text-center font-bold text-gray-500">FORMATOS: JPG, PNG | MAX: 2MB</p>
-
-                                                            <div className="relative flex py-2 items-center">
-                                                                 <div className="flex-grow border-t border-gray-300"></div>
-                                                                 <span className="flex-shrink-0 mx-4 text-gray-400 text-[10px] mono uppercase">O reportar por</span>
-                                                                 <div className="flex-grow border-t border-gray-300"></div>
-                                                            </div>
-
-                                                            <a
-                                                                 href={`https://api.whatsapp.com/send/?phone=15557745095&text=Hola!%20Mi%20ticket%20es%20${order.ticket_id || order.order_id.slice(0, 8)}`}
-                                                                 target="_blank"
-                                                                 rel="noopener noreferrer"
-                                                                 className="block w-full bg-white text-green-600 p-3 text-center font-black uppercase mono text-xs border-4 border-green-600 hover:bg-green-50 transition-colors"
-                                                            >
-                                                                 📱 Enviar por WhatsApp
-                                                            </a>
-                                                       </div>
-                                                  )}
-
-                                                  {order.status === 'COMPLETED' && (
-                                                       <div className="bg-green-100 p-4 border-l-8 border-green-500">
-                                                            <p className="mono text-xs font-black text-green-700">✓ ORDEN COMPLETADA</p>
-                                                       </div>
-                                                  )}
+                                                  <div className="flex items-center gap-4 mono text-xs">
+                                                       <span className="font-black">${order.amount_sent.toFixed(2)} USD</span>
+                                                       <span className="text-[#FF4D00] font-black">{order.amount_received.toLocaleString('es-VE')} VES</span>
+                                                       <span className="text-gray-400 hidden sm:inline">{new Date(order.created_at).toLocaleDateString()}</span>
+                                                       <button
+                                                            onClick={(e) => {
+                                                                 e.stopPropagation();
+                                                                 order.is_archived ? unarchiveOrder(order.order_id) : archiveOrder(order.order_id);
+                                                            }}
+                                                            className={`px-2 py-1 text-[10px] font-bold border-2 transition-colors ${order.is_archived
+                                                                 ? 'border-green-500 text-green-500 hover:bg-green-50'
+                                                                 : 'border-gray-300 text-gray-400 hover:border-gray-500 hover:text-gray-600'
+                                                                 }`}
+                                                            title={order.is_archived ? 'Desarchivar' : 'Archivar'}
+                                                       >
+                                                            {order.is_archived ? '↩️' : '🗑️'}
+                                                       </button>
+                                                       <span className="text-xl">{expandedOrderId === order.order_id ? '−' : '+'}</span>
+                                                  </div>
                                              </div>
-                                        )}
-                                   </div>
-                              ))}
-                         </div>
-                    )}
+
+                                             {/* Order Details - Expandible */}
+                                             {expandedOrderId === order.order_id && (
+                                                  <div className="border-t-4 border-[#262626] p-6 bg-gray-50 space-y-4">
+                                                       <div className="grid md:grid-cols-2 gap-6">
+                                                            <div className="space-y-2">
+                                                                 <h4 className="mono text-xs font-black uppercase underline">Datos de la Orden</h4>
+                                                                 <p className="mono text-[11px]"><span className="text-gray-500">ID:</span> <span className="font-bold">{order.order_id}</span></p>
+                                                                 {order.ticket_id && <p className="mono text-[11px]"><span className="text-gray-500">Ticket:</span> <span className="font-bold text-[#FF4D00]">{order.ticket_id}</span></p>}
+                                                                 <p className="mono text-[11px]"><span className="text-gray-500">Envía:</span> <span className="font-bold">${order.amount_sent.toFixed(2)} {order.currency_sent}</span></p>
+                                                                 <p className="mono text-[11px]"><span className="text-gray-500">Recibe:</span> <span className="font-bold">{order.amount_received.toLocaleString('es-VE')} {order.currency_received}</span></p>
+                                                                 <p className="mono text-[11px]"><span className="text-gray-500">Fecha:</span> <span className="font-bold">{new Date(order.created_at).toLocaleString()}</span></p>
+                                                            </div>
+                                                            <div className="space-y-2">
+                                                                 <h4 className="mono text-xs font-black uppercase underline">Datos de Pago</h4>
+                                                                 <p className="mono text-[11px]"><span className="text-gray-500">PayPal:</span> <span className="font-bold">{order.paypal_email || 'N/A'}</span></p>
+                                                                 <p className="mono text-[11px]"><span className="text-gray-500">Banco:</span> <span className="font-bold">{order.bank_name || 'N/A'}</span></p>
+                                                                 <p className="mono text-[11px]"><span className="text-gray-500">Cédula:</span> <span className="font-bold">{order.id_number || 'N/A'}</span></p>
+                                                                 <p className="mono text-[11px]"><span className="text-gray-500">Teléfono:</span> <span className="font-bold">{order.phone_pago_movil || 'N/A'}</span></p>
+                                                                 <p className="mono text-[11px]"><span className="text-gray-500">WhatsApp:</span> <span className="font-bold">{order.whatsapp || 'N/A'}</span></p>
+                                                            </div>
+                                                       </div>
+
+                                                       {/* Actions for pending orders */}
+                                                       {order.status === 'PENDING' && (
+                                                            <div className="pt-4 border-t-2 border-gray-300 space-y-3">
+                                                                 <div className="bg-orange-50 p-4 border-l-4 border-[#FF4D00] space-y-4">
+                                                                      {/* Manual Instructions Section */}
+                                                                      <div className="space-y-2 border-b-2 border-orange-200 pb-4 mb-2">
+                                                                           <h4 className="mono text-sm font-black uppercase underline decoration-[#FF4D00]">Instrucciones de Pago:</h4>
+                                                                           <ol className="space-y-1">
+                                                                                <li className="mono text-[11px] font-bold text-gray-700">1. Envía ${order.amount_sent.toFixed(2)} USD a: pagos@pp360ve.com</li>
+                                                                                <li className="mono text-[11px] font-bold text-gray-700">2. En la nota del pago coloca: {order.ticket_id || order.order_id.slice(0, 8)}</li>
+                                                                                <li className="mono text-[11px] font-bold text-gray-700">3. Envía captura del pago por WhatsApp</li>
+                                                                                <li className="mono text-[11px] font-bold text-gray-700">4. Recibirás Bs. {order.amount_received.toLocaleString('es-VE')} en tu cuenta</li>
+                                                                           </ol>
+                                                                      </div>
+
+                                                                      <div className="flex flex-col md:flex-row gap-6 items-start">
+                                                                           {/* QR Code Section */}
+                                                                           <div className="bg-white p-2 border-4 border-[#262626] shadow-[4px_4px_0px_0px_#262626] flex-shrink-0 mx-auto md:mx-0">
+                                                                                <QRCodeSVG
+                                                                                     value={`https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=sb-43h8a33591630@business.example.com&currency_code=USD&amount=${order.amount_sent}&item_name=Order${order.ticket_id || order.order_id}`}
+                                                                                     size={140}
+                                                                                     level={'H'}
+                                                                                     includeMargin={true}
+                                                                                />
+                                                                                <p className="text-[9px] font-bold text-center mt-2 mono">ESCANEAR PARA PAGAR</p>
+                                                                           </div>
+
+                                                                           {/* PayPal Button Section */}
+                                                                           <div className="flex-1 space-y-3 w-full">
+                                                                                <div className="text-center md:text-left space-y-1">
+                                                                                     <h4 className="mono text-sm font-black uppercase underline decoration-[#FF4D00]">Realizar Pago:</h4>
+                                                                                     <p className="mono text-[10px] font-bold text-gray-600">Clic para pagar con PayPal (Auto-Verificación):</p>
+                                                                                </div>
+                                                                                <div className="w-full relative z-0">
+                                                                                     <PayPalServiceButton
+                                                                                          amount={order.amount_sent.toString()}
+                                                                                          description={`Order #${order.ticket_id || order.order_id.slice(0, 8)} - Exchange ${order.amount_sent} USD`}
+                                                                                          ticketId={order.ticket_id ?? undefined}
+                                                                                          style={{ color: 'black', layout: "horizontal" }}
+                                                                                          onSuccess={async () => {
+                                                                                               setUploadedOrderIds(prev => [...prev, order.order_id]);
+                                                                                               router.refresh();
+                                                                                          }}
+                                                                                     />
+                                                                                </div>
+                                                                                <p className="text-[9px] italic text-gray-500 leading-tight">
+                                                                                     * Al completar el pago, el sistema verificará tu orden automáticamente.
+                                                                                </p>
+                                                                           </div>
+                                                                      </div>
+                                                                 </div>
+
+                                                                 {/* Subir Comprobante */}
+                                                                 {!uploadedOrderIds.includes(order.order_id) ? (
+                                                                      <label className={`block w-full p-3 text-center font-black uppercase mono text-xs border-4 border-[#262626] cursor-pointer transition-colors ${uploadingOrderId === order.order_id ? 'bg-gray-400 text-gray-800' : 'bg-[#262626] text-white hover:bg-black'}`}>
+                                                                           {uploadingOrderId === order.order_id ? 'SUBIENDO...' : '📁 SUBIR COMPROBANTE'}
+                                                                           <input
+                                                                                type="file"
+                                                                                accept="image/*"
+                                                                                className="hidden"
+                                                                                onChange={(e) => handleOrderUpload(e, order.order_id, order.ticket_id)}
+                                                                                disabled={uploadingOrderId === order.order_id}
+                                                                           />
+                                                                      </label>
+                                                                 ) : (
+                                                                      <div className="bg-green-100 p-3 border-l-4 border-green-500">
+                                                                           <p className="mono text-xs font-black text-green-700">✓ COMPROBANTE SUBIDO</p>
+                                                                      </div>
+                                                                 )}
+                                                                 <p className="mono text-[10px] text-center font-bold text-gray-500">FORMATOS: JPG, PNG | MAX: 2MB</p>
+
+                                                                 <div className="relative flex py-2 items-center">
+                                                                      <div className="flex-grow border-t border-gray-300"></div>
+                                                                      <span className="flex-shrink-0 mx-4 text-gray-400 text-[10px] mono uppercase">O reportar por</span>
+                                                                      <div className="flex-grow border-t border-gray-300"></div>
+                                                                 </div>
+
+                                                                 <a
+                                                                      href={`https://api.whatsapp.com/send/?phone=15557745095&text=Hola!%20Mi%20ticket%20es%20${order.ticket_id || order.order_id.slice(0, 8)}`}
+                                                                      target="_blank"
+                                                                      rel="noopener noreferrer"
+                                                                      className="block w-full bg-white text-green-600 p-3 text-center font-black uppercase mono text-xs border-4 border-green-600 hover:bg-green-50 transition-colors"
+                                                                 >
+                                                                      📱 Enviar por WhatsApp
+                                                                 </a>
+                                                            </div>
+                                                       )}
+
+                                                       {order.status === 'COMPLETED' && (
+                                                            <div className="bg-green-100 p-4 border-l-8 border-green-500">
+                                                                 <p className="mono text-xs font-black text-green-700">✓ ORDEN COMPLETADA</p>
+                                                            </div>
+                                                       )}
+                                                  </div>
+                                             )}
+                                        </div>
+                                   ))}
+                              </div>
+                         );
+                    })()}
                </Slab>
 
                {/* Profile Modal */}
@@ -959,17 +996,67 @@ function NewOrderForm({ currentRate, onComplete }: { currentRate: number; onComp
      );
 }
 
-// Profile Modal Component
+// Profile Modal Component - Enhanced Version
 function ProfileModal({ userId, onClose }: { userId: string; onClose: () => void }) {
      const [loading, setLoading] = useState(true);
      const [saving, setSaving] = useState(false);
-     const [bank, setBank] = useState('Banesco');
+     const [activeSection, setActiveSection] = useState<'identity' | 'payment' | 'paypal'>('identity');
+
+     // Identity Fields
+     const [fullName, setFullName] = useState('');
+     const [email, setEmail] = useState('');
+     const [countryCode, setCountryCode] = useState('+58');
+     const [whatsappPrimary, setWhatsappPrimary] = useState('');
+     const [whatsappSecondary, setWhatsappSecondary] = useState('');
      const [idNumber, setIdNumber] = useState('');
-     const [phone, setPhone] = useState('');
+
+     // Payment Fields
+     const [bank, setBank] = useState('Banesco');
+     const [accountType, setAccountType] = useState<'CORRIENTE' | 'AHORRO'>('CORRIENTE');
      const [accountNumber, setAccountNumber] = useState('');
      const [accountHolder, setAccountHolder] = useState('');
-     const [paypalVerified, setPaypalVerified] = useState(false);
+     const [enableTransfer, setEnableTransfer] = useState(true);
+
+     // Pago Móvil Fields  
+     const [pagoMovilBank, setPagoMovilBank] = useState('Banesco');
+     const [pagoMovilPhone, setPagoMovilPhone] = useState('');
+     const [pagoMovilCedula, setPagoMovilCedula] = useState('');
+
+     // PayPal Fields
+     const [paypalEmail, setPaypalEmail] = useState('');
+     const [paypalStatus, setPaypalStatus] = useState<'verified' | 'pending' | 'unverified'>('unverified');
+
      const supabase = createClient();
+
+     // Country codes for international support
+     const countryCodes = [
+          { code: '+58', country: '🇻🇪 Venezuela' },
+          { code: '+1', country: '🇺🇸 USA/Canada' },
+          { code: '+34', country: '🇪🇸 España' },
+          { code: '+57', country: '🇨🇴 Colombia' },
+          { code: '+52', country: '🇲🇽 México' },
+          { code: '+54', country: '🇦🇷 Argentina' },
+          { code: '+56', country: '🇨🇱 Chile' },
+          { code: '+51', country: '🇵🇪 Perú' },
+          { code: '+593', country: '🇪🇨 Ecuador' },
+          { code: '+55', country: '🇧🇷 Brasil' },
+     ];
+
+     // Venezuelan Banks
+     const venezuelanBanks = [
+          'Banesco', 'Mercantil', 'Banco de Venezuela', 'Provincial', 'BOD',
+          'Banco Exterior', 'Banco Caroní', 'Banco Sofitasa', 'Banco Venezolano de Crédito',
+          'BanCaribe', 'Banco Plaza', 'Banco del Tesoro', 'Banfanb', '100% Banco',
+          'Banco Activo', 'Bancrecer', 'Mi Banco', 'Banco Bicentenario'
+     ];
+
+     // Calculate profile completion
+     const calculateCompletion = () => {
+          let completed = 0;
+          const fields = [fullName, idNumber, whatsappPrimary, bank, paypalEmail];
+          fields.forEach(f => { if (f && f.trim()) completed++; });
+          return Math.round((completed / fields.length) * 100);
+     };
 
      React.useEffect(() => {
           const loadData = async () => {
@@ -980,12 +1067,22 @@ function ProfileModal({ userId, onClose }: { userId: string; onClose: () => void
                     .single();
 
                if (data) {
-                    if (data.bank_name) setBank(data.bank_name);
+                    if (data.full_name) setFullName(data.full_name);
+                    if (data.email) setEmail(data.email);
+                    if (data.country_code) setCountryCode(data.country_code);
+                    if (data.whatsapp_primary) setWhatsappPrimary(data.whatsapp_primary);
+                    if (data.whatsapp_secondary) setWhatsappSecondary(data.whatsapp_secondary);
                     if (data.id_number) setIdNumber(data.id_number);
-                    if (data.phone_pago_movil) setPhone(data.phone_pago_movil);
+                    if (data.bank_name) setBank(data.bank_name);
+                    if (data.account_type) setAccountType(data.account_type);
                     if (data.account_number) setAccountNumber(data.account_number);
                     if (data.account_holder) setAccountHolder(data.account_holder);
-                    if (data.paypal_verified) setPaypalVerified(data.paypal_verified);
+                    if (data.enable_transfer !== undefined) setEnableTransfer(data.enable_transfer);
+                    if (data.pago_movil_bank) setPagoMovilBank(data.pago_movil_bank);
+                    if (data.pago_movil_phone) setPagoMovilPhone(data.pago_movil_phone);
+                    if (data.pago_movil_cedula) setPagoMovilCedula(data.pago_movil_cedula);
+                    if (data.paypal_email) setPaypalEmail(data.paypal_email);
+                    if (data.paypal_status) setPaypalStatus(data.paypal_status);
                }
                setLoading(false);
           };
@@ -994,138 +1091,399 @@ function ProfileModal({ userId, onClose }: { userId: string; onClose: () => void
 
      const handleSave = async () => {
           setSaving(true);
+          const completion = calculateCompletion();
+
           await supabase.from('user_payment_data').upsert({
                user_id: userId,
+               full_name: fullName || null,
+               email: email || null,
+               country_code: countryCode,
+               whatsapp_primary: whatsappPrimary || null,
+               whatsapp_secondary: whatsappSecondary || null,
+               id_number: idNumber || null,
                bank_name: bank,
-               id_number: idNumber,
-               phone_pago_movil: phone,
+               account_type: accountType,
                account_number: accountNumber || null,
                account_holder: accountHolder || null,
-               paypal_verified: paypalVerified,
+               enable_transfer: enableTransfer,
+               pago_movil_bank: pagoMovilBank,
+               pago_movil_phone: pagoMovilPhone || null,
+               pago_movil_cedula: pagoMovilCedula || null,
+               paypal_email: paypalEmail || null,
+               paypal_status: paypalStatus,
+               profile_completion: completion,
           }, { onConflict: 'user_id' });
+
           setSaving(false);
           onClose();
      };
 
+     const completion = calculateCompletion();
+
      return (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-               <div className="bg-white border-4 border-[#262626] shadow-[8px_8px_0px_0px_#262626] max-w-lg w-full max-h-[90vh] overflow-y-auto">
-                    {/* Header */}
-                    <div className="flex justify-between items-center p-6 border-b-4 border-[#262626]">
-                         <h2 className="text-xl font-black uppercase">Mi Perfil</h2>
-                         <button
-                              onClick={onClose}
-                              className="w-8 h-8 bg-[#262626] text-white font-black hover:bg-[#FF4D00] transition-colors"
-                         >
-                              ✕
-                         </button>
+          <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+               <div className="bg-white border-4 border-[#262626] shadow-[12px_12px_0px_0px_#262626] max-w-2xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+                    {/* Header with Progress */}
+                    <div className="p-6 border-b-4 border-[#262626] bg-gradient-to-r from-[#262626] to-[#404040]">
+                         <div className="flex justify-between items-center mb-4">
+                              <h2 className="text-xl font-black uppercase text-white flex items-center gap-2">
+                                   👤 Mi Perfil
+                              </h2>
+                              <button
+                                   onClick={onClose}
+                                   className="w-8 h-8 bg-white text-[#262626] font-black hover:bg-[#FF4D00] hover:text-white transition-colors"
+                              >
+                                   ✕
+                              </button>
+                         </div>
+
+                         {/* Progress Bar */}
+                         <div className="space-y-1">
+                              <div className="flex justify-between mono text-[10px] text-white/80">
+                                   <span>Perfil completado</span>
+                                   <span className="font-black">{completion}%</span>
+                              </div>
+                              <div className="h-2 bg-white/20 rounded-full overflow-hidden">
+                                   <div
+                                        className="h-full bg-[#FF4D00] transition-all duration-500"
+                                        style={{ width: `${completion}%` }}
+                                   />
+                              </div>
+                         </div>
+                    </div>
+
+                    {/* Section Tabs */}
+                    <div className="flex border-b-4 border-[#262626]">
+                         {[
+                              { id: 'identity', icon: '📋', label: 'Identificación' },
+                              { id: 'payment', icon: '🏦', label: 'Métodos de Pago' },
+                              { id: 'paypal', icon: '💳', label: 'PayPal' },
+                         ].map((tab) => (
+                              <button
+                                   key={tab.id}
+                                   onClick={() => setActiveSection(tab.id as typeof activeSection)}
+                                   className={`flex-1 p-3 mono text-xs font-black uppercase transition-colors ${activeSection === tab.id
+                                             ? 'bg-[#FF4D00] text-white'
+                                             : 'bg-gray-100 hover:bg-gray-200'
+                                        }`}
+                              >
+                                   {tab.icon} {tab.label}
+                              </button>
+                         ))}
                     </div>
 
                     {loading ? (
-                         <div className="p-6 text-center">
-                              <p className="mono font-bold">Cargando...</p>
+                         <div className="p-12 text-center flex-1">
+                              <div className="animate-pulse">
+                                   <div className="w-16 h-16 bg-gray-200 rounded-full mx-auto mb-4"></div>
+                                   <p className="mono font-bold text-gray-400">Cargando perfil...</p>
+                              </div>
                          </div>
                     ) : (
-                         <div className="p-6 space-y-4">
-                              <h3 className="mono text-sm font-black uppercase flex items-center gap-2">
-                                   <span className="w-2 h-2 bg-[#FF4D00]"></span>
-                                   Datos de Pago Guardados
-                              </h3>
+                         <div className="p-6 space-y-4 overflow-y-auto flex-1">
 
-                              {/* Banco */}
-                              <div className="space-y-2">
-                                   <label className="mono text-[10px] font-black uppercase">Banco</label>
-                                   <select
-                                        value={bank}
-                                        onChange={(e) => setBank(e.target.value)}
-                                        className="w-full border-4 border-[#262626] p-3 font-bold mono outline-none"
-                                   >
-                                        <option>Banesco</option>
-                                        <option>Mercantil</option>
-                                        <option>Banco de Venezuela</option>
-                                        <option>Provincial</option>
-                                        <option>BOD</option>
-                                   </select>
-                              </div>
+                              {/* SECTION: Identity */}
+                              {activeSection === 'identity' && (
+                                   <div className="space-y-4 animate-fadeIn">
+                                        <h3 className="mono text-sm font-black uppercase flex items-center gap-2 pb-2 border-b-2 border-gray-200">
+                                             <span className="w-3 h-3 bg-[#FF4D00]"></span>
+                                             Datos Personales
+                                        </h3>
 
-                              {/* Cédula */}
-                              <div className="space-y-2">
-                                   <label className="mono text-[10px] font-black uppercase">Cédula / RIF</label>
-                                   <input
-                                        type="text"
-                                        value={idNumber}
-                                        onChange={(e) => setIdNumber(e.target.value)}
-                                        className="w-full border-4 border-[#262626] p-3 font-bold mono outline-none"
-                                        placeholder="V-12345678"
-                                   />
-                              </div>
+                                        {/* Full Name */}
+                                        <div className="space-y-1">
+                                             <label className="mono text-[10px] font-black uppercase flex items-center gap-2">
+                                                  Nombre Completo *
+                                                  {fullName.length >= 3 && <span className="text-green-500">✓</span>}
+                                             </label>
+                                             <input
+                                                  type="text"
+                                                  value={fullName}
+                                                  onChange={(e) => setFullName(e.target.value)}
+                                                  className={`w-full border-4 p-3 font-bold mono outline-none transition-colors ${fullName.length >= 3 ? 'border-green-500' : 'border-[#262626]'
+                                                       }`}
+                                                  placeholder="Como aparece en tus documentos"
+                                             />
+                                        </div>
 
-                              {/* Teléfono */}
-                              <div className="space-y-2">
-                                   <label className="mono text-[10px] font-black uppercase">Teléfono Pago Móvil</label>
-                                   <input
-                                        type="text"
-                                        value={phone}
-                                        onChange={(e) => setPhone(e.target.value)}
-                                        className="w-full border-4 border-[#262626] p-3 font-bold mono outline-none"
-                                        placeholder="04121234567"
-                                   />
-                              </div>
+                                        {/* ID Number */}
+                                        <div className="space-y-1">
+                                             <label className="mono text-[10px] font-black uppercase flex items-center gap-2">
+                                                  Cédula / RIF *
+                                                  {/^[VEJP]-?\d{6,9}$/i.test(idNumber) && <span className="text-green-500">✓</span>}
+                                             </label>
+                                             <input
+                                                  type="text"
+                                                  value={idNumber}
+                                                  onChange={(e) => setIdNumber(e.target.value.toUpperCase())}
+                                                  className={`w-full border-4 p-3 font-bold mono outline-none transition-colors ${/^[VEJP]-?\d{6,9}$/i.test(idNumber) ? 'border-green-500' : 'border-[#262626]'
+                                                       }`}
+                                                  placeholder="V-12345678"
+                                             />
+                                             <p className="mono text-[9px] text-gray-400">Formato: V/E/J/P seguido de 6-9 dígitos</p>
+                                        </div>
 
-                              {/* Cuenta (opcional) */}
-                              <div className="space-y-2">
-                                   <label className="mono text-[10px] font-black uppercase">
-                                        Número de Cuenta <span className="text-gray-400">(opcional)</span>
-                                   </label>
-                                   <input
-                                        type="text"
-                                        value={accountNumber}
-                                        onChange={(e) => setAccountNumber(e.target.value)}
-                                        className="w-full border-4 border-[#262626] p-3 font-bold mono outline-none"
-                                        placeholder="01340123456789012345"
-                                   />
-                              </div>
+                                        {/* WhatsApp Primary */}
+                                        <div className="space-y-1">
+                                             <label className="mono text-[10px] font-black uppercase flex items-center gap-2">
+                                                  WhatsApp Principal *
+                                                  {whatsappPrimary.length >= 10 && <span className="text-green-500">✓</span>}
+                                             </label>
+                                             <div className="flex gap-2">
+                                                  <select
+                                                       value={countryCode}
+                                                       onChange={(e) => setCountryCode(e.target.value)}
+                                                       className="border-4 border-[#262626] p-3 font-bold mono outline-none bg-gray-50"
+                                                  >
+                                                       {countryCodes.map(c => (
+                                                            <option key={c.code} value={c.code}>{c.country} ({c.code})</option>
+                                                       ))}
+                                                  </select>
+                                                  <input
+                                                       type="text"
+                                                       value={whatsappPrimary}
+                                                       onChange={(e) => setWhatsappPrimary(e.target.value.replace(/\D/g, ''))}
+                                                       className={`flex-1 border-4 p-3 font-bold mono outline-none transition-colors ${whatsappPrimary.length >= 10 ? 'border-green-500' : 'border-[#262626]'
+                                                            }`}
+                                                       placeholder="4121234567"
+                                                  />
+                                             </div>
+                                        </div>
 
-                              {/* Titular (opcional) */}
-                              <div className="space-y-2">
-                                   <label className="mono text-[10px] font-black uppercase">
-                                        Titular <span className="text-gray-400">(opcional)</span>
-                                   </label>
-                                   <input
-                                        type="text"
-                                        value={accountHolder}
-                                        onChange={(e) => setAccountHolder(e.target.value)}
-                                        className="w-full border-4 border-[#262626] p-3 font-bold mono outline-none"
-                                        placeholder="Nombre como aparece en el banco"
-                                   />
-                              </div>
+                                        {/* WhatsApp Secondary */}
+                                        <div className="space-y-1">
+                                             <label className="mono text-[10px] font-black uppercase text-gray-500">
+                                                  WhatsApp Secundario (opcional)
+                                             </label>
+                                             <div className="flex gap-2">
+                                                  <select
+                                                       className="border-4 border-gray-300 p-3 font-bold mono outline-none bg-gray-50 text-gray-500"
+                                                       disabled
+                                                  >
+                                                       <option>{countryCode}</option>
+                                                  </select>
+                                                  <input
+                                                       type="text"
+                                                       value={whatsappSecondary}
+                                                       onChange={(e) => setWhatsappSecondary(e.target.value.replace(/\D/g, ''))}
+                                                       className="flex-1 border-4 border-gray-300 p-3 font-bold mono outline-none"
+                                                       placeholder="Número alternativo"
+                                                  />
+                                             </div>
+                                        </div>
 
-                              {/* PayPal Verificado */}
-                              <div className="bg-blue-50 p-4 border-l-4 border-blue-500 space-y-2">
-                                   <label className="flex items-center gap-3 cursor-pointer">
-                                        <input
-                                             type="checkbox"
-                                             checked={paypalVerified}
-                                             onChange={(e) => setPaypalVerified(e.target.checked)}
-                                             className="w-5 h-5 accent-[#FF4D00]"
-                                        />
-                                        <span className="mono text-sm font-black uppercase">Cuenta PayPal Verificada</span>
-                                   </label>
-                                   <p className="mono text-[10px] text-gray-500">
-                                        Marca esta opción si tu cuenta PayPal está verificada
-                                   </p>
-                              </div>
+                                        {/* Email */}
+                                        <div className="space-y-1">
+                                             <label className="mono text-[10px] font-black uppercase flex items-center gap-2">
+                                                  Correo Electrónico
+                                                  {/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) && <span className="text-green-500">✓</span>}
+                                             </label>
+                                             <input
+                                                  type="email"
+                                                  value={email}
+                                                  onChange={(e) => setEmail(e.target.value)}
+                                                  className={`w-full border-4 p-3 font-bold mono outline-none transition-colors ${/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? 'border-green-500' : 'border-[#262626]'
+                                                       }`}
+                                                  placeholder="tu@email.com"
+                                             />
+                                        </div>
+                                   </div>
+                              )}
 
-                              {/* Save Button */}
-                              <button
-                                   onClick={handleSave}
-                                   disabled={saving}
-                                   className="w-full bg-[#FF4D00] text-white p-4 font-black uppercase mono border-4 border-[#262626] shadow-[4px_4px_0px_0px_#262626] hover:shadow-[2px_2px_0px_0px_#262626] hover:translate-x-[2px] hover:translate-y-[2px] transition-all disabled:opacity-50"
-                              >
-                                   {saving ? 'Guardando...' : 'Guardar Cambios'}
-                              </button>
+                              {/* SECTION: Payment Methods */}
+                              {activeSection === 'payment' && (
+                                   <div className="space-y-4 animate-fadeIn">
+                                        <h3 className="mono text-sm font-black uppercase flex items-center gap-2 pb-2 border-b-2 border-gray-200">
+                                             <span className="w-3 h-3 bg-[#FF4D00]"></span>
+                                             Transferencia Bancaria
+                                        </h3>
+
+                                        <div className="grid grid-cols-2 gap-4">
+                                             {/* Bank */}
+                                             <div className="space-y-1">
+                                                  <label className="mono text-[10px] font-black uppercase">Banco Principal *</label>
+                                                  <select
+                                                       value={bank}
+                                                       onChange={(e) => setBank(e.target.value)}
+                                                       className="w-full border-4 border-[#262626] p-3 font-bold mono outline-none"
+                                                  >
+                                                       {venezuelanBanks.map(b => <option key={b}>{b}</option>)}
+                                                  </select>
+                                             </div>
+
+                                             {/* Account Type */}
+                                             <div className="space-y-1">
+                                                  <label className="mono text-[10px] font-black uppercase">Tipo de Cuenta *</label>
+                                                  <select
+                                                       value={accountType}
+                                                       onChange={(e) => setAccountType(e.target.value as 'CORRIENTE' | 'AHORRO')}
+                                                       className="w-full border-4 border-[#262626] p-3 font-bold mono outline-none"
+                                                  >
+                                                       <option value="CORRIENTE">Corriente</option>
+                                                       <option value="AHORRO">Ahorro</option>
+                                                  </select>
+                                             </div>
+                                        </div>
+
+                                        {/* Account Number */}
+                                        <div className="space-y-1">
+                                             <label className="mono text-[10px] font-black uppercase flex items-center gap-2">
+                                                  Número de Cuenta
+                                                  {accountNumber.length === 20 && <span className="text-green-500">✓ 20 dígitos</span>}
+                                             </label>
+                                             <input
+                                                  type="text"
+                                                  value={accountNumber}
+                                                  onChange={(e) => setAccountNumber(e.target.value.replace(/\D/g, '').slice(0, 20))}
+                                                  className={`w-full border-4 p-3 font-bold mono outline-none transition-colors ${accountNumber.length === 20 ? 'border-green-500' : 'border-[#262626]'
+                                                       }`}
+                                                  placeholder="01340123456789012345"
+                                             />
+                                        </div>
+
+                                        {/* Account Holder */}
+                                        <div className="space-y-1">
+                                             <label className="mono text-[10px] font-black uppercase">Titular de la Cuenta</label>
+                                             <input
+                                                  type="text"
+                                                  value={accountHolder}
+                                                  onChange={(e) => setAccountHolder(e.target.value)}
+                                                  className="w-full border-4 border-[#262626] p-3 font-bold mono outline-none"
+                                                  placeholder="Nombre como aparece en el banco"
+                                             />
+                                        </div>
+
+                                        <hr className="border-2 border-dashed border-gray-200 my-6" />
+
+                                        <h3 className="mono text-sm font-black uppercase flex items-center gap-2 pb-2 border-b-2 border-gray-200">
+                                             <span className="w-3 h-3 bg-green-500"></span>
+                                             Pago Móvil
+                                        </h3>
+
+                                        <div className="grid grid-cols-2 gap-4">
+                                             {/* Pago Movil Bank */}
+                                             <div className="space-y-1">
+                                                  <label className="mono text-[10px] font-black uppercase">Banco Pago Móvil</label>
+                                                  <select
+                                                       value={pagoMovilBank}
+                                                       onChange={(e) => setPagoMovilBank(e.target.value)}
+                                                       className="w-full border-4 border-[#262626] p-3 font-bold mono outline-none"
+                                                  >
+                                                       {venezuelanBanks.map(b => <option key={b}>{b}</option>)}
+                                                  </select>
+                                             </div>
+
+                                             {/* Pago Movil Phone */}
+                                             <div className="space-y-1">
+                                                  <label className="mono text-[10px] font-black uppercase">Teléfono</label>
+                                                  <input
+                                                       type="text"
+                                                       value={pagoMovilPhone}
+                                                       onChange={(e) => setPagoMovilPhone(e.target.value.replace(/\D/g, ''))}
+                                                       className="w-full border-4 border-[#262626] p-3 font-bold mono outline-none"
+                                                       placeholder="04121234567"
+                                                  />
+                                             </div>
+                                        </div>
+
+                                        {/* Pago Movil Cedula */}
+                                        <div className="space-y-1">
+                                             <label className="mono text-[10px] font-black uppercase">Cédula Asociada</label>
+                                             <input
+                                                  type="text"
+                                                  value={pagoMovilCedula}
+                                                  onChange={(e) => setPagoMovilCedula(e.target.value.toUpperCase())}
+                                                  className="w-full border-4 border-[#262626] p-3 font-bold mono outline-none"
+                                                  placeholder="V-12345678"
+                                             />
+                                        </div>
+
+                                        {/* Enable Transfer Toggle */}
+                                        <label className="flex items-center gap-3 p-4 bg-gray-50 border-2 border-gray-200 cursor-pointer hover:bg-gray-100">
+                                             <input
+                                                  type="checkbox"
+                                                  checked={enableTransfer}
+                                                  onChange={(e) => setEnableTransfer(e.target.checked)}
+                                                  className="w-5 h-5 accent-[#FF4D00]"
+                                             />
+                                             <span className="mono text-xs font-bold uppercase">Habilitar transferencias bancarias</span>
+                                        </label>
+                                   </div>
+                              )}
+
+                              {/* SECTION: PayPal */}
+                              {activeSection === 'paypal' && (
+                                   <div className="space-y-4 animate-fadeIn">
+                                        <h3 className="mono text-sm font-black uppercase flex items-center gap-2 pb-2 border-b-2 border-gray-200">
+                                             <span className="w-3 h-3 bg-blue-500"></span>
+                                             Cuenta PayPal
+                                        </h3>
+
+                                        {/* PayPal Email */}
+                                        <div className="space-y-1">
+                                             <label className="mono text-[10px] font-black uppercase flex items-center gap-2">
+                                                  Correo PayPal
+                                                  {/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(paypalEmail) && <span className="text-green-500">✓</span>}
+                                             </label>
+                                             <input
+                                                  type="email"
+                                                  value={paypalEmail}
+                                                  onChange={(e) => setPaypalEmail(e.target.value)}
+                                                  className={`w-full border-4 p-3 font-bold mono outline-none transition-colors ${/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(paypalEmail) ? 'border-green-500' : 'border-[#262626]'
+                                                       }`}
+                                                  placeholder="tu@paypal.com"
+                                             />
+                                        </div>
+
+                                        {/* PayPal Status */}
+                                        <div className="space-y-2">
+                                             <label className="mono text-[10px] font-black uppercase">Estado de Verificación</label>
+                                             <div className="grid grid-cols-3 gap-2">
+                                                  {[
+                                                       { value: 'verified', label: 'Verificado', icon: '🟢', bg: 'bg-green-100 border-green-500' },
+                                                       { value: 'pending', label: 'Pendiente', icon: '🟡', bg: 'bg-yellow-100 border-yellow-500' },
+                                                       { value: 'unverified', label: 'No Verificado', icon: '⚪', bg: 'bg-gray-100 border-gray-300' },
+                                                  ].map((status) => (
+                                                       <button
+                                                            key={status.value}
+                                                            type="button"
+                                                            onClick={() => setPaypalStatus(status.value as typeof paypalStatus)}
+                                                            className={`p-3 border-4 font-bold mono text-xs transition-all ${paypalStatus === status.value
+                                                                      ? status.bg + ' scale-105'
+                                                                      : 'bg-white border-gray-200 hover:border-gray-400'
+                                                                 }`}
+                                                       >
+                                                            {status.icon} {status.label}
+                                                       </button>
+                                                  ))}
+                                             </div>
+                                        </div>
+
+                                        {/* OAuth Note */}
+                                        <div className="bg-blue-50 p-4 border-l-4 border-blue-500 space-y-2">
+                                             <p className="mono text-xs font-black text-blue-800">
+                                                  🔐 Verificación Automática (Próximamente)
+                                             </p>
+                                             <p className="mono text-[10px] text-blue-600">
+                                                  En producción, podrás vincular tu cuenta PayPal directamente usando OAuth
+                                                  para verificación automática y límites de transacción.
+                                             </p>
+                                        </div>
+                                   </div>
+                              )}
                          </div>
                     )}
+
+                    {/* Footer with Save Button */}
+                    <div className="p-6 border-t-4 border-[#262626] bg-gray-50">
+                         <button
+                              onClick={handleSave}
+                              disabled={saving}
+                              className="w-full bg-[#FF4D00] text-white p-4 font-black uppercase mono border-4 border-[#262626] shadow-[4px_4px_0px_0px_#262626] hover:shadow-[2px_2px_0px_0px_#262626] hover:translate-x-[2px] hover:translate-y-[2px] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                         >
+                              {saving ? '⏳ Guardando...' : '💾 Guardar Cambios'}
+                         </button>
+                    </div>
                </div>
           </div>
      );

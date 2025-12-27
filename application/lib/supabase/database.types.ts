@@ -111,34 +111,80 @@ export interface Database {
                     Row: {
                          id: string
                          user_id: string
+                         // Identification
+                         full_name: string | null
+                         email: string | null
+                         whatsapp_primary: string | null
+                         whatsapp_secondary: string | null
+                         country_code: string | null
+                         // Legacy fields
                          bank_name: string | null
                          id_number: string | null
                          phone_pago_movil: string | null
                          account_number: string | null
                          account_holder: string | null
+                         // Payment methods
+                         account_type: 'CORRIENTE' | 'AHORRO' | null
+                         pago_movil_bank: string | null
+                         pago_movil_phone: string | null
+                         pago_movil_cedula: string | null
+                         enable_transfer: boolean
+                         // PayPal
+                         paypal_email: string | null
+                         paypal_status: 'verified' | 'pending' | 'unverified'
                          paypal_verified: boolean
+                         // Profile
+                         profile_completion: number
                          created_at: string
                          updated_at: string
                     }
                     Insert: {
                          id?: string
                          user_id: string
+                         full_name?: string | null
+                         email?: string | null
+                         whatsapp_primary?: string | null
+                         whatsapp_secondary?: string | null
+                         country_code?: string | null
                          bank_name?: string | null
                          id_number?: string | null
                          phone_pago_movil?: string | null
                          account_number?: string | null
                          account_holder?: string | null
+                         account_type?: 'CORRIENTE' | 'AHORRO' | null
+                         pago_movil_bank?: string | null
+                         pago_movil_phone?: string | null
+                         pago_movil_cedula?: string | null
+                         enable_transfer?: boolean
+                         paypal_email?: string | null
+                         paypal_status?: 'verified' | 'pending' | 'unverified'
+                         paypal_verified?: boolean
+                         profile_completion?: number
                          created_at?: string
                          updated_at?: string
                     }
                     Update: {
                          id?: string
                          user_id?: string
+                         full_name?: string | null
+                         email?: string | null
+                         whatsapp_primary?: string | null
+                         whatsapp_secondary?: string | null
+                         country_code?: string | null
                          bank_name?: string | null
                          id_number?: string | null
                          phone_pago_movil?: string | null
                          account_number?: string | null
                          account_holder?: string | null
+                         account_type?: 'CORRIENTE' | 'AHORRO' | null
+                         pago_movil_bank?: string | null
+                         pago_movil_phone?: string | null
+                         pago_movil_cedula?: string | null
+                         enable_transfer?: boolean
+                         paypal_email?: string | null
+                         paypal_status?: 'verified' | 'pending' | 'unverified'
+                         paypal_verified?: boolean
+                         profile_completion?: number
                          created_at?: string
                          updated_at?: string
                     }
