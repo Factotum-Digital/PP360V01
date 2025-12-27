@@ -297,7 +297,7 @@ export const ExchangeTerminal: React.FC = () => {
                                                   type="text"
                                                   readOnly
                                                   value={data.vesAmount.toLocaleString('es-VE', { minimumFractionDigits: 2 })}
-                                                  className="w-full bg-[#262626] text-white p-4 sm:p-6 pl-16 sm:pl-24 text-3xl sm:text-5xl font-black mono outline-none min-h-[72px] sm:min-h-[95px]"
+                                                  className="w-full bg-[#262626] text-white p-4 sm:p-8 pl-16 sm:pl-24 text-3xl sm:text-5xl font-black mono outline-none"
                                              />
                                         </div>
                                         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-1 py-2 mono text-[9px] sm:text-[10px] font-bold text-gray-400 uppercase">
