@@ -1,58 +1,77 @@
-import { createClient } from "@/lib/supabase/server";
+import { createClient } from "@supabase/supabase-js";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest) {
-     try {
-          const body = await request.json();
-          const { ticketId, proofUrl } = body;
+  // Validar variables de entorno
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-          if (!ticketId || !proofUrl) {
-               return NextResponse.json(
-                    { error: "Ticket ID y URL son requeridos" },
-                    { status: 400 }
-               );
-          }
+  if (!supabaseUrl || !supabaseServiceKey) {
+    console.error("CRITICAL: Missing Supabase env vars");
+    return NextResponse.json(
+      { error: "Configuration Error" },
+      { status: 500 }
+    );
+  }
 
-          const supabase = await createClient();
+  // Cliente Admin (bypass RLS) - funciona para GUEST y registrados
+  const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
+    auth: { autoRefreshToken: false, persistSession: false }
+  });
 
-          // 1. Verificar orden
-          const { data: order, error: findError } = await supabase
-               .from("exchange_orders")
-               .select("order_id")
-               .eq("ticket_id", ticketId)
-               .single();
+  try {
+    const body = await request.json();
+    const { ticketId, proofUrl } = body;
 
-          if (findError || !order) {
-               return NextResponse.json(
-                    { error: "Orden no encontrada" },
-                    { status: 404 }
-               );
-          }
+    if (!ticketId || !proofUrl) {
+      return NextResponse.json(
+        { error: "Ticket ID y URL son requeridos" },
+        { status: 400 }
+      );
+    }
 
-          // 2. Actualizar estado y URL
-          const { error: updateError } = await supabase
-               .from("exchange_orders")
-               .update({
-                    payment_proof_url: proofUrl,
-                    status: 'VERIFYING'
-               })
-               .eq("ticket_id", ticketId);
+    console.log(`[PayPal Verify] Processing: ${ticketId}`);
 
-          if (updateError) {
-               console.error("DB Update Error:", updateError);
-               return NextResponse.json(
-                    { error: "Error al actualizar la orden" },
-                    { status: 500 }
-               );
-          }
+    // 1. Verificar que la orden existe
+    const { data: order, error: findError } = await supabaseAdmin
+      .from("exchange_orders")
+      .select("order_id, status")
+      .eq("ticket_id", ticketId)
+      .single();
 
-          return NextResponse.json({ success: true });
+    if (findError || !order) {
+      console.error(`[PayPal Verify] Order not found: ${ticketId}`, findError);
+      return NextResponse.json(
+        { error: "Orden no encontrada" },
+        { status: 404 }
+      );
+    }
 
-     } catch (error) {
-          console.error("Upload status error:", error);
-          return NextResponse.json(
-               { error: "Error interno del servidor" },
-               { status: 500 }
-          );
-     }
+    // 2. Actualizar estado y comprobante (Admin bypass RLS)
+    const { error: updateError } = await supabaseAdmin
+      .from("exchange_orders")
+      .update({
+        payment_proof_url: proofUrl,
+        status: 'VERIFYING'
+      })
+      .eq("ticket_id", ticketId);
+
+    if (updateError) {
+      console.error(`[PayPal Verify] Update failed:`, updateError);
+      return NextResponse.json(
+        { error: "Error al actualizar la orden" },
+        { status: 500 }
+      );
+    }
+
+    console.log(`[PayPal Verify] Success: ${ticketId} → VERIFYING`);
+    return NextResponse.json({ success: true });
+
+  } catch (error) {
+    console.error("[PayPal Verify] Internal error:", error);
+    return NextResponse.json(
+      { error: "Error interno del servidor" },
+      { status: 500 }
+    );
+  }
 }
