@@ -530,7 +530,7 @@ export const ExchangeTerminal: React.FC = () => {
                          </Slab>
                          <Slab className="p-4 sm:p-6">
                               <div className="mono text-[10px] sm:text-xs font-black mb-1 sm:mb-2 italic underline decoration-[#FF4D00]">¿COBRAN COMISIÓN?</div>
-                              <p className="text-[9px] sm:text-[10px] font-bold leading-tight uppercase">Cero comisiones ocultas. La tasa que ves es la tasa que recibes.</p>
+                              <p className="text-[9px] sm:text-[10px] font-bold leading-tight uppercase"> La tasa que ves es la tasa que recibes.Comisiones incluidas.</p>
                          </Slab>
                          <Slab className="p-4 sm:p-6 bg-[#262626] text-white">
                               <div className="mono text-[10px] sm:text-xs font-black mb-1 sm:mb-2 text-[#FF4D00] italic underline">¿Y SI ME EQUIVOCO?</div>
