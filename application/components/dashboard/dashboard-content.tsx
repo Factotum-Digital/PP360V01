@@ -215,42 +215,54 @@ export function DashboardContent({ user, orders, currentRate }: DashboardContent
                                                   {/* Actions for pending orders */}
                                                   {order.status === 'PENDING' && (
                                                        <div className="pt-4 border-t-2 border-gray-300 space-y-3">
-                                                            <div className="flex flex-col md:flex-row gap-0 border-4 border-[#262626]">
-                                                                 {/* Left Side: Button */}
-                                                                 <div className="flex-1 bg-orange-50 p-6 space-y-4 border-b-4 md:border-b-0 md:border-r-4 border-[#262626] flex flex-col justify-center items-center">
-                                                                      <div className="text-center">
-                                                                           <h4 className="mono text-sm font-black uppercase underline">Realizar Pago:</h4>
-                                                                           <p className="mono text-[11px] font-bold mt-1">Clic para pagar con PayPal (Auto-Verificación):</p>
-                                                                      </div>
+                                                             <div className="bg-orange-50 p-4 border-l-4 border-[#FF4D00] space-y-4">
+                                                                  {/* Manual Instructions Section */}
+                                                                  <div className="space-y-2 border-b-2 border-orange-200 pb-4 mb-2">
+                                                                       <h4 className="mono text-sm font-black uppercase underline decoration-[#FF4D00]">Instrucciones de Pago:</h4>
+                                                                       <ol className="space-y-1">
+                                                                            <li className="mono text-[11px] font-bold text-gray-700">1. Envía ${order.amount_sent.toFixed(2)} USD a: pagos@pp360ve.com</li>
+                                                                            <li className="mono text-[11px] font-bold text-gray-700">2. En la nota del pago coloca: {order.ticket_id || order.order_id.slice(0, 8)}</li>
+                                                                            <li className="mono text-[11px] font-bold text-gray-700">3. Envía captura del pago por WhatsApp</li>
+                                                                            <li className="mono text-[11px] font-bold text-gray-700">4. Recibirás Bs. {order.amount_received.toLocaleString('es-VE')} en tu cuenta</li>
+                                                                       </ol>
+                                                                  </div>
 
-                                                                      <div className="w-full">
-                                                                           <PayPalServiceButton
-                                                                                amount={order.amount_sent.toString()}
-                                                                                description={`Order #${order.ticket_id || order.order_id.slice(0, 8)} - Exchange ${order.amount_sent} USD`}
-                                                                                ticketId={order.ticket_id ?? undefined}
-                                                                                style={{ color: 'black' }}
-                                                                                onSuccess={async () => {
-                                                                                     setUploadedOrderIds(prev => [...prev, order.order_id]);
-                                                                                     router.refresh();
-                                                                                }}
-                                                                           />
-                                                                      </div>
-                                                                 </div>
+                                                                  <div className="flex flex-col md:flex-row gap-6 items-start">
+                                                                       {/* QR Code Section */}
+                                                                       <div className="bg-white p-2 border-4 border-[#262626] shadow-[4px_4px_0px_0px_#262626] flex-shrink-0 mx-auto md:mx-0">
+                                                                            <QRCodeSVG
+                                                                                 value={`https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=sb-43h8a33591630@business.example.com&currency_code=USD&amount=${order.amount_sent}&item_name=Order${order.ticket_id || order.order_id}`}
+                                                                                 size={140}
+                                                                                 level={'H'}
+                                                                                 includeMargin={true}
+                                                                            />
+                                                                            <p className="text-[9px] font-bold text-center mt-2 mono">ESCANEAR PARA PAGAR</p>
+                                                                       </div>
 
-                                                                 {/* Right Side: QR Box */}
-                                                                 <div className="w-full md:w-48 bg-white p-4 flex flex-col items-center justify-center text-center md:border-l-4 border-[#262626]">
-                                                                      <div className="mb-2">
-                                                                           <QRCodeSVG
-                                                                                value={`https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=sb-43h8a33591630@business.example.com&currency_code=USD&amount=${order.amount_sent}&item_name=Order${order.ticket_id || order.order_id}`}
-                                                                                size={140}
-                                                                                level={'H'}
-                                                                           />
-                                                                      </div>
-                                                                      <p className="mono text-[10px] font-black text-[#262626] leading-tight uppercase">
-                                                                           SCAN TO PAY<br />(APP)
-                                                                      </p>
-                                                                 </div>
-                                                            </div>
+                                                                       {/* PayPal Button Section */}
+                                                                       <div className="flex-1 space-y-3 w-full">
+                                                                            <div className="text-center md:text-left space-y-1">
+                                                                                 <h4 className="mono text-sm font-black uppercase underline decoration-[#FF4D00]">Realizar Pago:</h4>
+                                                                                 <p className="mono text-[10px] font-bold text-gray-600">Clic para pagar con PayPal (Auto-Verificación):</p>
+                                                                            </div>
+                                                                            <div className="w-full relative z-0">
+                                                                                 <PayPalServiceButton
+                                                                                      amount={order.amount_sent.toString()}
+                                                                                      description={`Order #${order.ticket_id || order.order_id.slice(0, 8)} - Exchange ${order.amount_sent} USD`}
+                                                                                      ticketId={order.ticket_id ?? undefined}
+                                                                                      style={{ color: 'black', layout: "horizontal" }}
+                                                                                      onSuccess={async () => {
+                                                                                           setUploadedOrderIds(prev => [...prev, order.order_id]);
+                                                                                           router.refresh();
+                                                                                      }}
+                                                                                 />
+                                                                            </div>
+                                                                            <p className="text-[9px] italic text-gray-500 leading-tight">
+                                                                                 * Al completar el pago, el sistema verificará tu orden automáticamente.
+                                                                            </p>
+                                                                       </div>
+                                                                  </div>
+                                                             </div>
 
                                                             {/* Subir Comprobante */}
                                                             {!uploadedOrderIds.includes(order.order_id) ? (

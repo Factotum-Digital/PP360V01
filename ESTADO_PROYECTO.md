@@ -37,7 +37,7 @@
 
 | Error | Causa | Solución |
 |-------|-------|----------|
-| **Fallo Verificación Automática PayPal** (Prod) | 1. Conflicto env vars en Vercel.<br>2. Falta de política RLS para `UPDATE`. | 1. Restauración client cookie-based.<br>2. Nueva Policy `"Users can update own orders"`.<br>3. Truncate DB para limpieza. |
+| **Fallo Verificación Automática PayPal** (Prod) | 1. `SUPABASE_SERVICE_ROLE_KEY` truncada en Vercel (faltaba "Y" final).<br>2. Usuarios GUEST sin sesión no podían actualizar con cookie-based client. | 1. Cambio a Service Role (bypass RLS).<br>2. Corrección de API key en Vercel.<br>3. Verificado para GUEST y registrados. |
 
 ---
 
