@@ -76,11 +76,13 @@ export const LandingSections: React.FC = () => (
                                         {i > 1 && <li>- Direct Node API</li>}
                                    </ul>
 
-                                   <PayPalServiceButton
-                                        amount={((i + 1) * 99).toString()}
-                                        description={`${plan.toUpperCase()} PLAN - First Month`}
-                                        style={{ color: i === 2 ? 'white' : 'black' }}
-                                   />
+                                   {/* PayPal desactivado temporalmente - los pagos no se registraban en BD */}
+                                   <button
+                                        disabled
+                                        className={`w-full py-3 font-black uppercase text-sm border-4 border-[#262626] opacity-50 cursor-not-allowed ${i === 2 ? 'bg-[#333] text-gray-400' : 'bg-gray-100 text-gray-500'}`}
+                                   >
+                                        Coming Soon
+                                   </button>
 
                               </Slab>
                          ))}

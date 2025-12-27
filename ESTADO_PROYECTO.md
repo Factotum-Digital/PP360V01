@@ -1,7 +1,7 @@
 # PP360VE - Estado del Proyecto
 
-**Última actualización:** 26 de Diciembre de 2025 (Fix PayPal Prod)
-**Avance estimado:** ~68% (Core funcional, PayPal Production Verified)
+**Última actualización:** 27 de Diciembre de 2025 (Auditoría de Errores)
+**Avance estimado:** ~70% (Core funcional, 3 bugs pendientes)
 
 ---
 
@@ -39,13 +39,22 @@
 |-------|-------|----------|
 | **Fallo Verificación Automática PayPal** (Prod) | 1. `SUPABASE_SERVICE_ROLE_KEY` truncada en Vercel (faltaba "Y" final).<br>2. Usuarios GUEST sin sesión no podían actualizar con cookie-based client. | 1. Cambio a Service Role (bypass RLS).<br>2. Corrección de API key en Vercel.<br>3. Verificado para GUEST y registrados. |
 
+### ⚠️ Notas de Desarrollo (Sandbox)
+
+> Actualmente el proyecto está configurado para **PayPal Sandbox**. Los siguientes items son comportamiento esperado y NO son errores:
+> - PayPal Planes: Funciona con cuenta sandbox
+> - QR Codes: Apuntan a cuenta sandbox (`sb-43h8a33591630@business.example.com`)
+> - `paypal-button.tsx`: Código legacy, puede eliminarse cuando se migre a producción
+
+**📌 TODO para Producción:** Actualizar credenciales PayPal y QR codes cuando se migre a producción.
+
 ---
 
 ## 🔄 EN PROGRESO
 
 | Funcionalidad | Estado | Notas |
 |---------------|--------|-------|
-| **Subida Comprobantes** | 95% | UI funcional, falta testing producción |
+| **Subida Comprobantes** | 100% | UI y backend funcionales ✅ |
 | **Login con Facebook** | 50% | Código listo, pendiente config Supabase |
 
 ---
@@ -56,10 +65,9 @@
 
 | # | Funcionalidad | Descripción | Est. |
 |---|---------------|-------------|------|
-| 1 | **🆕 Sistema de Referidos** | Programa de 3 niveles (hasta $30 USD/referido), link compartible, panel de ganancias, retiros | ~22h |
-| 2 | **Perfil de Usuario** | Editar datos personales, datos de pago por defecto | ~4h |
-| 4 | **Notificaciones Email** | Email al crear orden, email al cambiar estado | ~6h |
-| 5 | **Modal Comprobantes Admin** | Ver comprobante en modal grande (actual abre en nueva pestaña) | ~2h |
+| 1 | **Perfil de Usuario** | Editar datos personales, datos de pago por defecto | ~4h |
+| 2 | **Notificaciones Email** | Email al crear orden, email al cambiar estado | ~6h |
+| 3 | **Modal Comprobantes Admin** | Ver comprobante en modal grande (actual abre en nueva pestaña) | ~2h |
 
 ### 🟡 Media Prioridad (Mejoras Operativas)
 
@@ -86,6 +94,7 @@
 | 19 | **Multiidioma** | Soporte inglés/portugués | ~8h |
 | 20 | **Modo Oscuro/Claro** | Toggle de tema | ~4h |
 | 21 | **2FA** | Autenticación de dos factores | ~6h |
+| 22 | **🆕 Sistema de Referidos** | Programa de 3 niveles (hasta $30 USD/referido), link compartible, panel de ganancias, retiros | ~22h |
 
 
 ### 🎨 Diseño UI/UX Pendiente
@@ -104,10 +113,10 @@
 
 | Prioridad | Funcionalidades | Horas Estimadas |
 |-----------|-----------------|-----------------|
-| 🔴 Alta | 5 items | ~42 horas |
+| 🔴 Alta | 3 items | ~12 horas |
 | 🟡 Media | 6 items | ~20 horas |
-| 🟢 Baja | 9 items | ~77 horas |
-| | **TOTAL** | **~139 horas** |
+| 🟢 Baja | 11 items | ~99 horas |
+| | **TOTAL** | **~131 horas** |
 
 ---
 
