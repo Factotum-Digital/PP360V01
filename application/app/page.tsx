@@ -17,7 +17,7 @@ export default function Home() {
      return (
           <>
                {/* Header */}
-               <header className="mb-16">
+               <header className="mb-8">
                     <div className="flex justify-between items-start mb-6 w-full">
                          <div className="flex items-center gap-4">
                               <Tag active>Sistema: En Línea</Tag>
@@ -35,9 +35,14 @@ export default function Home() {
                     <h1 className="text-6xl md:text-9xl font-black uppercase tracking-tighter leading-[0.8] mb-4 text-[#262626]">
                          PP360VE<br /><span className="text-transparent italic" style={{ WebkitTextStroke: '3px #FF4D00' }}>Terminal</span>
                     </h1>
-                    <p className="text-xl font-bold uppercase tracking-tight max-w-lg mt-8 border-l-8 border-[#FF4D00] pl-4 text-[#262626]">
-                         Elevate your financial service with the PP360VE Brutalist Exchange Interface.
-                    </p>
+                    <div className="mt-8 border-l-8 border-[#FF4D00] pl-4 max-w-lg">
+                         <p className="text-xl font-bold uppercase tracking-tight text-[#262626]">
+                              Transforme la manera en que gestionas tu dinero con el servicio de PP360VE.
+                         </p>
+                         <p className="text-sm font-black uppercase tracking-widest mt-2 text-[#262626] mono">
+                              Cero fricción. Ejecución en tiempo real.
+                         </p>
+                    </div>
                </header>
 
                {/* Terminal Section */}
