@@ -1,7 +1,7 @@
 # PP360VE - Estado del Proyecto
 
-**Última actualización:** 27 de Diciembre de 2025 (Auditoría de Errores)
-**Avance estimado:** ~70% (Core funcional, 3 bugs pendientes)
+**Última actualización:** 27 de Diciembre de 2025 (Perfil de Usuario Mejorado)
+**Avance estimado:** ~75% (Core funcional + Perfil mejorado)
 
 ---
 
@@ -32,6 +32,7 @@
 | **Gestión de Cuentas** | Guardado automático de datos bancarios (Pago Móvil/Transf) al crear orden |
 | **UX Formulario** | Monto mínimo 5 USD, Layout Grid optimizado, Validaciones en tiempo real |
 | **Teléfono Admin** | Visualización de teléfono en panel de administración para transferencias |
+| **Perfil de Usuario Mejorado** | Modal con 3 secciones (Identificación, Métodos Pago, PayPal), 15 campos nuevos, validaciones en tiempo real, barra de progreso, códigos de país internacionales |
 
 ### 🐞 Errores Críticos Resueltos
 
@@ -65,7 +66,7 @@
 
 | # | Funcionalidad | Descripción | Est. |
 |---|---------------|-------------|------|
-| 1 | **Perfil de Usuario** | Editar datos personales, datos de pago por defecto | ~4h |
+| 1 | ~~**Perfil de Usuario**~~ | ✅ COMPLETADO - Modal con 3 secciones, validaciones, progreso | ~~4h~~ |
 | 2 | **Notificaciones Email** | Email al crear orden, email al cambiar estado | ~6h |
 | 3 | **Modal Comprobantes Admin** | Ver comprobante en modal grande (actual abre en nueva pestaña) | ~2h |
 
@@ -113,10 +114,10 @@
 
 | Prioridad | Funcionalidades | Horas Estimadas |
 |-----------|-----------------|-----------------|
-| 🔴 Alta | 3 items | ~12 horas |
+| 🔴 Alta | 2 items (1 completado) | ~8 horas |
 | 🟡 Media | 6 items | ~20 horas |
 | 🟢 Baja | 11 items | ~99 horas |
-| | **TOTAL** | **~131 horas** |
+| | **TOTAL** | **~127 horas** |
 
 ---
 
@@ -174,7 +175,8 @@
 │   ├── supabase/migrations/
 │   │   ├── 003_guest_checkout.sql       ← Guest orders
 │   │   ├── 004_storage_bucket.sql       ← Payment proofs
-│   │   └── 005_user_payment_data.sql    ← User payment data (Nuevo)
+│   │   ├── 005_user_payment_data.sql    ← User payment data
+│   │   └── 006_enhance_user_payment_data.sql ← Enhanced profile (15 campos nuevos)
 │   │
 │   ├── middleware.ts                    ← Next.js middleware
 │   ├── constants.tsx                    ← Constantes globales
@@ -215,7 +217,7 @@ Ver plan detallado del sistema de referidos en:
 
 ---
 
-*Actualizado: 26 Dic 2025 - Antigravity AI (Post-Análisis Saldoar)*
+*Actualizado: 27 Dic 2025 - Antigravity AI (Perfil de Usuario Mejorado)*
 
 
 
