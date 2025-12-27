@@ -20,8 +20,8 @@ export default function Home() {
                <header className="mb-16">
                     <div className="flex justify-between items-start mb-6 w-full">
                          <div className="flex items-center gap-4">
-                              <Tag active>Auth: OK</Tag>
-                              <span className="mono text-xs text-gray-400 font-bold tracking-widest uppercase">{session} // PAYOUTI_KERNEL_ONLINE</span>
+                              <Tag active>Sistema: En Línea</Tag>
+                              <span className="mono text-xs text-gray-400 font-bold tracking-widest uppercase">{session} // OPERADORES ACTIVOS</span>
                          </div>
                          <div className="button-group">
                               <Link href="/login">

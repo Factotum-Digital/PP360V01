@@ -41,8 +41,8 @@ export const ExchangeTerminal: React.FC = () => {
           instructions: string[];
      } | null>(null);
      const [insight, setInsight] = useState({
-          title: "LIQUIDITY ANALYSIS PENDING",
-          description: "WAITING FOR TERMINAL SYNC AND MARKET DATA STREAM...",
+          title: "VERIFICANDO DISPONIBILIDAD BANCARIA",
+          description: "CONECTANDO CON BANCOS NACIONALES...",
           sentiment: "NEUTRAL"
      });
 
@@ -55,7 +55,7 @@ export const ExchangeTerminal: React.FC = () => {
 
      // Fetch real rate from DolarAPI (paralelo - 15%)
      const fetchRates = useCallback(async () => {
-          addLog("FETCHING_PARALELO_RATES...", "info");
+          addLog("CONSULTANDO MEJOR TASA...", "info");
           try {
                const res = await fetch('/api/rates');
                if (!res.ok) throw new Error('API Error');
@@ -68,7 +68,7 @@ export const ExchangeTerminal: React.FC = () => {
                     description: `PARALELO: ${rates.paralelo.toFixed(2)} VES | TU RECIBES: ${payRate.toFixed(2)} VES/USD`,
                     sentiment: "STABLE"
                });
-               addLog(`RATES_SYNCED: BCV=${rates.oficial.toFixed(2)} | PARALELO=${rates.paralelo.toFixed(2)} | PAGO=${payRate.toFixed(2)}`, "success");
+               addLog(`TASA ACTUALIZADA: BCV=${rates.oficial.toFixed(2)} | PARALELO=${rates.paralelo.toFixed(2)} | TU TASA=${payRate.toFixed(2)}`, "success");
           } catch {
                addLog("RATE_FETCH_FAILED: USING_FALLBACK", "warning");
                setChartData(generateChartData(FALLBACK_RATE));
@@ -82,12 +82,22 @@ export const ExchangeTerminal: React.FC = () => {
      }, [data.usdAmount, currentRate]);
 
      useEffect(() => {
-          addLog("SYSTEM BOOTED", "success");
-          addLog("KERNEL_VERSION: 4.0.2");
-          addLog("LIQUIDITY_CHECK: PASSED");
+          addLog("SISTEMA INICIADO", "success");
+          addLog("TASA: ACTUALIZADA");
+          addLog("BANCOS: ACTIVOS");
           fetchRates();
           const interval = setInterval(() => {
-               const msgs = ["PEER CONNECTED", "PING: 14ms", "RATE SYNCED", "SECURE TUNNEL: ACTIVE"];
+               const msgs = [
+                    "TRANSACCIÓN PROTEGIDA",
+                    "TASA CONFIRMADA",
+                    "CONEXIÓN SEGURA",
+                    "MERCANTIL DISPONIBLE",
+                    "BANESCO DISPONIBLE",
+                    "VENEZUELA DISPONIBLE",
+                    "BNC DISPONIBLE",
+                    "PAGO MÓVIL ACTIVO",
+                    "TIEMPO PROMEDIO: 15 MIN"
+               ];
                addLog(msgs[Math.floor(Math.random() * msgs.length)]);
           }, 5000);
           return () => clearInterval(interval);
@@ -515,16 +525,16 @@ export const ExchangeTerminal: React.FC = () => {
 
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
                          <Slab className="p-4 sm:p-6 bg-orange-100">
-                              <div className="mono text-[10px] sm:text-xs font-black mb-1 sm:mb-2 italic underline decoration-[#FF4D00]">MODO_SEGURO</div>
-                              <p className="text-[9px] sm:text-[10px] font-bold leading-tight uppercase">Encriptación AES-256 en cada segmento de datos.</p>
+                              <div className="mono text-[10px] sm:text-xs font-black mb-1 sm:mb-2 italic underline decoration-[#FF4D00]">SEGURIDAD BANCARIA</div>
+                              <p className="text-[9px] sm:text-[10px] font-bold leading-tight uppercase">Tus datos están protegidos con cifrado de grado bancario.</p>
                          </Slab>
                          <Slab className="p-4 sm:p-6">
-                              <div className="mono text-[10px] sm:text-xs font-black mb-1 sm:mb-2 italic underline decoration-[#FF4D00]">TIME_EFFICIENCY</div>
-                              <p className="text-[9px] sm:text-[10px] font-bold leading-tight uppercase">Promedio de liquidación: 14.2 minutos.</p>
+                              <div className="mono text-[10px] sm:text-xs font-black mb-1 sm:mb-2 italic underline decoration-[#FF4D00]">TIEMPO PROMEDIO</div>
+                              <p className="text-[9px] sm:text-[10px] font-bold leading-tight uppercase">Tiempo promedio de pago: 15 minutos.</p>
                          </Slab>
                          <Slab className="p-4 sm:p-6 bg-[#262626] text-white">
-                              <div className="mono text-[10px] sm:text-xs font-black mb-1 sm:mb-2 text-[#FF4D00] italic underline">NETWORK_STATUS</div>
-                              <p className="text-[9px] sm:text-[10px] font-bold leading-tight uppercase">Liquidez inmediata confirmada en nodos centrales.</p>
+                              <div className="mono text-[10px] sm:text-xs font-black mb-1 sm:mb-2 text-[#FF4D00] italic underline">ESTADO DEL SERVICIO</div>
+                              <p className="text-[9px] sm:text-[10px] font-bold leading-tight uppercase">Operaciones activas para todos los bancos.</p>
                          </Slab>
                     </div>
                </div>
@@ -561,7 +571,7 @@ export const ExchangeTerminal: React.FC = () => {
                     <Slab className="p-4 bg-white mono text-[11px] h-48 relative border-4 border-[#262626] overflow-hidden">
                          <div className="h-full overflow-y-auto space-y-2 pr-2 scrollbar-thin scrollbar-thumb-gray-300">
                               {logs.length === 0 ? (
-                                   <div className="text-[#262626] opacity-30 italic">&gt; STANDBY: WAITING_FOR_KERNEL...</div>
+                                   <div className="text-[#262626] opacity-30 italic">&gt; LISTO PARA INICIAR OPERACIÓN...</div>
                               ) : (
                                    logs.map(log => (
                                         <div key={log.id} className="text-[#262626] leading-relaxed break-words border-l-2 border-transparent pl-2">
@@ -575,7 +585,7 @@ export const ExchangeTerminal: React.FC = () => {
                     <Slab className="p-6 bg-orange-50 border-[#FF4D00]">
                          <div className="space-y-4">
                               <div className="mono text-[10px] font-black flex items-center gap-2 text-[#262626]">
-                                   <span className="w-2 h-2 bg-[#262626]"></span> AI_MARKET_INTELLIGENCE
+                                   <span className="w-2 h-2 bg-[#262626]"></span> INFORMACIÓN DE MERCADO
                               </div>
                               <h4 className="text-xl font-black leading-none text-[#262626] uppercase">{insight.title}</h4>
                               <p className="mono text-[11px] font-bold text-gray-500 leading-tight uppercase italic">{insight.description}</p>
@@ -588,10 +598,10 @@ export const ExchangeTerminal: React.FC = () => {
                     <Slab className="p-8 bg-[#262626] text-[#FF4D00] border-[#262626]">
                          <h3 className="mono text-xs font-black mb-4 flex items-center gap-2">
                               <span className="animate-pulse w-2 h-2 bg-orange-400 rounded-full"></span>
-                              AI_MARKET_SIGNAL
+                              GARANTÍA DE TASA
                          </h3>
                          <p className="mono text-xl font-bold tracking-tighter leading-none italic uppercase">
-                              Rate Optimized. {data.vesAmount.toLocaleString('es-VE', { maximumFractionDigits: 0 })} VES Secured. Hedge Established.
+                              Tasa Asegurada. Tu monto en VES ha sido reservado por 5 minutos.
                          </p>
                     </Slab>
                </div >
