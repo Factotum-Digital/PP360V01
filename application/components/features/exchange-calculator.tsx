@@ -525,16 +525,16 @@ export const ExchangeTerminal: React.FC = () => {
 
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
                          <Slab className="p-4 sm:p-6 bg-orange-100">
-                              <div className="mono text-[10px] sm:text-xs font-black mb-1 sm:mb-2 italic underline decoration-[#FF4D00]">SEGURIDAD BANCARIA</div>
-                              <p className="text-[9px] sm:text-[10px] font-bold leading-tight uppercase">Tus datos están protegidos con cifrado de grado bancario.</p>
+                              <div className="mono text-[10px] sm:text-xs font-black mb-1 sm:mb-2 italic underline decoration-[#FF4D00]">¿CUÁNTO TARDA?</div>
+                              <p className="text-[9px] sm:text-[10px] font-bold leading-tight uppercase">Pagos en 15 minutos promedio. Banesco, Mercantil y más.</p>
                          </Slab>
                          <Slab className="p-4 sm:p-6">
-                              <div className="mono text-[10px] sm:text-xs font-black mb-1 sm:mb-2 italic underline decoration-[#FF4D00]">TIEMPO PROMEDIO</div>
-                              <p className="text-[9px] sm:text-[10px] font-bold leading-tight uppercase">Tiempo promedio de pago: 15 minutos.</p>
+                              <div className="mono text-[10px] sm:text-xs font-black mb-1 sm:mb-2 italic underline decoration-[#FF4D00]">¿COBRAN COMISIÓN?</div>
+                              <p className="text-[9px] sm:text-[10px] font-bold leading-tight uppercase">Cero comisiones ocultas. La tasa que ves es la tasa que recibes.</p>
                          </Slab>
                          <Slab className="p-4 sm:p-6 bg-[#262626] text-white">
-                              <div className="mono text-[10px] sm:text-xs font-black mb-1 sm:mb-2 text-[#FF4D00] italic underline">ESTADO DEL SERVICIO</div>
-                              <p className="text-[9px] sm:text-[10px] font-bold leading-tight uppercase">Operaciones activas para todos los bancos.</p>
+                              <div className="mono text-[10px] sm:text-xs font-black mb-1 sm:mb-2 text-[#FF4D00] italic underline">¿Y SI ME EQUIVOCO?</div>
+                              <p className="text-[9px] sm:text-[10px] font-bold leading-tight uppercase">Escríbenos por WhatsApp y corregimos tus datos al instante.</p>
                          </Slab>
                     </div>
                </div>
