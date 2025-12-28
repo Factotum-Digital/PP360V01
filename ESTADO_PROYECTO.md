@@ -67,6 +67,15 @@
 | **Centralización Utilidades** | ✅ 100% | `lib/utils/order-utils.ts` creado |
 
 ### Cambios Recientes (28 Dic 2025)
+
+#### Auditoría Previa (completada antes de refactor)
+- [x] Lógica de cálculos secuenciales (PayPal -> Servicio) Auditada y Corregida.
+- [x] Implementación de fee fijo de PayPal ($0.30) en todos los componentes.
+- [x] Recalculo de montos en el servidor para órdenes de invitados.
+- [x] Restauración de instrucciones de pago para usuarios registrados (Formato lista 1-4).
+- [x] Visualización de Tasa Paralelo en tiempo real en Panel Admin (Header Terminal).
+
+#### Refactorización Modular
 - [x] Refactorización completa de `dashboard-content.tsx` (1505 → 390 líneas)
 - [x] Extraído `new-order-form.tsx` (formulario nueva orden)
 - [x] Extraído `profile-modal.tsx` (modal de perfil)
