@@ -924,6 +924,17 @@ function NewOrderForm({ currentRate, paraleloRate, onComplete }: { currentRate: 
                                    <p className="mono text-sm font-bold">TICKET_ID: <span className="text-[#FF4D00]">#{paymentInfo.ticketId}</span></p>
                               </div>
 
+                              <div className="bg-orange-50 border-l-4 border-[#FF4D00] p-6 text-left space-y-4">
+                                   <h4 className="mono text-sm font-black uppercase underline decoration-[#FF4D00]">INSTRUCCIONES DE PAGO:</h4>
+                                   <ol className="space-y-2">
+                                        {paymentInfo.instructions.map((instruction, index) => (
+                                             <li key={index} className="mono text-xs font-bold text-gray-800">
+                                                  {instruction}
+                                             </li>
+                                        ))}
+                                   </ol>
+                              </div>
+
                               <div className="flex flex-col md:flex-row gap-0 border-4 border-[#262626]">
                                    {/* Left Side: Button */}
                                    <div className="flex-1 bg-orange-50 p-6 space-y-4 border-b-4 md:border-b-0 md:border-r-4 border-[#262626] flex flex-col justify-center items-center">

@@ -22,12 +22,14 @@ export default async function AdminPage() {
 
      // Fetch current exchange rate from API
      let currentRate = 50;
+     let paraleloRate = 0;
      try {
           const res = await fetch('https://ve.dolarapi.com/v1/dolares/paralelo', {
                next: { revalidate: 300 },
           });
           if (res.ok) {
                const data = await res.json();
+               paraleloRate = data.promedio;
                currentRate = data.promedio * 0.88; // Pay rate (12% discount)
           }
      } catch {
@@ -53,6 +55,7 @@ export default async function AdminPage() {
                orders={orders || []}
                stats={stats}
                currentRate={currentRate}
+               paraleloRate={paraleloRate}
           />
      );
 }

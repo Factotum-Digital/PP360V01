@@ -24,9 +24,10 @@ interface AdminDashboardProps {
      orders: ExchangeOrder[];
      stats: AdminStats;
      currentRate: number;
+     paraleloRate?: number;
 }
 
-export function AdminDashboard({ user, orders, stats, currentRate }: AdminDashboardProps) {
+export function AdminDashboard({ user, orders, stats, currentRate, paraleloRate }: AdminDashboardProps) {
      const [filter, setFilter] = useState<string>('ALL');
      const [updating, setUpdating] = useState<string | null>(null);
      const [showArchived, setShowArchived] = useState(false);
@@ -131,7 +132,14 @@ export function AdminDashboard({ user, orders, stats, currentRate }: AdminDashbo
                {/* Header */}
                <div className="flex flex-col sm:flex-row justify-between items-start gap-4">
                     <div>
-                         <Tag active>ADMIN_TERMINAL</Tag>
+                         <div className="flex items-center gap-3">
+                              <Tag active>ADMIN_TERMINAL</Tag>
+                              {paraleloRate && (
+                                   <div className="mono text-xs font-bold text-[#FF4D00]">
+                                        PARALELO: {paraleloRate.toFixed(2)} VES
+                                   </div>
+                              )}
+                         </div>
                          <h1 className="text-3xl sm:text-4xl font-black uppercase tracking-tighter mt-4">
                               Panel Administrativo
                          </h1>

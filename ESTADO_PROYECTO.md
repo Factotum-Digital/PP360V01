@@ -1,7 +1,7 @@
 # PP360VE - Estado del Proyecto
 
-**Última actualización:** 28 de Diciembre de 2025 (Comisiones Secuenciales y Mejoras Visuales Dashboard)
-**Avance estimado:** ~78% (Core funcional + Cálculo exacto + UI optimizada)
+**Última actualización:** 28 de Diciembre de 2025 (Instrucciones Usuario Registrado y Tasa Admin)
+**Avance estimado:** ~80% (Core funcional + Cálculo exacto + UI optimizada + Instrucciones claras)
 
 ---
 
@@ -66,6 +66,8 @@
 - [x] Lógica de cálculos secuenciales (PayPal -> Servicio) Auditada y Corregida.
 - [x] Implementación de fee fijo de PayPal ($0.30) en todos los componentes.
 - [x] Recalculo de montos en el servidor para órdenes de invitados.
+- [x] Restauración de instrucciones de pago para usuarios registrados (Formato lista 1-4).
+- [x] Visualización de Tasa Paralelo en tiempo real en Panel Admin (Header Terminal).
 | **Centralización Utilidades** | 10% | Pendiente crear `lib/order-utils.ts`. |
 
 ---
@@ -233,7 +235,7 @@ Para detalles sobre la refactorización de código y eliminación de monolitos, 
 
 ---
 
-*Actualizado: 28 Dic 2025 - Antigravity AI (Cálculo Secuencial y UI Dashboard)*
+*Actualizado: 28 Dic 2025 - Antigravity AI (Instrucciones Registrados & Tasa Admin)*
 
 
 
