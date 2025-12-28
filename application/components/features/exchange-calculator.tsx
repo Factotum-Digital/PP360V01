@@ -87,10 +87,15 @@ export const ExchangeTerminal: React.FC = () => {
           const paypalPercentage = SITE_CONFIG.fees.paypal.percentage;
           const serviceFeePercentage = SITE_CONFIG.fees.service;
 
-          // Simplified logic: Result = Amount * (Parallel * (1 - 17.4%))
-          const netRate = paraleloRate * (1 - (paypalPercentage + serviceFeePercentage));
+          // Lógica Secuencial: (Monto * 0.946) - 0.30 -> Luego -12% -> Luego * Tasa
+          const netAfterPaypal = (amount * (1 - paypalPercentage)) - SITE_CONFIG.fees.paypal.fixed;
+          const finalNetUSD = netAfterPaypal * (1 - serviceFeePercentage);
 
-          setData(prev => ({ ...prev, rate: currentRate, vesAmount: amount * netRate }));
+          setData(prev => ({
+               ...prev,
+               rate: currentRate,
+               vesAmount: Math.max(0, finalNetUSD * paraleloRate) // Evitar negativos si el monto es < $0.30
+          }));
      }, [data.usdAmount, paraleloRate, currentRate]);
 
      useEffect(() => {
@@ -312,8 +317,8 @@ export const ExchangeTerminal: React.FC = () => {
                                              </div>
                                         </Slab>
                                         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-1 py-2 mono text-[10px] sm:text-[11px] font-bold text-gray-100 uppercase">
-                                             <span>RATE: 1 USD = {(paraleloRate * (1 - (SITE_CONFIG.fees.paypal.percentage + SITE_CONFIG.fees.service))).toFixed(2)} VES</span>
-                                             <span>FEE: INCLUIDA</span>
+                                             <span>TASA EFECTIVA: 1 USD = {data.usdAmount && Number(data.usdAmount) > 0 ? (data.vesAmount / Number(data.usdAmount)).toFixed(2) : (paraleloRate * 0.8298).toFixed(2)} VES</span>
+                                             <span>COMISIONES: INCLUIDAS</span>
                                         </div>
                                    </div>
 

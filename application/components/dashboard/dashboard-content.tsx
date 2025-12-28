@@ -455,18 +455,18 @@ function NewOrderForm({ currentRate, paraleloRate, onComplete }: { currentRate: 
      const [uploadSuccess, setUploadSuccess] = useState(false);
      const supabase = createClient();
 
-     // Commission logic: Simplified to ensure 1 USD = Rate
-     // Rate = Parallel * (1 - (5.4% + 12%))
+     // Lógica Secuencial: (Monto * 0.946) - 0.30 -> Luego -12% -> Luego * Tasa
      const paypalPercentage = SITE_CONFIG.fees.paypal.percentage;
      const serviceFeePercentage = SITE_CONFIG.fees.service;
      const effectiveRate = paraleloRate || currentRate;
      const amountNum = parseFloat(amount) || 0;
 
-     // Calculate Net Rate (additive discounts)
-     const shownRate = effectiveRate * (1 - (paypalPercentage + serviceFeePercentage));
+     const netAfterPaypal = (amountNum * (1 - paypalPercentage)) - SITE_CONFIG.fees.paypal.fixed;
+     const finalNetUSD = netAfterPaypal * (1 - serviceFeePercentage);
+     const vesAmount = Math.max(0, finalNetUSD * effectiveRate);
 
-     // Result = Amount * Net Rate
-     const vesAmount = amountNum * shownRate;
+     // Shown Net Rate for the current amount
+     const shownRate = amountNum > 0 ? vesAmount / amountNum : (effectiveRate * 0.82984);
 
      // Cargar datos bancarios guardados del usuario
      React.useEffect(() => {
@@ -563,7 +563,7 @@ function NewOrderForm({ currentRate, paraleloRate, onComplete }: { currentRate: 
                whatsapp: whatsapp,
                ticket_id: ticketId,
                is_guest: false,
-               exchange_rate: currentRate,
+               exchange_rate: shownRate,
                destination_data: {
                     payment_method: paymentMethod,
                     ...(paymentMethod === 'transferencia' && {

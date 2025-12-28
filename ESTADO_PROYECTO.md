@@ -61,6 +61,11 @@
 |---------------|--------|-------|
 | **Subida Comprobantes** | 100% | UI y backend funcionales ✅ |
 | **División de Monolitos** | 20% | Auditoría realizada. Pendiente separar `NewOrderForm` e `utils`. |
+
+### Cambios Recientes (Auditados)
+- [x] Lógica de cálculos secuenciales (PayPal -> Servicio) Auditada y Corregida.
+- [x] Implementación de fee fijo de PayPal ($0.30) en todos los componentes.
+- [x] Recalculo de montos en el servidor para órdenes de invitados.
 | **Centralización Utilidades** | 10% | Pendiente crear `lib/order-utils.ts`. |
 
 ---
