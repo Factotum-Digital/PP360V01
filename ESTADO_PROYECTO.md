@@ -222,8 +222,9 @@ Ver plan detallado del sistema de referidos en:
 
 ### 🔍 Auditoría y Optimización
 Para detalles sobre la refactorización de código y eliminación de monolitos, ver:
-- `application/lib/order-utils.ts` (Plan de centralización)
-- `audit_walkthrough.md` (Hoja de ruta de optimización técnica)
+- [REPORTE_TECNICO.md](file:///Users/wilfredy/PP360VE/docs/technical/REPORTE_TECNICO.md) (Análisis profundo)
+- [AUDITORIA_Y_OPTIMIZACION.md](file:///Users/wilfredy/PP360VE/docs/technical/AUDITORIA_Y_OPTIMIZACION.md) (Hoja de ruta ejecutable)
+- [RESULTADOS_COMISIONES.md](file:///Users/wilfredy/PP360VE/docs/technical/RESULTADOS_COMISIONES.md) (Pruebas de la nueva lógica)
 
 ---
 
