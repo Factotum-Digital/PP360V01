@@ -84,6 +84,7 @@
 - [x] `useCallback` aplicado a handlers
 - [x] `React.memo` aplicado a OrderCard
 - [x] Backup de seguridad: `backup-pre-refactor-2024-12-28`
+- [x] **Sync BD**: Creada migración local `006_enhance_user_payment_data.sql` para sincronizar con producción
 
 ---
 
@@ -208,7 +209,7 @@
 │   │   ├── 003_guest_checkout.sql       ← Guest orders
 │   │   ├── 004_storage_bucket.sql       ← Payment proofs
 │   │   ├── 005_user_payment_data.sql    ← User payment data
-│   │   └── 006_enhance_user_payment_data.sql ← Enhanced profile (15 campos nuevos)
+EL 
 │   │
 │   ├── middleware.ts                    ← Next.js middleware
 │   ├── constants.tsx                    ← Constantes globales
