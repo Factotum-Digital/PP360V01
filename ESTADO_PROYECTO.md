@@ -1,7 +1,7 @@
 # PP360VE - Estado del Proyecto
 
-**Última actualización:** 28 de Diciembre de 2025 (Comisiones Centralizadas y Texto Actualizado)
-**Avance estimado:** ~75% (Core funcional + Perfil mejorado)
+**Última actualización:** 28 de Diciembre de 2025 (Comisiones Secuenciales y Mejoras Visuales Dashboard)
+**Avance estimado:** ~78% (Core funcional + Cálculo exacto + UI optimizada)
 
 ---
 
@@ -33,6 +33,8 @@
 | **UX Formulario** | Monto mínimo 5 USD, Layout Grid optimizado, Validaciones en tiempo real |
 | **Teléfono Admin** | Visualización de teléfono en panel de administración para transferencias |
 | **Perfil de Usuario Mejorado** | Modal con 3 secciones (Identificación, Métodos Pago, PayPal), 15 campos nuevos, validaciones en tiempo real, barra de progreso, códigos de país internacionales |
+| **Cálculo Secuencial** | Lógica (PayPal -> Servicio), base en Dólar Paralelo, $100 = $82.98 netos, consistencia total 1 USD = Tasa Neta |
+| **UI Dashboard Refinada** | Resultado blanco/grande (3xl), Tasa visible (+1px), Decimales fijos (2), Encabezado con Dólar Paralelo |
 
 ### 🐞 Errores Críticos Resueltos
 
@@ -217,7 +219,7 @@ Ver plan detallado del sistema de referidos en:
 
 ---
 
-*Actualizado: 27 Dic 2025 - Antigravity AI (Perfil de Usuario Mejorado)*
+*Actualizado: 28 Dic 2025 - Antigravity AI (Cálculo Secuencial y UI Dashboard)*
 
 
 
