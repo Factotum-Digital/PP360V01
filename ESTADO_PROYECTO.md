@@ -1,7 +1,7 @@
 # PP360VE - Estado del Proyecto
 
-**Última actualización:** 28 de Diciembre de 2025 (Instrucciones Usuario Registrado y Tasa Admin)
-**Avance estimado:** ~80% (Core funcional + Cálculo exacto + UI optimizada + Instrucciones claras)
+**Última actualización:** 28 de Diciembre de 2025 (Refactorización Dashboard Completada)
+**Avance estimado:** ~85% (Core funcional + Refactorización Modular + Rendimiento Optimizado)
 
 ---
 
@@ -37,6 +37,9 @@
 | **UI Dashboard Refinada** | Resultado blanco/grande (3xl), Tasa visible (+1px), Decimales fijos (2), Encabezado con Dólar Paralelo |
 | **Limpieza de Constantes** | Centralización de tasas y comisiones en `SITE_CONFIG` (Resolución de "Scattered Constants") |
 | **Sistema de Archivado** | Gestión de órdenes históricas (is_archived), filtros dinámicos y acciones admin/dashboard |
+| **🆕 Refactorización Dashboard** | `dashboard-content.tsx` dividido en 4 archivos modulares (1505→390 líneas, -74%) |
+| **🆕 Utilidades Centralizadas** | `order-utils.ts` con funciones compartidas (getStatusColor, archiveOrder, uploadProof) |
+| **🆕 Optimización Rendimiento** | useMemo, useCallback, React.memo aplicados. IIFE eliminada. |
 
 ### 🐞 Errores Críticos Resueltos
 
@@ -60,15 +63,18 @@
 | Funcionalidad | Estado | Notas |
 |---------------|--------|-------|
 | **Subida Comprobantes** | 100% | UI y backend funcionales ✅ |
-| **División de Monolitos** | 20% | Auditoría realizada. Pendiente separar `NewOrderForm` e `utils`. |
+| **División de Monolitos** | ✅ 100% | `NewOrderForm`, `ProfileModal`, `OrderCard` extraídos |
+| **Centralización Utilidades** | ✅ 100% | `lib/utils/order-utils.ts` creado |
 
-### Cambios Recientes (Auditados)
-- [x] Lógica de cálculos secuenciales (PayPal -> Servicio) Auditada y Corregida.
-- [x] Implementación de fee fijo de PayPal ($0.30) en todos los componentes.
-- [x] Recalculo de montos en el servidor para órdenes de invitados.
-- [x] Restauración de instrucciones de pago para usuarios registrados (Formato lista 1-4).
-- [x] Visualización de Tasa Paralelo en tiempo real en Panel Admin (Header Terminal).
-| **Centralización Utilidades** | 10% | Pendiente crear `lib/order-utils.ts`. |
+### Cambios Recientes (28 Dic 2025)
+- [x] Refactorización completa de `dashboard-content.tsx` (1505 → 390 líneas)
+- [x] Extraído `new-order-form.tsx` (formulario nueva orden)
+- [x] Extraído `profile-modal.tsx` (modal de perfil)
+- [x] Creado `lib/utils/order-utils.ts` (funciones compartidas)
+- [x] IIFE reemplazada por `useMemo` para filtrado de órdenes
+- [x] `useCallback` aplicado a handlers
+- [x] `React.memo` aplicado a OrderCard
+- [x] Backup de seguridad: `backup-pre-refactor-2024-12-28`
 
 ---
 
@@ -159,7 +165,10 @@
 │   │
 │   ├── components/
 │   │   ├── admin/admin-dashboard.tsx    ← Panel admin completo
-│   │   ├── dashboard/dashboard-content.tsx ← Dashboard usuario
+│   │   ├── dashboard/
+│   │   │   ├── dashboard-content.tsx    ← Dashboard principal (390 líneas, refactorizado)
+│   │   │   ├── new-order-form.tsx       ← 🆕 Formulario nueva orden (extraído)
+│   │   │   └── profile-modal.tsx        ← 🆕 Modal de perfil (extraído)
 │   │   ├── features/                    ← Cards de features
 │   │   ├── landing/                     ← Componentes landing
 │   │   ├── layout/
@@ -180,8 +189,10 @@
 │   │   │   ├── middleware.ts            ← Auth middleware
 │   │   │   └── database.types.ts        ← Tipos TypeScript
 │   │   ├── services/                    ← Servicios externos
+│   │   ├── utils/
+│   │   │   └── order-utils.ts           ← 🆕 Utilidades de órdenes (centralizado)
 │   │   ├── admin-config.ts              ← Config admin
-│   │   ├── utils.ts                     ← Utilidades
+│   │   ├── utils.ts                     ← Utilidades generales
 │   │   └── referrals/                   ← ❌ PENDIENTE (No existe)
 │   │
 │   ├── supabase/migrations/
@@ -235,8 +246,17 @@ Para detalles sobre la refactorización de código y eliminación de monolitos, 
 
 ---
 
-*Actualizado: 28 Dic 2025 - Antigravity AI (Instrucciones Registrados & Tasa Admin)*
+## 🔜 PENDIENTE (Menor Prioridad - Optimizaciones Opcionales)
 
+| # | Funcionalidad | Descripción | Est. |
+|---|---------------|-------------|------|
+| P1 | **Consolidación Estados** | Agrupar 18 estados de NewOrderForm con useReducer | ~3h |
+| P2 | **Webhook PayPal** | Redundancia para verificación de pagos | ~4h |
+| P3 | **Actualizar admin-dashboard.tsx** | Aplicar mismas utilidades centralizadas | ~2h |
 
+---
 
-Backup created at application_backup_pre_paypal
+*Actualizado: 28 Dic 2025 - Antigravity AI (Refactorización Dashboard Modular)*
+
+**Tags de Backup:**
+- `backup-pre-refactor-2024-12-28` - Estado antes de la refactorización
