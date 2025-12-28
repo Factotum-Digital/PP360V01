@@ -35,6 +35,8 @@
 | **Perfil de Usuario Mejorado** | Modal con 3 secciones (Identificación, Métodos Pago, PayPal), 15 campos nuevos, validaciones en tiempo real, barra de progreso, códigos de país internacionales |
 | **Cálculo Secuencial** | Lógica (PayPal -> Servicio), base en Dólar Paralelo, $100 = $82.98 netos, consistencia total 1 USD = Tasa Neta |
 | **UI Dashboard Refinada** | Resultado blanco/grande (3xl), Tasa visible (+1px), Decimales fijos (2), Encabezado con Dólar Paralelo |
+| **Limpieza de Constantes** | Centralización de tasas y comisiones en `SITE_CONFIG` (Resolución de "Scattered Constants") |
+| **Sistema de Archivado** | Gestión de órdenes históricas (is_archived), filtros dinámicos y acciones admin/dashboard |
 
 ### 🐞 Errores Críticos Resueltos
 
@@ -58,7 +60,8 @@
 | Funcionalidad | Estado | Notas |
 |---------------|--------|-------|
 | **Subida Comprobantes** | 100% | UI y backend funcionales ✅ |
-| **Login con Facebook** | 50% | Código listo, pendiente config Supabase |
+| **División de Monolitos** | 20% | Auditoría realizada. Pendiente separar `NewOrderForm` e `utils`. |
+| **Centralización Utilidades** | 10% | Pendiente crear `lib/order-utils.ts`. |
 
 ---
 
@@ -216,6 +219,11 @@ git add -A && git commit -m "msg" && git push  # Deploy
 
 Ver plan detallado del sistema de referidos en:
 `~/.gemini/antigravity/brain/622ae1aa-fe97-4d27-bb1c-e19099685acf/implementation_plan.md`
+
+### 🔍 Auditoría y Optimización
+Para detalles sobre la refactorización de código y eliminación de monolitos, ver:
+- `application/lib/order-utils.ts` (Plan de centralización)
+- `audit_walkthrough.md` (Hoja de ruta de optimización técnica)
 
 ---
 
