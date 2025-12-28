@@ -10,6 +10,7 @@ import Link from 'next/link';
 import { isAdmin } from '@/lib/admin-config';
 import type { User } from '@supabase/supabase-js';
 import type { ExchangeOrder } from '@/lib/supabase/database.types';
+import { VENEZUELAN_BANKS } from '@/constants/banks';
 
 interface DashboardContentProps {
      user: User;
@@ -761,11 +762,7 @@ function NewOrderForm({ currentRate, onComplete }: { currentRate: number; onComp
                                         onChange={(e) => setBank(e.target.value)}
                                         className="w-full border-4 border-[#262626] p-4 font-bold mono outline-none"
                                    >
-                                        <option>Banesco</option>
-                                        <option>Mercantil</option>
-                                        <option>Banco de Venezuela</option>
-                                        <option>Provincial</option>
-                                        <option>BOD</option>
+                                        {VENEZUELAN_BANKS.map(b => <option key={b}>{b}</option>)}
                                    </select>
                               </div>
 
@@ -1042,13 +1039,8 @@ function ProfileModal({ userId, onClose }: { userId: string; onClose: () => void
           { code: '+55', country: '🇧🇷 Brasil' },
      ];
 
-     // Venezuelan Banks
-     const venezuelanBanks = [
-          'Banesco', 'Mercantil', 'Banco de Venezuela', 'Provincial', 'BOD',
-          'Banco Exterior', 'Banco Caroní', 'Banco Sofitasa', 'Banco Venezolano de Crédito',
-          'BanCaribe', 'Banco Plaza', 'Banco del Tesoro', 'Banfanb', '100% Banco',
-          'Banco Activo', 'Bancrecer', 'Mi Banco', 'Banco Bicentenario'
-     ];
+     // Venezuelan Banks - usando lista centralizada
+     const venezuelanBanks = VENEZUELAN_BANKS;
 
      // Calculate profile completion
      const calculateCompletion = () => {
@@ -1163,8 +1155,8 @@ function ProfileModal({ userId, onClose }: { userId: string; onClose: () => void
                                    key={tab.id}
                                    onClick={() => setActiveSection(tab.id as typeof activeSection)}
                                    className={`flex-1 p-3 mono text-xs font-black uppercase transition-colors ${activeSection === tab.id
-                                             ? 'bg-[#FF4D00] text-white'
-                                             : 'bg-gray-100 hover:bg-gray-200'
+                                        ? 'bg-[#FF4D00] text-white'
+                                        : 'bg-gray-100 hover:bg-gray-200'
                                         }`}
                               >
                                    {tab.icon} {tab.label}
@@ -1449,8 +1441,8 @@ function ProfileModal({ userId, onClose }: { userId: string; onClose: () => void
                                                             type="button"
                                                             onClick={() => setPaypalStatus(status.value as typeof paypalStatus)}
                                                             className={`p-3 border-4 font-bold mono text-xs transition-all ${paypalStatus === status.value
-                                                                      ? status.bg + ' scale-105'
-                                                                      : 'bg-white border-gray-200 hover:border-gray-400'
+                                                                 ? status.bg + ' scale-105'
+                                                                 : 'bg-white border-gray-200 hover:border-gray-400'
                                                                  }`}
                                                        >
                                                             {status.icon} {status.label}

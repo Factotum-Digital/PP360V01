@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Slab } from '@/components/ui/brutalist-system';
 import { AppStep, ExchangeData, TerminalLog } from '@/types';
 import { COMMISSION_RATE, MINIMUM_USD, ICONS } from '@/constants';
+import { VENEZUELAN_BANKS } from '@/constants/banks';
 import { LineChart, Line, ResponsiveContainer, YAxis, Tooltip } from 'recharts';
 import { createClient } from '@/lib/supabase/client';
 import { PayPalServiceButton } from './paypal-service-button';
@@ -346,12 +347,7 @@ export const ExchangeTerminal: React.FC = () => {
                                                   value={data.bank}
                                                   onChange={e => setData({ ...data, bank: e.target.value })}
                                              >
-                                                  <option>Banesco</option>
-                                                  <option>Mercantil</option>
-                                                  <option>Banco de Venezuela</option>
-                                                  <option>Provincial</option>
-                                                  <option>BOD</option>
-                                                  <option>BNC</option>
+                                                  {VENEZUELAN_BANKS.map(b => <option key={b}>{b}</option>)}
                                              </select>
                                         </div>
                                         <div className="space-y-2">
