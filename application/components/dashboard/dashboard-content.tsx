@@ -11,6 +11,7 @@ import { isAdmin } from '@/lib/admin-config';
 import type { User } from '@supabase/supabase-js';
 import type { ExchangeOrder } from '@/lib/supabase/database.types';
 import { VENEZUELAN_BANKS } from '@/constants/banks';
+import { SITE_CONFIG } from '@/config/site';
 
 interface DashboardContentProps {
      user: User;
@@ -446,9 +447,11 @@ function NewOrderForm({ currentRate, onComplete }: { currentRate: number; onComp
      const [uploadSuccess, setUploadSuccess] = useState(false);
      const supabase = createClient();
 
-     const commission = 0.05;
+     // Commission logic: Percentage is already deducted from currentRate by the API.
+     // We only need to deduct the fixed PayPal fee from the source amount.
+     const paypalFixed = SITE_CONFIG.fees.paypal.fixed;
      const amountNum = parseFloat(amount) || 0;
-     const netAmount = amountNum * (1 - commission);
+     const netAmount = Math.max(0, amountNum - paypalFixed);
      const vesAmount = netAmount * currentRate;
 
      // Cargar datos bancarios guardados del usuario

@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server';
 import { fetchExchangeRates } from '@/lib/services/dolar-api';
+import { SITE_CONFIG } from '@/config/site';
 
-// Descuento sobre la tasa paralela (12%)
-const DISCOUNT_RATE = 0.12;
+// Descuento total sobre la tasa paralela (Servicio 12% + PayPal 5.4%)
+const TOTAL_DISCOUNT_PERCENT = SITE_CONFIG.fees.service + SITE_CONFIG.fees.paypal.percentage;
 
 export async function GET() {
      const rates = await fetchExchangeRates();
@@ -14,16 +15,16 @@ export async function GET() {
           );
      }
 
-     // Calcular la tasa que pagas al cliente (paralelo - 12%)
-     const payRate = rates.paralelo * (1 - DISCOUNT_RATE);
+     // Calcular la tasa que pagas al cliente (paralelo - comisiones porcentuales)
+     const payRate = rates.paralelo * (1 - TOTAL_DISCOUNT_PERCENT);
 
      return NextResponse.json({
           ...rates,
           // Tasa paralela original de referencia
           paraleloOriginal: rates.paralelo,
-          // Tasa que pagas al cliente (12% menos)
+          // Tasa que pagas al cliente
           payRate: payRate,
           // Porcentaje de descuento aplicado
-          discountPercent: DISCOUNT_RATE * 100,
+          discountPercent: TOTAL_DISCOUNT_PERCENT * 100,
      });
 }

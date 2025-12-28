@@ -14,15 +14,18 @@ export const SITE_CONFIG = {
           paralelo: 58.50,  // Parallel rate (internal use only)
      },
 
-     // Commission structure (percentage)
-     commission: {
-          display: 0.05,    // 5% - What we show to the user
-          total: 0.05,      // 5% total commission
+     // Commission fees structure
+     fees: {
+          service: 0.12,      // 12% service fee
+          paypal: {
+               percentage: 0.054, // 5.4% PayPal fee
+               fixed: 0.30,       // $0.30 fixed fee
+          }
      },
 
      // Transaction limits
      validation: {
-          minAmount: 10,
+          minAmount: 5,  // Minimum USD amount
           maxAmount: 500,
      },
 };

@@ -1,6 +1,6 @@
 import React from 'react';
 
-export const COMMISSION_RATE = 0.05;
+// Note: Commissions are handled in config/site.ts (SITE_CONFIG.fees)
 export const MINIMUM_USD = 5;
 
 export const ICONS = {

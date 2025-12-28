@@ -3,14 +3,17 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Slab } from '@/components/ui/brutalist-system';
 import { AppStep, ExchangeData, TerminalLog } from '@/types';
-import { COMMISSION_RATE, MINIMUM_USD, ICONS } from '@/constants';
+import { MINIMUM_USD, ICONS } from '@/constants';
+import { SITE_CONFIG } from '@/config/site';
 import { VENEZUELAN_BANKS } from '@/constants/banks';
 import { LineChart, Line, ResponsiveContainer, YAxis, Tooltip } from 'recharts';
 import { createClient } from '@/lib/supabase/client';
 import { PayPalServiceButton } from './paypal-service-button';
 import { QRCodeSVG } from 'qrcode.react';
 
-const FALLBACK_RATE = 54.42;
+// Using centralized config for commission and fallback rate
+const PAYPAL_FIXED = SITE_CONFIG.fees.paypal.fixed;
+const FALLBACK_RATE = SITE_CONFIG.fallbackRates.oficial;
 
 const generateChartData = (baseRate: number) => Array.from({ length: 12 }, (_, i) => ({
      time: `${i + 8}:00`,
@@ -78,7 +81,9 @@ export const ExchangeTerminal: React.FC = () => {
 
      useEffect(() => {
           const amount = data.usdAmount === '' ? 0 : data.usdAmount;
-          const netUsd = amount * (1 - COMMISSION_RATE);
+          // Percentage fees are already deducted from currentRate by the API
+          // We only deduct the fixed PayPal fee here
+          const netUsd = Math.max(0, amount - PAYPAL_FIXED);
           setData(prev => ({ ...prev, rate: currentRate, vesAmount: netUsd * currentRate }));
      }, [data.usdAmount, currentRate]);
 
