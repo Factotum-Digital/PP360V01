@@ -2,6 +2,9 @@ import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import { isAdmin } from '@/lib/admin-config';
 import { AdminDashboard } from '@/components/admin/admin-dashboard';
+import { fetchExchangeRates } from '@/lib/services/dolar-api';
+import { getReferenceRate } from '@/lib/rate-calculator';
+import { SITE_CONFIG } from '@/config/site';
 
 export default async function AdminPage() {
      const supabase = await createClient();
@@ -24,16 +27,12 @@ export default async function AdminPage() {
      let currentRate = 50;
      let paraleloRate = 0;
      try {
-          const res = await fetch('https://ve.dolarapi.com/v1/dolares/paralelo', {
-               next: { revalidate: 300 },
-          });
-          if (res.ok) {
-               const data = await res.json();
-               paraleloRate = data.promedio;
-               currentRate = data.promedio * 0.88; // Pay rate (12% discount)
-          }
+          const rates = await fetchExchangeRates();
+          paraleloRate = rates.paralelo || SITE_CONFIG.fallbackRates.paralelo;
+          currentRate = getReferenceRate(paraleloRate);
      } catch {
-          // Use fallback
+          paraleloRate = SITE_CONFIG.fallbackRates.paralelo;
+          currentRate = getReferenceRate(paraleloRate);
      }
 
      // Calculate stats (case-insensitive status comparison)

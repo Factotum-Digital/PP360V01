@@ -10,9 +10,9 @@ import { LineChart, Line, ResponsiveContainer, YAxis, Tooltip } from 'recharts';
 import { createClient } from '@/lib/supabase/client';
 import { PayPalServiceButton } from './paypal-service-button';
 import { QRCodeSVG } from 'qrcode.react';
+import { calculateOrderMetrics, getFlatRate } from '@/lib/rate-calculator';
 
-// Using centralized config for commission and fallback rate
-const PAYPAL_FIXED = SITE_CONFIG.fees.paypal.fixed;
+// Using centralized config for fallback rate
 const FALLBACK_RATE = SITE_CONFIG.fallbackRates.oficial;
 
 const generateChartData = (baseRate: number) => Array.from({ length: 12 }, (_, i) => ({
@@ -58,7 +58,7 @@ export const ExchangeTerminal: React.FC = () => {
           ]);
      }, []);
 
-     // Fetch real rate from DolarAPI (paralelo - 15%)
+     // Fetch real rate from API (paralelo -> flat rate)
      const fetchRates = useCallback(async () => {
           addLog("CONSULTANDO MEJOR TASA...", "info");
           try {
@@ -66,20 +66,19 @@ export const ExchangeTerminal: React.FC = () => {
                if (!res.ok) throw new Error('API Error');
                const rates = await res.json();
 
-               // Calcular tasa de referencia para mostrar
+               // Calcular tasa de referencia usando la utilidad unificada
                const baseRate = rates.baseRate || rates.paralelo;
-               const refFactor = rates.referenceNetFactor || 0.83;
-               const payRate = baseRate * refFactor;
+               const payRate = getFlatRate(baseRate);
 
                setCurrentRate(payRate);
                setParaleloRate(baseRate);
                setChartData(generateChartData(baseRate));
                setInsight({
                     title: `DÓLAR OFICIAL BCV: ${rates.oficial.toFixed(2)} VES`,
-                    description: `TU RECIBES: ${payRate.toFixed(2)} VES/USD`,
+                    description: `RECIBE: ${payRate.toFixed(2)} VES/USD`,
                     sentiment: "STABLE"
                });
-               addLog(`TASA ACTUALIZADA: BCV=${rates.oficial.toFixed(2)} | PARALELO=${baseRate.toFixed(2)} | TU TASA=${payRate.toFixed(2)}`, "success");
+               addLog(`SISTEMA SINCRONIZADO | TASA DE PAGO: ${payRate.toFixed(2)} VES`, "success");
           } catch (error) {
                addLog("RATE_FETCH_FAILED: USING_FALLBACK", "warning");
                setChartData(generateChartData(FALLBACK_RATE));
@@ -94,25 +93,18 @@ export const ExchangeTerminal: React.FC = () => {
      }, [addLog]);
 
      useEffect(() => {
-          const amount = data.usdAmount === '' ? 0 : Number(data.usdAmount); // Ensure number
-          const paypalPercentage = SITE_CONFIG.fees.paypal.percentage;
-          const serviceFeePercentage = SITE_CONFIG.fees.service;
+          const amount = data.usdAmount === '' ? 0 : Number(data.usdAmount);
 
-          // Lógica Secuencial: (Monto * (1 - 5.4%)) - 0.30 -> Luego -12% -> Luego * Tasa
-          const netAfterPaypal = (amount * (1 - paypalPercentage)) - SITE_CONFIG.fees.paypal.fixed;
-          const finalNetUSD = netAfterPaypal * (1 - serviceFeePercentage);
-
-          const calculatedVes = Math.max(0, finalNetUSD * paraleloRate);
+          const { vesAmount: calculatedVes, effectiveRate } = calculateOrderMetrics(amount, paraleloRate);
 
           setData(prev => ({
                ...prev,
-               rate: currentRate || FALLBACK_RATE, // Ensure reliable rate
+               rate: currentRate || FALLBACK_RATE,
                vesAmount: calculatedVes
           }));
 
           // Actualizar Insight dinamicamente con la tasa efectiva real
-          if (amount >= 1) { // Mostrar para montos razonables
-               const effectiveRate = calculatedVes / amount;
+          if (amount >= 1) {
                setInsight(prev => ({
                     ...prev,
                     description: `TU TASA EFECTIVA: ${effectiveRate.toFixed(2)} VES/USD`,
@@ -340,7 +332,7 @@ export const ExchangeTerminal: React.FC = () => {
                                              </div>
                                         </Slab>
                                         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-1 py-2 mono text-[10px] sm:text-[11px] font-bold text-gray-100 uppercase">
-                                             <span>TASA EFECTIVA: 1 USD = {data.usdAmount && Number(data.usdAmount) > 0 ? (data.vesAmount / Number(data.usdAmount)).toFixed(2) : (paraleloRate * 0.8298).toFixed(2)} VES</span>
+                                             <span>TASA EFECTIVA: 1 USD = {data.usdAmount && Number(data.usdAmount) > 0 ? (data.vesAmount / Number(data.usdAmount)).toFixed(2) : getFlatRate(paraleloRate).toFixed(2)} VES</span>
                                              <span>COMISIONES: INCLUIDAS</span>
                                         </div>
                                    </div>

@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
+import { calculateOrderMetrics } from "@/lib/rate-calculator";
 
 // Generar ticket ID único
 function generateTicketId(): string {
@@ -24,17 +25,10 @@ export async function POST(request: NextRequest) {
           // Recalcular monto y tasa en el servidor para seguridad (No confiar en el cliente)
           const ratesRes = await fetch(`${request.nextUrl.origin}/api/rates`);
           const ratesData = await ratesRes.json();
-          const parallelRate = ratesData.baseRate || 45.0; // Fallback seguro
+          const parallelRate = ratesData.baseRate || ratesData.paralelo || 0;
 
-          // Fórmula Secuencial Aprobada: (Monto * 0.946 - 0.30) * 0.88
-          const paypalRate = 0.946; // (1 - 5.4%)
-          const serviceRate = 0.88; // (1 - 12%)
-          const paypalFixed = 0.30;
-
-          const netAfterPaypal = (usdAmount * paypalRate) - paypalFixed;
-          const finalNetUSD = netAfterPaypal * serviceRate;
-          const vesAmount = Math.max(0, finalNetUSD * parallelRate);
-          const effectiveRate = usdAmount > 0 ? vesAmount / usdAmount : 0;
+          // Cálculo unificado usando la utilidad centralizada (Tasa Fija)
+          const { vesAmount, effectiveRate } = calculateOrderMetrics(usdAmount, parallelRate);
 
           // Validaciones del servidor
           if (!email || !idNumber || !phone || !whatsapp) {

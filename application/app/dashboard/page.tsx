@@ -2,26 +2,22 @@ import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import { DashboardContent } from '@/components/dashboard/dashboard-content';
 
+import { getReferenceRate } from '@/lib/rate-calculator';
 import { SITE_CONFIG } from '@/config/site';
+import { fetchExchangeRates } from '@/lib/services/dolar-api';
 
 async function getRatesData(): Promise<{ payRate: number; paraleloRate: number }> {
      try {
-          const res = await fetch('https://ve.dolarapi.com/v1/dolares/paralelo', {
-               next: { revalidate: 300 }, // Cache for 5 minutes
-          });
-          if (!res.ok) throw new Error('API Error');
-          const data = await res.json();
-          const paraleloRate = data.promedio;
-
-          // Apply total discount from config
-          const discount = SITE_CONFIG.fees.service + SITE_CONFIG.fees.paypal.percentage;
-          const payRate = paraleloRate * (1 - discount);
+          const rates = await fetchExchangeRates();
+          const paraleloRate = rates.paralelo || SITE_CONFIG.fallbackRates.paralelo;
+          const payRate = getReferenceRate(paraleloRate);
 
           return { payRate, paraleloRate };
      } catch {
+          const paraleloRate = SITE_CONFIG.fallbackRates.paralelo;
           return {
-               payRate: SITE_CONFIG.fallbackRates.oficial * (1 - (SITE_CONFIG.fees.service + SITE_CONFIG.fees.paypal.percentage)),
-               paraleloRate: SITE_CONFIG.fallbackRates.paralelo
+               payRate: getReferenceRate(paraleloRate),
+               paraleloRate: paraleloRate
           };
      }
 }

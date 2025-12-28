@@ -12,6 +12,7 @@ import type { User } from '@supabase/supabase-js';
 import type { ExchangeOrder } from '@/lib/supabase/database.types';
 import { VENEZUELAN_BANKS } from '@/constants/banks';
 import { SITE_CONFIG } from '@/config/site';
+import { calculateOrderMetrics, getFlatRate } from '@/lib/rate-calculator';
 
 interface DashboardContentProps {
      user: User;
@@ -455,18 +456,9 @@ function NewOrderForm({ currentRate, paraleloRate, onComplete }: { currentRate: 
      const [uploadSuccess, setUploadSuccess] = useState(false);
      const supabase = createClient();
 
-     // Lógica Secuencial: (Monto * 0.946) - 0.30 -> Luego -12% -> Luego * Tasa
-     const paypalPercentage = SITE_CONFIG.fees.paypal.percentage;
-     const serviceFeePercentage = SITE_CONFIG.fees.service;
-     const effectiveRate = paraleloRate || currentRate;
      const amountNum = parseFloat(amount) || 0;
-
-     const netAfterPaypal = (amountNum * (1 - paypalPercentage)) - SITE_CONFIG.fees.paypal.fixed;
-     const finalNetUSD = netAfterPaypal * (1 - serviceFeePercentage);
-     const vesAmount = Math.max(0, finalNetUSD * effectiveRate);
-
-     // Shown Net Rate for the current amount
-     const shownRate = amountNum > 0 ? vesAmount / amountNum : (effectiveRate * 0.82984);
+     // Lógica unificada usando la utilidad centralizada
+     const { vesAmount, effectiveRate: shownRate } = calculateOrderMetrics(amountNum, paraleloRate || currentRate);
 
      // Cargar datos bancarios guardados del usuario
      React.useEffect(() => {
