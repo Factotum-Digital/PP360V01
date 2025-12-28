@@ -23,6 +23,7 @@ const generateChartData = (baseRate: number) => Array.from({ length: 12 }, (_, i
 export const ExchangeTerminal: React.FC = () => {
      const [step, setStep] = useState<AppStep>(AppStep.QUOTATION);
      const [currentRate, setCurrentRate] = useState(FALLBACK_RATE);
+     const [paraleloRate, setParaleloRate] = useState(SITE_CONFIG.fallbackRates.paralelo);
      const [chartData, setChartData] = useState<{ time: string; val: number }[]>([]);
      const [data, setData] = useState<ExchangeData>({
           usdAmount: 5,
@@ -64,15 +65,16 @@ export const ExchangeTerminal: React.FC = () => {
                const res = await fetch('/api/rates');
                if (!res.ok) throw new Error('API Error');
                const rates = await res.json();
-               const payRate = rates.payRate || rates.paralelo * 0.85;
+               const payRate = rates.payRate;
                setCurrentRate(payRate);
+               setParaleloRate(rates.paralelo || rates.paraleloOriginal);
                setChartData(generateChartData(rates.paralelo));
                setInsight({
                     title: `DÓLAR OFICIAL BCV: ${rates.oficial.toFixed(2)} VES`,
                     description: `TU RECIBES: ${payRate.toFixed(2)} VES/USD`,
                     sentiment: "STABLE"
                });
-               addLog(`TASA ACTUALIZADA: BCV=${rates.oficial.toFixed(2)} | PARALELO=${rates.paralelo.toFixed(2)} | TU TASA=${payRate.toFixed(2)}`, "success");
+               addLog(`TASA ACTUALIZADA: BCV=${rates.oficial.toFixed(2)} | PARALELO=${(rates.paralelo || rates.paraleloOriginal).toFixed(2)} | TU TASA=${payRate.toFixed(2)}`, "success");
           } catch {
                addLog("RATE_FETCH_FAILED: USING_FALLBACK", "warning");
                setChartData(generateChartData(FALLBACK_RATE));
@@ -81,11 +83,15 @@ export const ExchangeTerminal: React.FC = () => {
 
      useEffect(() => {
           const amount = data.usdAmount === '' ? 0 : data.usdAmount;
-          // Percentage fees are already deducted from currentRate by the API
-          // We only deduct the fixed PayPal fee here
-          const netUsd = Math.max(0, amount - PAYPAL_FIXED);
-          setData(prev => ({ ...prev, rate: currentRate, vesAmount: netUsd * currentRate }));
-     }, [data.usdAmount, currentRate]);
+
+          const paypalPercentage = SITE_CONFIG.fees.paypal.percentage;
+          const serviceFeePercentage = SITE_CONFIG.fees.service;
+
+          // Simplified logic: Result = Amount * (Parallel * (1 - 17.4%))
+          const netRate = paraleloRate * (1 - (paypalPercentage + serviceFeePercentage));
+
+          setData(prev => ({ ...prev, rate: currentRate, vesAmount: amount * netRate }));
+     }, [data.usdAmount, paraleloRate, currentRate]);
 
      useEffect(() => {
           addLog("SISTEMA INICIADO", "success");
@@ -301,12 +307,12 @@ export const ExchangeTerminal: React.FC = () => {
                                              <div className="flex flex-row items-center justify-start gap-4 sm:gap-6">
                                                   <span className="font-black text-xl sm:text-2xl opacity-20 leading-none">Bs</span>
                                                   <span className="text-2xl sm:text-4xl font-black mono leading-none">
-                                                       {data.vesAmount.toLocaleString('es-VE', { minimumFractionDigits: 2 })}
+                                                       {data.vesAmount.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                                                   </span>
                                              </div>
                                         </Slab>
-                                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-1 py-2 mono text-[9px] sm:text-[10px] font-bold text-gray-400 uppercase">
-                                             <span>RATE: 1 USD = {currentRate.toFixed(2)} VES</span>
+                                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-1 py-2 mono text-[10px] sm:text-[11px] font-bold text-gray-100 uppercase">
+                                             <span>RATE: 1 USD = {(paraleloRate * (1 - (SITE_CONFIG.fees.paypal.percentage + SITE_CONFIG.fees.service))).toFixed(2)} VES</span>
                                              <span>FEE: INCLUIDA</span>
                                         </div>
                                    </div>

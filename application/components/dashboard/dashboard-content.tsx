@@ -201,7 +201,7 @@ export function DashboardContent({ user, orders, currentRate, paraleloRate }: Da
                </Slab>
 
                {/* New Order Form */}
-               {showNewOrder && <NewOrderForm currentRate={currentRate} onComplete={() => {
+               {showNewOrder && <NewOrderForm currentRate={currentRate} paraleloRate={paraleloRate || currentRate} onComplete={() => {
                     setShowNewOrder(false);
                     router.refresh();
                }} />}
@@ -430,7 +430,7 @@ export function DashboardContent({ user, orders, currentRate, paraleloRate }: Da
 }
 
 // New Order Form Component
-function NewOrderForm({ currentRate, onComplete }: { currentRate: number; onComplete: () => void }) {
+function NewOrderForm({ currentRate, paraleloRate, onComplete }: { currentRate: number; paraleloRate: number; onComplete: () => void }) {
      const router = useRouter();
      const [step, setStep] = useState(1);
      const [amount, setAmount] = useState('5');
@@ -455,12 +455,18 @@ function NewOrderForm({ currentRate, onComplete }: { currentRate: number; onComp
      const [uploadSuccess, setUploadSuccess] = useState(false);
      const supabase = createClient();
 
-     // Commission logic: Percentage is already deducted from currentRate by the API.
-     // We only need to deduct the fixed PayPal fee from the source amount.
-     const paypalFixed = SITE_CONFIG.fees.paypal.fixed;
+     // Commission logic: Simplified to ensure 1 USD = Rate
+     // Rate = Parallel * (1 - (5.4% + 12%))
+     const paypalPercentage = SITE_CONFIG.fees.paypal.percentage;
+     const serviceFeePercentage = SITE_CONFIG.fees.service;
+     const effectiveRate = paraleloRate || currentRate;
      const amountNum = parseFloat(amount) || 0;
-     const netAmount = Math.max(0, amountNum - paypalFixed);
-     const vesAmount = netAmount * currentRate;
+
+     // Calculate Net Rate (additive discounts)
+     const shownRate = effectiveRate * (1 - (paypalPercentage + serviceFeePercentage));
+
+     // Result = Amount * Net Rate
+     const vesAmount = amountNum * shownRate;
 
      // Cargar datos bancarios guardados del usuario
      React.useEffect(() => {
@@ -680,12 +686,12 @@ function NewOrderForm({ currentRate, onComplete }: { currentRate: number; onComp
                          </div>
 
                          <div className="bg-[#262626] text-white p-4">
-                              <div className="flex justify-between mono text-sm font-bold">
+                              <div className="flex justify-between items-center mono text-sm font-bold">
                                    <span>Recibes:</span>
-                                   <span className="text-[#FF4D00]">{vesAmount.toLocaleString('es-VE', { minimumFractionDigits: 2 })} VES</span>
+                                   <span className="text-2xl font-black text-white">{vesAmount.toLocaleString('es-VE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} VES</span>
                               </div>
-                              <div className="flex justify-between mono text-[10px] text-gray-400 mt-2">
-                                   <span>Tasa: {currentRate.toFixed(2)} VES/USD</span>
+                              <div className="flex justify-between mono text-[11px] text-gray-100 mt-2">
+                                   <span>Tasa: {shownRate.toFixed(2)} VES/USD</span>
                                    <span>Comisión: INCLUIDA</span>
                               </div>
                          </div>
@@ -914,7 +920,7 @@ function NewOrderForm({ currentRate, onComplete }: { currentRate: number; onComp
                          <h3 className="text-2xl font-black uppercase italic">¡Orden Generada!</h3>
 
                          <div className="w-full space-y-4 text-left">
-                              <div className="bg-[#262626] text-white p-4">
+                              <div className="bg-[#262626] text-white p-6">
                                    <p className="mono text-sm font-bold">TICKET_ID: <span className="text-[#FF4D00]">#{paymentInfo.ticketId}</span></p>
                               </div>
 
