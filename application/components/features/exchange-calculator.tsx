@@ -65,37 +65,60 @@ export const ExchangeTerminal: React.FC = () => {
                const res = await fetch('/api/rates');
                if (!res.ok) throw new Error('API Error');
                const rates = await res.json();
-               const payRate = rates.payRate;
+
+               // Calcular tasa de referencia para mostrar
+               const baseRate = rates.baseRate || rates.paralelo;
+               const refFactor = rates.referenceNetFactor || 0.83;
+               const payRate = baseRate * refFactor;
+
                setCurrentRate(payRate);
-               setParaleloRate(rates.paralelo || rates.paraleloOriginal);
-               setChartData(generateChartData(rates.paralelo));
+               setParaleloRate(baseRate);
+               setChartData(generateChartData(baseRate));
                setInsight({
                     title: `DÓLAR OFICIAL BCV: ${rates.oficial.toFixed(2)} VES`,
                     description: `TU RECIBES: ${payRate.toFixed(2)} VES/USD`,
                     sentiment: "STABLE"
                });
-               addLog(`TASA ACTUALIZADA: BCV=${rates.oficial.toFixed(2)} | PARALELO=${(rates.paralelo || rates.paraleloOriginal).toFixed(2)} | TU TASA=${payRate.toFixed(2)}`, "success");
-          } catch {
+               addLog(`TASA ACTUALIZADA: BCV=${rates.oficial.toFixed(2)} | PARALELO=${baseRate.toFixed(2)} | TU TASA=${payRate.toFixed(2)}`, "success");
+          } catch (error) {
                addLog("RATE_FETCH_FAILED: USING_FALLBACK", "warning");
                setChartData(generateChartData(FALLBACK_RATE));
+
+               // Fallback insight
+               setInsight({
+                    title: "SERVICIO NO DISPONIBLE",
+                    description: "USANDO TASA DE RESPALDO",
+                    sentiment: "NEGATIVE"
+               });
           }
      }, [addLog]);
 
      useEffect(() => {
-          const amount = data.usdAmount === '' ? 0 : data.usdAmount;
-
+          const amount = data.usdAmount === '' ? 0 : Number(data.usdAmount); // Ensure number
           const paypalPercentage = SITE_CONFIG.fees.paypal.percentage;
           const serviceFeePercentage = SITE_CONFIG.fees.service;
 
-          // Lógica Secuencial: (Monto * 0.946) - 0.30 -> Luego -12% -> Luego * Tasa
+          // Lógica Secuencial: (Monto * (1 - 5.4%)) - 0.30 -> Luego -12% -> Luego * Tasa
           const netAfterPaypal = (amount * (1 - paypalPercentage)) - SITE_CONFIG.fees.paypal.fixed;
           const finalNetUSD = netAfterPaypal * (1 - serviceFeePercentage);
 
+          const calculatedVes = Math.max(0, finalNetUSD * paraleloRate);
+
           setData(prev => ({
                ...prev,
-               rate: currentRate,
-               vesAmount: Math.max(0, finalNetUSD * paraleloRate) // Evitar negativos si el monto es < $0.30
+               rate: currentRate || FALLBACK_RATE, // Ensure reliable rate
+               vesAmount: calculatedVes
           }));
+
+          // Actualizar Insight dinamicamente con la tasa efectiva real
+          if (amount >= 1) { // Mostrar para montos razonables
+               const effectiveRate = calculatedVes / amount;
+               setInsight(prev => ({
+                    ...prev,
+                    description: `TU TASA EFECTIVA: ${effectiveRate.toFixed(2)} VES/USD`,
+                    sentiment: effectiveRate > (paraleloRate * 0.8) ? "GOOD" : "FEE_IMPACT"
+               }));
+          }
      }, [data.usdAmount, paraleloRate, currentRate]);
 
      useEffect(() => {
