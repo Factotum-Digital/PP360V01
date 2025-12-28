@@ -1,6 +1,6 @@
 # PP360VE - Estado del Proyecto
 
-**Última actualización:** 27 de Diciembre de 2025 (Perfil de Usuario Mejorado)
+**Última actualización:** 28 de Diciembre de 2025 (Comisiones Centralizadas y Texto Actualizado)
 **Avance estimado:** ~75% (Core funcional + Perfil mejorado)
 
 ---
@@ -14,7 +14,7 @@
 | Funcionalidad | Descripción |
 |---------------|-------------|
 | **Landing Page** | Hero, calculadora, gráficos, sidebar, diseño Brutalist Terminal |
-| **Calculadora** | Input USD, conversión VES, comisión 5%, tasa DolarAPI |
+| **Calculadora** | Input USD, conversión VES, comisión INCLUIDA, tasa DolarAPI |
 | **Autenticación** | Registro, login, logout, middleware, OAuth (Google, Facebook, Microsoft) |
 | **Magic Link** | Login sin contraseña por email |
 | **Forgot Password** | Recuperación de contraseña con modal |

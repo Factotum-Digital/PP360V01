@@ -69,7 +69,7 @@ export const ExchangeTerminal: React.FC = () => {
                setChartData(generateChartData(rates.paralelo));
                setInsight({
                     title: `DÓLAR OFICIAL BCV: ${rates.oficial.toFixed(2)} VES`,
-                    description: `PARALELO: ${rates.paralelo.toFixed(2)} VES | TU RECIBES: ${payRate.toFixed(2)} VES/USD`,
+                    description: `TU RECIBES: ${payRate.toFixed(2)} VES/USD`,
                     sentiment: "STABLE"
                });
                addLog(`TASA ACTUALIZADA: BCV=${rates.oficial.toFixed(2)} | PARALELO=${rates.paralelo.toFixed(2)} | TU TASA=${payRate.toFixed(2)}`, "success");

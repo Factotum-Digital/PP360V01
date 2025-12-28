@@ -17,9 +17,10 @@ interface DashboardContentProps {
      user: User;
      orders: ExchangeOrder[];
      currentRate: number;
+     paraleloRate?: number;
 }
 
-export function DashboardContent({ user, orders, currentRate }: DashboardContentProps) {
+export function DashboardContent({ user, orders, currentRate, paraleloRate }: DashboardContentProps) {
      const [showNewOrder, setShowNewOrder] = useState(false);
      const [expandedOrderId, setExpandedOrderId] = useState<string | null>(null);
      const [uploadingOrderId, setUploadingOrderId] = useState<string | null>(null);
@@ -115,7 +116,14 @@ export function DashboardContent({ user, orders, currentRate }: DashboardContent
                {/* Header */}
                <div className="flex justify-between items-start">
                     <div>
-                         <Tag active>DASHBOARD</Tag>
+                         <div className="flex items-center gap-3">
+                              <Tag active>DASHBOARD</Tag>
+                              {paraleloRate && (
+                                   <div className="mono text-xs font-bold text-[#FF4D00]">
+                                        PARALELO: {paraleloRate.toFixed(2)} VES
+                                   </div>
+                              )}
+                         </div>
                          <h1 className="text-4xl font-black uppercase tracking-tighter mt-4">
                               Panel de Usuario
                          </h1>
@@ -678,7 +686,7 @@ function NewOrderForm({ currentRate, onComplete }: { currentRate: number; onComp
                               </div>
                               <div className="flex justify-between mono text-[10px] text-gray-400 mt-2">
                                    <span>Tasa: {currentRate.toFixed(2)} VES/USD</span>
-                                   <span>Comisión: 5%</span>
+                                   <span>Comisión: INCLUIDA</span>
                               </div>
                          </div>
 

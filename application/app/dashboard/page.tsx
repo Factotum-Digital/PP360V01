@@ -2,8 +2,9 @@ import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import { DashboardContent } from '@/components/dashboard/dashboard-content';
 
-// Fetch the current pay rate from DolarAPI (parallel - 12%)
-async function getCurrentPayRate(): Promise<number> {
+import { SITE_CONFIG } from '@/config/site';
+
+async function getRatesData(): Promise<{ payRate: number; paraleloRate: number }> {
      try {
           const res = await fetch('https://ve.dolarapi.com/v1/dolares/paralelo', {
                next: { revalidate: 300 }, // Cache for 5 minutes
@@ -11,10 +12,17 @@ async function getCurrentPayRate(): Promise<number> {
           if (!res.ok) throw new Error('API Error');
           const data = await res.json();
           const paraleloRate = data.promedio;
-          // Apply 12% discount (consistent with /api/rates)
-          return paraleloRate * 0.88;
+
+          // Apply total discount from config
+          const discount = SITE_CONFIG.fees.service + SITE_CONFIG.fees.paypal.percentage;
+          const payRate = paraleloRate * (1 - discount);
+
+          return { payRate, paraleloRate };
      } catch {
-          return 50; // Fallback rate
+          return {
+               payRate: SITE_CONFIG.fallbackRates.oficial * (1 - (SITE_CONFIG.fees.service + SITE_CONFIG.fees.paypal.percentage)),
+               paraleloRate: SITE_CONFIG.fallbackRates.paralelo
+          };
      }
 }
 
@@ -36,14 +44,15 @@ export default async function DashboardPage() {
           .eq('user_id', user.id)
           .order('created_at', { ascending: false });
 
-     // Fetch current pay rate from API (paralelo - 15%)
-     const currentRate = await getCurrentPayRate();
+     // Fetch rates data
+     const { payRate, paraleloRate } = await getRatesData();
 
      return (
           <DashboardContent
                user={user}
                orders={orders || []}
-               currentRate={currentRate}
+               currentRate={payRate}
+               paraleloRate={paraleloRate}
           />
      );
 }
