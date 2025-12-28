@@ -551,30 +551,30 @@ function OrderCard({
                                    </>
                               )}
                               {(order.status === 'COMPLETED' || order.status === 'CANCELLED') && (
-                                   <div className="flex items-center gap-4">
-                                        <span className="mono text-xs text-gray-400 italic">
-                                             Orden finalizada
-                                        </span>
-                                        {/* Archive Button */}
-                                        {order.is_archived ? (
-                                             <button
-                                                  onClick={() => onUnarchive(order.order_id)}
-                                                  disabled={updating}
-                                                  className="px-4 py-2 bg-gray-200 text-gray-800 mono text-xs font-black uppercase hover:bg-gray-300 disabled:opacity-50"
-                                             >
-                                                  ↪ DESARCHIVAR
-                                             </button>
-                                        ) : (
-                                             <button
-                                                  onClick={() => onArchive(order.order_id)}
-                                                  disabled={updating}
-                                                  className="px-4 py-2 bg-gray-800 text-white mono text-xs font-black uppercase hover:bg-black disabled:opacity-50"
-                                             >
-                                                  📦 ARCHIVAR
-                                             </button>
-                                        )}
-                                   </div>
+                                   <span className="mono text-xs text-gray-400 italic">
+                                        Orden finalizada
+                                   </span>
                               )}
+                              {/* Archive Button - Siempre visible */}
+                              <div className="flex items-center gap-4">
+                                   {order.is_archived ? (
+                                        <button
+                                             onClick={() => onUnarchive(order.order_id)}
+                                             disabled={updating}
+                                             className="px-4 py-2 bg-gray-200 text-gray-800 mono text-xs font-black uppercase hover:bg-gray-300 disabled:opacity-50"
+                                        >
+                                             ↪ DESARCHIVAR
+                                        </button>
+                                   ) : (
+                                        <button
+                                             onClick={() => onArchive(order.order_id)}
+                                             disabled={updating}
+                                             className="px-4 py-2 bg-gray-800 text-white mono text-xs font-black uppercase hover:bg-black disabled:opacity-50"
+                                        >
+                                             📦 ARCHIVAR
+                                        </button>
+                                   )}
+                              </div>
                          </div>
                     </div>
                )}

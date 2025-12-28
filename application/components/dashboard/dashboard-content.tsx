@@ -278,19 +278,21 @@ export function DashboardContent({ user, orders, currentRate, paraleloRate }: Da
                                                        <span className="font-black">${order.amount_sent.toFixed(2)} USD</span>
                                                        <span className="text-[#FF4D00] font-black">{order.amount_received.toLocaleString('es-VE')} VES</span>
                                                        <span className="text-gray-400 hidden sm:inline">{new Date(order.created_at).toLocaleDateString()}</span>
+                                                        {(order.status === 'COMPLETED' || order.status === 'CANCELLED') && (
                                                        <button
                                                             onClick={(e) => {
                                                                  e.stopPropagation();
                                                                  order.is_archived ? unarchiveOrder(order.order_id) : archiveOrder(order.order_id);
                                                             }}
-                                                            className={`px-2 py-1 text-[10px] font-bold border-2 transition-colors ${order.is_archived
+                                                            className={`px-3 py-1 text-xs font-black border-2 transition-colors uppercase ${order.is_archived
                                                                  ? 'border-green-500 text-green-500 hover:bg-green-50'
-                                                                 : 'border-gray-300 text-gray-400 hover:border-gray-500 hover:text-gray-600'
+                                                                 : 'border-[#262626] text-[#262626] hover:bg-gray-100 bg-white'
                                                                  }`}
                                                             title={order.is_archived ? 'Desarchivar' : 'Archivar'}
                                                        >
                                                             {order.is_archived ? '↩️' : '🗑️'}
                                                        </button>
+                                                        )}
                                                        <span className="text-xl">{expandedOrderId === order.order_id ? '−' : '+'}</span>
                                                   </div>
                                              </div>
