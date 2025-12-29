@@ -9,7 +9,10 @@ import type { ExchangeOrder } from '@/lib/supabase/database.types';
 import {
      getStatusColor,
      archiveOrder as utilArchiveOrder,
-     unarchiveOrder as utilUnarchiveOrder
+     unarchiveOrder as utilUnarchiveOrder,
+     generateInvoicePDF,
+     exportOrdersToCSV,
+     exportBulkToPDF
 } from '@/lib/utils/order-utils';
 
 interface AdminStats {
@@ -52,8 +55,38 @@ export function AdminDashboard({
 }: AdminDashboardProps) {
      const [updating, setUpdating] = useState<string | null>(null);
      const [localSearch, setLocalSearch] = useState(searchTerm);
+     const [selectedOrders, setSelectedOrders] = useState<string[]>([]);
      const router = useRouter();
      const supabase = createClient();
+
+     // Funciones para selección de órdenes
+     const toggleSelectOrder = (orderId: string) => {
+          setSelectedOrders(prev =>
+               prev.includes(orderId)
+                    ? prev.filter(id => id !== orderId)
+                    : [...prev, orderId]
+          );
+     };
+
+     const selectAll = () => {
+          if (selectedOrders.length === orders.length) {
+               setSelectedOrders([]);
+          } else {
+               setSelectedOrders(orders.map(o => o.order_id));
+          }
+     };
+
+     const handleExportSelected = (format: 'csv' | 'pdf') => {
+          const ordersToExport = orders.filter(o => selectedOrders.includes(o.order_id));
+          if (ordersToExport.length === 0) return;
+
+          if (format === 'csv') {
+               exportOrdersToCSV(ordersToExport, `ordenes_seleccionadas`);
+          } else {
+               exportBulkToPDF(ordersToExport, `${ordersToExport.length} seleccionadas`);
+          }
+          setSelectedOrders([]);
+     };
 
      const handleLogout = async () => {
           await supabase.auth.signOut();
@@ -295,6 +328,33 @@ export function AdminDashboard({
                     )}
                </div>
 
+               {/* Barra de Selección - Aparece cuando hay órdenes seleccionadas */}
+               {selectedOrders.length > 0 && (
+                    <div className="flex gap-3 items-center flex-wrap bg-white p-3 border-4 border-[#262626]">
+                         <span className="mono text-xs font-black uppercase text-[#262626]">
+                              ✓ {selectedOrders.length} SELECCIONADA{selectedOrders.length > 1 ? 'S' : ''}
+                         </span>
+                         <button
+                              onClick={() => handleExportSelected('csv')}
+                              className="px-3 py-2 bg-green-600 text-white mono text-xs font-black uppercase hover:bg-green-700 border-2 border-[#262626]"
+                         >
+                              📥 EXPORTAR CSV
+                         </button>
+                         <button
+                              onClick={() => handleExportSelected('pdf')}
+                              className="px-3 py-2 bg-blue-600 text-white mono text-xs font-black uppercase hover:bg-blue-700 border-2 border-[#262626]"
+                         >
+                              📄 EXPORTAR PDF
+                         </button>
+                         <button
+                              onClick={() => setSelectedOrders([])}
+                              className="px-2 py-1 mono text-xs font-bold text-red-500 hover:underline"
+                         >
+                              ✕ Cancelar
+                         </button>
+                    </div>
+               )}
+
                {/* Tabs de Estado para Archivados */}
                {isArchived && (
                     <div className="flex gap-2 flex-wrap">
@@ -322,10 +382,20 @@ export function AdminDashboard({
                {/* Orders List */}
                <Slab className="p-6">
                     <div className="flex justify-between items-center mb-6">
-                         <h2 className="mono text-sm font-black uppercase flex items-center gap-2">
-                              <span className="w-2 h-2 bg-[#FF4D00]"></span>
-                              Órdenes ({orders.length})
-                         </h2>
+                         <div className="flex items-center gap-4">
+                              {/* Checkbox seleccionar todo */}
+                              <input
+                                   type="checkbox"
+                                   checked={selectedOrders.length === orders.length && orders.length > 0}
+                                   onChange={selectAll}
+                                   className="w-5 h-5 accent-[#FF4D00] cursor-pointer"
+                                   title="Seleccionar todo"
+                              />
+                              <h2 className="mono text-sm font-black uppercase flex items-center gap-2">
+                                   <span className="w-2 h-2 bg-[#FF4D00]"></span>
+                                   Órdenes ({orders.length})
+                              </h2>
+                         </div>
                          {/* Pagination Controls */}
                          <div className="flex gap-2 items-center">
                               <button
@@ -365,6 +435,8 @@ export function AdminDashboard({
                                         onUnarchive={handleUnarchiveOrder}
                                         updating={updating === order.order_id}
                                         getStatusColor={getStatusColor}
+                                        isSelected={selectedOrders.includes(order.order_id)}
+                                        onToggleSelect={() => toggleSelectOrder(order.order_id)}
                                    />
                               ))}
                          </div>
@@ -401,7 +473,9 @@ function OrderCard({
      onArchive,
      onUnarchive,
      updating,
-     getStatusColor
+     getStatusColor,
+     isSelected,
+     onToggleSelect
 }: {
      order: ExchangeOrder;
      onUpdateStatus: (id: string, status: string) => void;
@@ -409,6 +483,8 @@ function OrderCard({
      onUnarchive: (id: string) => void;
      updating: boolean;
      getStatusColor: (status: string) => string;
+     isSelected: boolean;
+     onToggleSelect: () => void;
 }) {
      const [expanded, setExpanded] = useState(false);
 
@@ -416,13 +492,24 @@ function OrderCard({
      const hasPaymentData = order.bank_name || order.phone_pago_movil || order.id_number || order.whatsapp || order.paypal_email || order.destination_data;
 
      return (
-          <div className="border-4 border-[#262626] bg-white">
+          <div className={`border-2 bg-white ${isSelected ? 'border-[#FF4D00] ring-1 ring-[#FF4D00]' : 'border-[#262626]'}`}>
                {/* Header Row */}
                <div
                     className="p-4 flex justify-between items-center cursor-pointer hover:bg-gray-50"
                     onClick={() => setExpanded(!expanded)}
                >
                     <div className="flex items-center gap-4">
+                         {/* Checkbox de selección */}
+                         <input
+                              type="checkbox"
+                              checked={isSelected}
+                              onChange={(e) => {
+                                   e.stopPropagation();
+                                   onToggleSelect();
+                              }}
+                              onClick={(e) => e.stopPropagation()}
+                              className="w-5 h-5 accent-[#FF4D00] cursor-pointer"
+                         />
                          <span className={`${getStatusColor(order.status)} text-white px-2 py-1 mono text-[10px] font-black`}>
                               {order.status}
                          </span>
@@ -656,6 +743,20 @@ function OrderCard({
                                              📦 ARCHIVAR
                                         </button>
                                    )}
+
+                                   {/* Exportar Individual */}
+                                   <button
+                                        onClick={() => generateInvoicePDF(order)}
+                                        className="px-3 py-2 bg-blue-600 text-white mono text-xs font-black uppercase hover:bg-blue-700"
+                                   >
+                                        📄 PDF
+                                   </button>
+                                   <button
+                                        onClick={() => exportOrdersToCSV([order], `orden_${order.ticket_id || order.order_id.slice(0, 8)}`)}
+                                        className="px-3 py-2 bg-green-600 text-white mono text-xs font-black uppercase hover:bg-green-700"
+                                   >
+                                        📥 CSV
+                                   </button>
                               </div>
                          </div>
                     </div>

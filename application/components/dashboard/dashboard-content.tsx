@@ -17,7 +17,8 @@ import {
      archiveOrder as archiveOrderUtil,
      unarchiveOrder as unarchiveOrderUtil,
      uploadPaymentProof,
-     updateOrderWithProof
+     updateOrderWithProof,
+     generateInvoicePDF
 } from '@/lib/utils/order-utils';
 
 interface DashboardContentProps {
@@ -460,6 +461,17 @@ const OrderCard = React.memo(function OrderCard({
                                    <p className="mono text-xs font-black text-green-700">✓ ORDEN COMPLETADA</p>
                               </div>
                          )}
+
+                         {/* Botón Descargar Factura PDF - Visible para todos los estados */}
+                         <button
+                              onClick={(e) => {
+                                   e.stopPropagation();
+                                   generateInvoicePDF(order);
+                              }}
+                              className="w-full mt-4 px-4 py-3 bg-[#262626] text-white mono text-xs font-black uppercase hover:bg-black border-4 border-[#262626] flex items-center justify-center gap-2"
+                         >
+                              📄 DESCARGAR FACTURA PDF
+                         </button>
                     </div>
                )}
           </div>

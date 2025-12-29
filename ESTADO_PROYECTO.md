@@ -1,7 +1,7 @@
 # PP360VE - Estado del Proyecto
 
-**Última actualización:** 29 de Diciembre de 2025 (Búsqueda Admin Implementada)
-**Avance estimado:** ~86% (Core funcional + Refactorización Modular + Rendimiento Optimizado + Búsqueda Admin)
+**Última actualización:** 29 de Diciembre de 2025 (Exportar Factura PDF + CSV)
+**Avance estimado:** ~88% (Core funcional + Exportación PDF/CSV + Refactorización Modular)
 
 ---
 
@@ -41,6 +41,8 @@
 | **🆕 Utilidades Centralizadas** | `order-utils.ts` con funciones compartidas (getStatusColor, archiveOrder, uploadProof) |
 | **🆕 Optimización Rendimiento** | useMemo, useCallback, React.memo aplicados. IIFE eliminada. |
 | **🆕 Búsqueda Admin** | Campo de búsqueda por ID, email o ticket en panel de administración |
+| **🆕 Exportar Factura PDF** | Usuarios descargan factura profesional de su orden (desglose comisiones, logo, footer) |
+| **🆕 Exportar CSV/PDF Admin** | Selección múltiple con checkboxes, exportación masiva o individual |
 
 ### 🐞 Errores Críticos Resueltos
 
@@ -107,7 +109,7 @@
 |---|---------------|-------------|------|
 
 | 7 | ~~**Búsqueda Admin**~~ | ✅ COMPLETADO - Buscar por ID/email/ticket con UI integrada | ~~3h~~ |
-| 8 | **Exportar CSV** | Descargar órdenes en CSV | ~2h |
+| 8 | ~~**Exportar CSV/PDF**~~ | ✅ COMPLETADO - Factura PDF para usuarios, CSV+PDF para admin con selección | ~~5h~~ |
 | 9 | **Historial Tasas Real** | Guardar tasas en BD, gráfico con datos reales | ~4h |
 | 10 | **🆕 Empty States** | Ilustraciones + CTA cuando no hay datos (estilo Saldoar) | ~3h |
 | 11 | **Múltiples Métodos Pago** | Zelle, Binance Pay, PayPal | ~6h |
