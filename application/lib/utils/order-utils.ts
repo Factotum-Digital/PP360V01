@@ -282,16 +282,11 @@ export function generateInvoicePDF(order: ExchangeOrder): void {
           doc.setTextColor(180, 180, 180);
           doc.text('Documento informativo - No válido como factura fiscal', pageWidth / 2, 287, { align: 'center' });
 
-          // Guardar - método más robusto
-          const pdfBlob = doc.output('blob');
-          const pdfUrl = URL.createObjectURL(pdfBlob);
-          const link = document.createElement('a');
-          link.href = pdfUrl;
-          link.download = `factura_${ticket}.pdf`;
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-          URL.revokeObjectURL(pdfUrl);
+          // Guardar PDF - usar setTimeout para evitar problemas con event propagation
+          const fileName = `factura_${ticket}.pdf`;
+          setTimeout(() => {
+               doc.save(fileName);
+          }, 100);
      } catch (error) {
           console.error('Error generando PDF:', error);
           alert('Error al generar la factura PDF. Por favor intente de nuevo.');
