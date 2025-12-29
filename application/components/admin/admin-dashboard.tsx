@@ -35,6 +35,7 @@ export interface AdminDashboardProps {
      totalPages: number;
      currentFilter: string;
      isArchived: boolean;
+     searchTerm: string;
 }
 
 export function AdminDashboard({
@@ -46,9 +47,11 @@ export function AdminDashboard({
      page,
      totalPages,
      currentFilter,
-     isArchived
+     isArchived,
+     searchTerm
 }: AdminDashboardProps) {
      const [updating, setUpdating] = useState<string | null>(null);
+     const [localSearch, setLocalSearch] = useState(searchTerm);
      const router = useRouter();
      const supabase = createClient();
 
@@ -96,12 +99,30 @@ export function AdminDashboard({
      };
 
      // Helper to update URL params
-     const updateParams = (updates: { filter?: string; archived?: string; page?: string }) => {
+     const updateParams = (updates: { filter?: string; archived?: string; page?: string; search?: string }) => {
           const params = new URLSearchParams(window.location.search);
           if (updates.filter) params.set('filter', updates.filter);
           if (updates.archived) params.set('archived', updates.archived);
           if (updates.page) params.set('page', updates.page);
+          if (updates.search !== undefined) {
+               if (updates.search) params.set('search', updates.search);
+               else params.delete('search');
+          }
 
+          router.push(`/admin?${params.toString()}`);
+     };
+
+     // Handlers para búsqueda
+     const handleSearch = (e: React.FormEvent) => {
+          e.preventDefault();
+          updateParams({ search: localSearch.trim(), page: '1' });
+     };
+
+     const clearSearch = () => {
+          setLocalSearch('');
+          const params = new URLSearchParams(window.location.search);
+          params.delete('search');
+          params.set('page', '1');
           router.push(`/admin?${params.toString()}`);
      };
 
@@ -227,6 +248,51 @@ export function AdminDashboard({
                     >
                          📦 Archivados
                     </button>
+               </div>
+
+               {/* Barra de Búsqueda */}
+               <div className="flex gap-4 flex-wrap items-center">
+                    <form onSubmit={handleSearch} className="flex gap-2 flex-1 md:flex-none">
+                         <div className="relative flex-1 md:flex-none">
+                              <input
+                                   type="text"
+                                   value={localSearch}
+                                   onChange={(e) => setLocalSearch(e.target.value)}
+                                   placeholder="Buscar ID, email, ticket..."
+                                   className="w-full md:w-64 px-4 py-2 border-4 border-[#262626] mono text-xs font-bold focus:ring-2 focus:ring-[#FF4D00] outline-none"
+                              />
+                              {localSearch && (
+                                   <button
+                                        type="button"
+                                        onClick={() => setLocalSearch('')}
+                                        className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                                   >
+                                        ✕
+                                   </button>
+                              )}
+                         </div>
+                         <button
+                              type="submit"
+                              className="px-4 py-2 bg-[#FF4D00] text-white mono text-xs font-black uppercase border-4 border-[#262626] hover:bg-[#e04400]"
+                         >
+                              🔍 BUSCAR
+                         </button>
+                    </form>
+
+                    {/* Indicador de búsqueda activa */}
+                    {searchTerm && (
+                         <div className="flex items-center gap-2 bg-yellow-100 px-3 py-2 border-2 border-yellow-400">
+                              <span className="mono text-xs font-bold">
+                                   Buscando: &quot;{searchTerm}&quot;
+                              </span>
+                              <button
+                                   onClick={clearSearch}
+                                   className="text-yellow-600 hover:text-yellow-800 font-bold"
+                              >
+                                   ✕ Limpiar
+                              </button>
+                         </div>
+                    )}
                </div>
 
                {/* Tabs de Estado para Archivados */}

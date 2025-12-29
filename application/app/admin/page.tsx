@@ -58,9 +58,18 @@ export default async function AdminPage(props: {
      const currentPage = Number(searchParams?.page) || 1;
      const currentFilter = (searchParams?.filter as string)?.toUpperCase() || 'ALL';
      const isArchived = searchParams?.archived === 'true';
+     const searchTerm = (searchParams?.search as string)?.toLowerCase().trim() || '';
      const itemsPerPage = 20;
 
      let filteredOrders = orders.filter(order => {
+          // 0. Búsqueda por texto (ID, email, ticket)
+          if (searchTerm) {
+               const matchesId = order.order_id.toLowerCase().includes(searchTerm);
+               const matchesTicket = order.ticket_id?.toLowerCase().includes(searchTerm) || false;
+               const matchesEmail = order.paypal_email?.toLowerCase().includes(searchTerm) || false;
+               if (!matchesId && !matchesTicket && !matchesEmail) return false;
+          }
+
           // 1. Filter by Archived
           if (isArchived && !order.is_archived) return false;
           if (!isArchived && order.is_archived) return false;
@@ -100,6 +109,7 @@ export default async function AdminPage(props: {
                totalPages={totalPages}
                currentFilter={currentFilter}
                isArchived={isArchived}
+               searchTerm={searchTerm}
           />
      );
 }
