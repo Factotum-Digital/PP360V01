@@ -146,142 +146,156 @@ export function generateTicketId(): string {
  * Genera una factura PDF profesional para una orden
  */
 export function generateInvoicePDF(order: ExchangeOrder): void {
-     const doc = new jsPDF();
-     const ticket = order.ticket_id || order.order_id.slice(0, 8);
-     const pageWidth = doc.internal.pageSize.getWidth();
+     try {
+          const doc = new jsPDF();
+          const ticket = order.ticket_id || order.order_id.slice(0, 8);
+          const pageWidth = doc.internal.pageSize.getWidth();
 
-     // Colors
-     const orange = '#FF4D00';
-     const dark = '#262626';
+          // Colors
+          const orange = '#FF4D00';
+          const dark = '#262626';
 
-     // ===== HEADER =====
-     doc.setFillColor(38, 38, 38);
-     doc.rect(0, 0, pageWidth, 35, 'F');
+          // ===== HEADER =====
+          doc.setFillColor(38, 38, 38);
+          doc.rect(0, 0, pageWidth, 35, 'F');
 
-     doc.setTextColor(255, 77, 0);
-     doc.setFontSize(24);
-     doc.setFont('helvetica', 'bold');
-     doc.text('PP360VE', 20, 22);
+          doc.setTextColor(255, 77, 0);
+          doc.setFontSize(24);
+          doc.setFont('helvetica', 'bold');
+          doc.text('PP360VE', 20, 22);
 
-     doc.setTextColor(255, 255, 255);
-     doc.setFontSize(12);
-     doc.text('FACTURA DE SERVICIO', pageWidth - 20, 15, { align: 'right' });
-     doc.setFontSize(10);
-     doc.text(`#${ticket}`, pageWidth - 20, 25, { align: 'right' });
+          doc.setTextColor(255, 255, 255);
+          doc.setFontSize(12);
+          doc.text('FACTURA DE SERVICIO', pageWidth - 20, 15, { align: 'right' });
+          doc.setFontSize(10);
+          doc.text(`#${ticket}`, pageWidth - 20, 25, { align: 'right' });
 
-     // ===== DATOS DEL DOCUMENTO =====
-     doc.setTextColor(38, 38, 38);
-     doc.setFontSize(10);
-     doc.setFont('helvetica', 'normal');
-     doc.text(`Fecha: ${new Date(order.created_at).toLocaleDateString('es-VE')}`, 20, 45);
-     doc.text(`Hora: ${new Date(order.created_at).toLocaleTimeString('es-VE')}`, 20, 52);
+          // ===== DATOS DEL DOCUMENTO =====
+          doc.setTextColor(38, 38, 38);
+          doc.setFontSize(10);
+          doc.setFont('helvetica', 'normal');
+          doc.text(`Fecha: ${new Date(order.created_at).toLocaleDateString('es-VE')}`, 20, 45);
+          doc.text(`Hora: ${new Date(order.created_at).toLocaleTimeString('es-VE')}`, 20, 52);
 
-     // Estado de la orden
-     const statusText = order.status === 'COMPLETED' ? '✓ COMPLETADA' :
-          order.status === 'PENDING' ? '⏳ PENDIENTE' :
-               order.status === 'VERIFYING' ? '🔍 VERIFICANDO' : '✗ CANCELADA';
-     doc.setFont('helvetica', 'bold');
-     doc.text(`Estado: ${statusText}`, pageWidth - 20, 45, { align: 'right' });
+          // Estado de la orden
+          const statusText = order.status === 'COMPLETED' ? '✓ COMPLETADA' :
+               order.status === 'PENDING' ? '⏳ PENDIENTE' :
+                    order.status === 'VERIFYING' ? '🔍 VERIFICANDO' : '✗ CANCELADA';
+          doc.setFont('helvetica', 'bold');
+          doc.text(`Estado: ${statusText}`, pageWidth - 20, 45, { align: 'right' });
 
-     // ===== DATOS DEL CLIENTE =====
-     doc.setDrawColor(255, 77, 0);
-     doc.setLineWidth(0.5);
-     doc.line(20, 60, pageWidth - 20, 60);
+          // ===== DATOS DEL CLIENTE =====
+          doc.setDrawColor(255, 77, 0);
+          doc.setLineWidth(0.5);
+          doc.line(20, 60, pageWidth - 20, 60);
 
-     doc.setFontSize(11);
-     doc.setFont('helvetica', 'bold');
-     doc.text('DATOS DEL CLIENTE', 20, 70);
+          doc.setFontSize(11);
+          doc.setFont('helvetica', 'bold');
+          doc.text('DATOS DEL CLIENTE', 20, 70);
 
-     doc.setFont('helvetica', 'normal');
-     doc.setFontSize(10);
-     doc.text(`Email PayPal: ${order.paypal_email || 'N/A'}`, 20, 80);
-     doc.text(`WhatsApp: ${order.whatsapp || 'N/A'}`, 20, 87);
+          doc.setFont('helvetica', 'normal');
+          doc.setFontSize(10);
+          doc.text(`Email PayPal: ${order.paypal_email || 'N/A'}`, 20, 80);
+          doc.text(`WhatsApp: ${order.whatsapp || 'N/A'}`, 20, 87);
 
-     // ===== DETALLE DE LA TRANSACCIÓN =====
-     doc.line(20, 95, pageWidth - 20, 95);
+          // ===== DETALLE DE LA TRANSACCIÓN =====
+          doc.line(20, 95, pageWidth - 20, 95);
 
-     doc.setFontSize(11);
-     doc.setFont('helvetica', 'bold');
-     doc.text('DETALLE DE LA TRANSACCIÓN', 20, 105);
+          doc.setFontSize(11);
+          doc.setFont('helvetica', 'bold');
+          doc.text('DETALLE DE LA TRANSACCIÓN', 20, 105);
 
-     // Calcular comisiones (según la lógica del sistema)
-     const amountUSD = order.amount_sent;
-     const paypalFee = (amountUSD * 0.054) + 0.30;
-     const afterPaypal = amountUSD - paypalFee;
-     const serviceFee = afterPaypal * 0.12;
-     const netUSD = afterPaypal - serviceFee;
+          // Calcular comisiones (según la lógica del sistema)
+          const amountUSD = order.amount_sent;
+          const paypalFee = (amountUSD * 0.054) + 0.30;
+          const afterPaypal = amountUSD - paypalFee;
+          const serviceFee = afterPaypal * 0.12;
+          const netUSD = afterPaypal - serviceFee;
 
-     doc.setFont('helvetica', 'normal');
-     doc.setFontSize(10);
+          doc.setFont('helvetica', 'normal');
+          doc.setFontSize(10);
 
-     let y = 115;
-     const col1 = 20;
-     const col2 = pageWidth - 20;
+          let y = 115;
+          const col1 = 20;
+          const col2 = pageWidth - 20;
 
-     const addRow = (label: string, value: string, bold = false) => {
-          if (bold) doc.setFont('helvetica', 'bold');
-          else doc.setFont('helvetica', 'normal');
-          doc.text(label, col1, y);
-          doc.text(value, col2, y, { align: 'right' });
+          const addRow = (label: string, value: string, bold = false) => {
+               if (bold) doc.setFont('helvetica', 'bold');
+               else doc.setFont('helvetica', 'normal');
+               doc.text(label, col1, y);
+               doc.text(value, col2, y, { align: 'right' });
+               y += 8;
+          };
+
+          addRow('Concepto:', 'Servicio de Asesoría Profesional personalizada');
+          addRow('Monto enviado:', `$${amountUSD.toFixed(2)} USD`);
+          addRow('Comisión PayPal (5.4% + $0.30):', `-$${paypalFee.toFixed(2)} USD`);
+          addRow('Comisión servicio (12%):', `-$${serviceFee.toFixed(2)} USD`);
+
+          doc.setDrawColor(200, 200, 200);
+          doc.line(20, y, pageWidth - 20, y);
           y += 8;
-     };
 
-     addRow('Monto enviado:', `$${amountUSD.toFixed(2)} USD`);
-     addRow('Comisión PayPal (5.4% + $0.30):', `-$${paypalFee.toFixed(2)} USD`);
-     addRow('Comisión servicio (12%):', `-$${serviceFee.toFixed(2)} USD`);
+          doc.setTextColor(255, 77, 0);
+          addRow('NETO A RECIBIR:', `$${netUSD.toFixed(2)} USD`, true);
 
-     doc.setDrawColor(200, 200, 200);
-     doc.line(20, y, pageWidth - 20, y);
-     y += 8;
+          doc.setTextColor(38, 38, 38);
+          addRow('Tasa de cambio:', `${order.exchange_rate?.toFixed(2) || 'N/A'} VES/USD`);
 
-     doc.setTextColor(255, 77, 0);
-     addRow('NETO A RECIBIR:', `$${netUSD.toFixed(2)} USD`, true);
+          doc.setFontSize(12);
+          doc.setFont('helvetica', 'bold');
+          addRow('TOTAL EN BOLÍVARES:', `${Number(order.amount_received).toLocaleString('es-VE', { minimumFractionDigits: 2 })} VES`, true);
 
-     doc.setTextColor(38, 38, 38);
-     addRow('Tasa de cambio:', `${order.exchange_rate?.toFixed(2) || 'N/A'} VES/USD`);
+          // ===== DATOS DE PAGO DESTINO =====
+          y += 5;
+          doc.setDrawColor(255, 77, 0);
+          doc.line(20, y, pageWidth - 20, y);
+          y += 10;
 
-     doc.setFontSize(12);
-     doc.setFont('helvetica', 'bold');
-     addRow('TOTAL EN BOLÍVARES:', `${Number(order.amount_received).toLocaleString('es-VE', { minimumFractionDigits: 2 })} VES`, true);
+          doc.setTextColor(38, 38, 38);
+          doc.setFontSize(11);
+          doc.setFont('helvetica', 'bold');
+          doc.text('DATOS DE PAGO DESTINO', 20, y);
+          y += 10;
 
-     // ===== DATOS DE PAGO DESTINO =====
-     y += 5;
-     doc.setDrawColor(255, 77, 0);
-     doc.line(20, y, pageWidth - 20, y);
-     y += 10;
+          doc.setFontSize(10);
+          doc.setFont('helvetica', 'normal');
 
-     doc.setTextColor(38, 38, 38);
-     doc.setFontSize(11);
-     doc.setFont('helvetica', 'bold');
-     doc.text('DATOS DE PAGO DESTINO', 20, y);
-     y += 10;
+          const destData = order.destination_data as { payment_method?: string } | null;
+          const paymentMethod = destData?.payment_method === 'transferencia' ? 'Transferencia Bancaria' : 'Pago Móvil';
 
-     doc.setFontSize(10);
-     doc.setFont('helvetica', 'normal');
+          doc.text(`Método: ${paymentMethod}`, 20, y);
+          doc.text(`Banco: ${order.bank_name || 'N/A'}`, pageWidth / 2, y);
+          y += 7;
+          doc.text(`Cédula: ${order.id_number || 'N/A'}`, 20, y);
+          doc.text(`Teléfono: ${order.phone_pago_movil || 'N/A'}`, pageWidth / 2, y);
 
-     const destData = order.destination_data as { payment_method?: string } | null;
-     const paymentMethod = destData?.payment_method === 'transferencia' ? 'Transferencia Bancaria' : 'Pago Móvil';
+          // ===== FOOTER =====
+          doc.setFillColor(38, 38, 38);
+          doc.rect(0, 270, pageWidth, 30, 'F');
 
-     doc.text(`Método: ${paymentMethod}`, 20, y);
-     doc.text(`Banco: ${order.bank_name || 'N/A'}`, pageWidth / 2, y);
-     y += 7;
-     doc.text(`Cédula: ${order.id_number || 'N/A'}`, 20, y);
-     doc.text(`Teléfono: ${order.phone_pago_movil || 'N/A'}`, pageWidth / 2, y);
+          doc.setTextColor(255, 255, 255);
+          doc.setFontSize(9);
+          doc.setFont('helvetica', 'normal');
+          doc.text('PP360VE | Servicio de Asesoría Profesional', pageWidth / 2, 280, { align: 'center' });
+          doc.setFontSize(8);
+          doc.setTextColor(180, 180, 180);
+          doc.text('Documento informativo - No válido como factura fiscal', pageWidth / 2, 287, { align: 'center' });
 
-     // ===== FOOTER =====
-     doc.setFillColor(38, 38, 38);
-     doc.rect(0, 270, pageWidth, 30, 'F');
-
-     doc.setTextColor(255, 255, 255);
-     doc.setFontSize(9);
-     doc.setFont('helvetica', 'normal');
-     doc.text('PP360VE | Servicio de Asesoría Profesional', pageWidth / 2, 280, { align: 'center' });
-     doc.setFontSize(8);
-     doc.setTextColor(180, 180, 180);
-     doc.text('Documento informativo - No válido como factura fiscal', pageWidth / 2, 287, { align: 'center' });
-
-     // Guardar
-     doc.save(`factura_${ticket}.pdf`);
+          // Guardar - método más robusto
+          const pdfBlob = doc.output('blob');
+          const pdfUrl = URL.createObjectURL(pdfBlob);
+          const link = document.createElement('a');
+          link.href = pdfUrl;
+          link.download = `factura_${ticket}.pdf`;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          URL.revokeObjectURL(pdfUrl);
+     } catch (error) {
+          console.error('Error generando PDF:', error);
+          alert('Error al generar la factura PDF. Por favor intente de nuevo.');
+     }
 }
 
 // ===== EXPORTACIÓN CSV (Solo Admin) =====
