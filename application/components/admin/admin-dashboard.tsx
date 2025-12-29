@@ -6,6 +6,11 @@ import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
 import type { User } from '@supabase/supabase-js';
 import type { ExchangeOrder } from '@/lib/supabase/database.types';
+import {
+     getStatusColor,
+     archiveOrder as utilArchiveOrder,
+     unarchiveOrder as utilUnarchiveOrder
+} from '@/lib/utils/order-utils';
 
 interface AdminStats {
      total: number;
@@ -35,6 +40,8 @@ export function AdminDashboard({ user, orders, stats, currentRate, paraleloRate 
      const router = useRouter();
      const supabase = createClient();
 
+
+
      const handleLogout = async () => {
           await supabase.auth.signOut();
           router.push('/');
@@ -58,45 +65,23 @@ export function AdminDashboard({ user, orders, stats, currentRate, paraleloRate 
           setUpdating(null);
      };
 
-     const archiveOrder = async (orderId: string) => {
-          const { error } = await supabase
-               .from('exchange_orders')
-               .update({ is_archived: true })
-               .eq('order_id', orderId);
+     const handleArchiveOrder = async (orderId: string) => {
+          const { success, error } = await utilArchiveOrder(orderId);
 
-          if (error) {
-               alert('Error al archivar: ' + error.message);
+          if (!success) {
+               alert('Error al archivar: ' + (error || 'Error desconocido'));
           } else {
                router.refresh();
           }
      };
 
-     const unarchiveOrder = async (orderId: string) => {
-          const { error } = await supabase
-               .from('exchange_orders')
-               .update({ is_archived: false })
-               .eq('order_id', orderId);
+     const handleUnarchiveOrder = async (orderId: string) => {
+          const { success, error } = await utilUnarchiveOrder(orderId);
 
-          if (error) {
-               alert('Error al desarchivar: ' + error.message);
+          if (!success) {
+               alert('Error al desarchivar: ' + (error || 'Error desconocido'));
           } else {
                router.refresh();
-          }
-     };
-
-     const getStatusColor = (status: string) => {
-          const upperStatus = status?.toUpperCase();
-          switch (upperStatus) {
-               case 'COMPLETED':
-                    return 'bg-green-500';
-               case 'PENDING':
-                    return 'bg-yellow-500';
-               case 'VERIFYING':
-                    return 'bg-blue-500';
-               case 'CANCELLED':
-                    return 'bg-red-500';
-               default:
-                    return 'bg-gray-500';
           }
      };
 
@@ -299,8 +284,8 @@ export function AdminDashboard({ user, orders, stats, currentRate, paraleloRate 
                                         key={order.order_id}
                                         order={order}
                                         onUpdateStatus={updateOrderStatus}
-                                        onArchive={archiveOrder}
-                                        onUnarchive={unarchiveOrder}
+                                        onArchive={handleArchiveOrder}
+                                        onUnarchive={handleUnarchiveOrder}
                                         updating={updating === order.order_id}
                                         getStatusColor={getStatusColor}
                                    />

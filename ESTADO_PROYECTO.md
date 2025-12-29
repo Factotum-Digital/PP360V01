@@ -85,6 +85,7 @@
 - [x] `React.memo` aplicado a OrderCard
 - [x] Backup de seguridad: `backup-pre-refactor-2024-12-28`
 - [x] **Sync BD**: Creada migración local `006_enhance_user_payment_data.sql` para sincronizar con producción
+- [x] **Admin Dashboard Refactor**: `admin-dashboard.tsx` actualizado para usar `order-utils.ts` centralizado
 
 ---
 
@@ -262,7 +263,7 @@ Para detalles sobre la refactorización de código y eliminación de monolitos, 
 |---|---------------|-------------|------|
 | P1 | **Consolidación Estados** | Agrupar 18 estados de NewOrderForm con useReducer | ~3h |
 | P2 | **Webhook PayPal** | Redundancia para verificación de pagos | ~4h |
-| P3 | **Actualizar admin-dashboard.tsx** | Aplicar mismas utilidades centralizadas | ~2h |
+
 
 ---
 
