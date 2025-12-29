@@ -6,11 +6,10 @@ import { fetchExchangeRates } from '@/lib/services/dolar-api';
 import { getReferenceRate } from '@/lib/rate-calculator';
 import { SITE_CONFIG } from '@/config/site';
 
-export default async function AdminPage({
-     searchParams,
-}: {
-     searchParams: { [key: string]: string | string[] | undefined };
+export default async function AdminPage(props: {
+     searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
+     const searchParams = await props.searchParams;
      const supabase = await createClient();
 
      const {
