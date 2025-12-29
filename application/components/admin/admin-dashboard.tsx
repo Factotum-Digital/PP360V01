@@ -24,23 +24,33 @@ interface AdminStats {
      totalVES: number;
 }
 
-interface AdminDashboardProps {
+export interface AdminDashboardProps {
      user: User;
      orders: ExchangeOrder[];
      stats: AdminStats;
      currentRate: number;
      paraleloRate?: number;
+     // Pagination & Filter Props
+     page: number;
+     totalPages: number;
+     currentFilter: string;
+     isArchived: boolean;
 }
 
-export function AdminDashboard({ user, orders, stats, currentRate, paraleloRate }: AdminDashboardProps) {
-     const [filter, setFilter] = useState<string>('ALL');
+export function AdminDashboard({
+     user,
+     orders,
+     stats,
+     currentRate,
+     paraleloRate,
+     page,
+     totalPages,
+     currentFilter,
+     isArchived
+}: AdminDashboardProps) {
      const [updating, setUpdating] = useState<string | null>(null);
-     const [showArchived, setShowArchived] = useState(false);
-     const [archivedFilter, setArchivedFilter] = useState<'CANCELLED' | 'PENDING' | 'COMPLETED' | 'VERIFYING'>('CANCELLED');
      const router = useRouter();
      const supabase = createClient();
-
-
 
      const handleLogout = async () => {
           await supabase.auth.signOut();
@@ -85,32 +95,25 @@ export function AdminDashboard({ user, orders, stats, currentRate, paraleloRate 
           }
      };
 
-     // Calcular estadísticas de archivados
-     const archivedStats = {
-          total: orders.filter(o => o.is_archived).length,
-          cancelled: orders.filter(o => o.is_archived && o.status === 'CANCELLED').length,
-          pending: orders.filter(o => o.is_archived && o.status === 'PENDING').length,
-          completed: orders.filter(o => o.is_archived && o.status === 'COMPLETED').length,
-          verifying: orders.filter(o => o.is_archived && o.status === 'VERIFYING').length,
+     // Helper to update URL params
+     const updateParams = (updates: { filter?: string; archived?: string; page?: string }) => {
+          const params = new URLSearchParams(window.location.search);
+          if (updates.filter) params.set('filter', updates.filter);
+          if (updates.archived) params.set('archived', updates.archived);
+          if (updates.page) params.set('page', updates.page);
+
+          router.push(`/admin?${params.toString()}`);
      };
 
-     // Filtrar órdenes
-     const filteredOrders = orders.filter(order => {
-          // Primero filtrar por archivado
-          if (showArchived && !order.is_archived) return false;
-          if (!showArchived && order.is_archived) return false;
+     // Calcular estadísticas de archivados (Necesitamos pasarlas desde el servidor idealmente, pero usaremos stats globales por ahora)
+     // Nota: Para "archivedStats" detallado, idealmente el servidor debería proveerlo. 
+     // Por ahora, reutilizaremos el prop 'stats' si contiene info, o dejaremos esto visualmente simple.
+     // Como el servidor envía 'stats' calculados sobre TODO, podemos confiar en stats.total etc?
+     // El objeto 'stats' actual no desglosa "pending archived" vs "pending active". 
+     // Asumiremos que el prop 'stats' viene correcto para la vista actual o mantendremos la UI simple.
+     // Corrección: El "Orders List" ahora muestra 'orders' que YA VIENEN FILTRADAS del servidor.
 
-          // Si estamos en vista archivados, filtrar por estado
-          if (showArchived) {
-               return order.status === archivedFilter;
-          }
-
-          // Filtros normales
-          if (filter === 'ALL') return true;
-          if (filter === 'GUESTS') return order.is_guest === true;
-          if (filter === 'REGISTERED') return order.is_guest !== true && order.user_id !== null;
-          return order.status?.toUpperCase() === filter;
-     });
+     const filteredOrders = orders; // Ya vienen filtradas y paginadas
 
      return (
           <div className="space-y-8">
@@ -151,41 +154,29 @@ export function AdminDashboard({ user, orders, stats, currentRate, paraleloRate 
                {/* Stats Row */}
                <div className="grid md:grid-cols-6 gap-4">
                     <Slab
-                         className={`p-4 text-center cursor-pointer transition-transform hover:scale-105 ${filter === 'ALL' ? 'ring-4 ring-black' : ''}`}
-                         onClick={() => {
-                              setFilter('ALL');
-                              setShowArchived(false);
-                         }}
+                         className={`p-4 text-center cursor-pointer transition-transform hover:scale-105 ${currentFilter === 'ALL' && !isArchived ? 'ring-4 ring-black' : ''}`}
+                         onClick={() => updateParams({ filter: 'ALL', archived: 'false', page: '1' })}
                     >
                          <div className="text-2xl font-black">{stats.total}</div>
                          <div className="mono text-[10px] font-bold uppercase text-gray-500">Total</div>
                     </Slab>
                     <Slab
-                         className={`p-4 text-center bg-yellow-100 cursor-pointer transition-transform hover:scale-105 ${filter === 'PENDING' ? 'ring-4 ring-yellow-600' : ''}`}
-                         onClick={() => {
-                              setFilter('PENDING');
-                              setShowArchived(false);
-                         }}
+                         className={`p-4 text-center bg-yellow-100 cursor-pointer transition-transform hover:scale-105 ${currentFilter === 'PENDING' && !isArchived ? 'ring-4 ring-yellow-600' : ''}`}
+                         onClick={() => updateParams({ filter: 'PENDING', archived: 'false', page: '1' })}
                     >
                          <div className="text-2xl font-black text-yellow-600">{stats.pending}</div>
                          <div className="mono text-[10px] font-bold uppercase">Pendientes</div>
                     </Slab>
                     <Slab
-                         className={`p-4 text-center bg-blue-100 cursor-pointer transition-transform hover:scale-105 ${filter === 'VERIFYING' ? 'ring-4 ring-blue-600' : ''}`}
-                         onClick={() => {
-                              setFilter('VERIFYING');
-                              setShowArchived(false);
-                         }}
+                         className={`p-4 text-center bg-blue-100 cursor-pointer transition-transform hover:scale-105 ${currentFilter === 'VERIFYING' && !isArchived ? 'ring-4 ring-blue-600' : ''}`}
+                         onClick={() => updateParams({ filter: 'VERIFYING', archived: 'false', page: '1' })}
                     >
                          <div className="text-2xl font-black text-blue-600">{stats.verifying}</div>
                          <div className="mono text-[10px] font-bold uppercase">Verificando</div>
                     </Slab>
                     <Slab
-                         className={`p-4 text-center bg-green-100 cursor-pointer transition-transform hover:scale-105 ${filter === 'COMPLETED' ? 'ring-4 ring-green-600' : ''}`}
-                         onClick={() => {
-                              setFilter('COMPLETED');
-                              setShowArchived(false);
-                         }}
+                         className={`p-4 text-center bg-green-100 cursor-pointer transition-transform hover:scale-105 ${currentFilter === 'COMPLETED' && !isArchived ? 'ring-4 ring-green-600' : ''}`}
+                         onClick={() => updateParams({ filter: 'COMPLETED', archived: 'false', page: '1' })}
                     >
                          <div className="text-2xl font-black text-green-600">{stats.completed}</div>
                          <div className="mono text-[10px] font-bold uppercase">Completadas</div>
@@ -206,13 +197,10 @@ export function AdminDashboard({ user, orders, stats, currentRate, paraleloRate 
                          {['ALL', 'GUESTS', 'REGISTERED', 'PENDING', 'VERIFYING', 'COMPLETED', 'CANCELLED'].map((status) => (
                               <button
                                    key={status}
-                                   onClick={() => {
-                                        setFilter(status);
-                                        setShowArchived(false); // Desactivar archivados al cambiar filtro normal
-                                   }}
-                                   disabled={showArchived}
-                                   className={`px-4 py-2 mono text-xs font-black uppercase border-4 border-[#262626] transition-colors ${showArchived ? 'opacity-30 cursor-not-allowed' :
-                                        filter === status
+                                   onClick={() => updateParams({ filter: status, archived: 'false', page: '1' })}
+                                   disabled={isArchived}
+                                   className={`px-4 py-2 mono text-xs font-black uppercase border-4 border-[#262626] transition-colors ${isArchived ? 'opacity-30 cursor-not-allowed' :
+                                        currentFilter === status
                                              ? status === 'GUESTS' ? 'bg-purple-600 text-white'
                                                   : status === 'REGISTERED' ? 'bg-blue-600 text-white'
                                                        : 'bg-[#262626] text-white'
@@ -231,34 +219,35 @@ export function AdminDashboard({ user, orders, stats, currentRate, paraleloRate 
 
                     {/* Toggle Archivados */}
                     <button
-                         onClick={() => setShowArchived(!showArchived)}
-                         className={`px-4 py-2 mono text-xs font-black uppercase border-4 border-[#262626] transition-colors ${showArchived
+                         onClick={() => updateParams({ archived: (!isArchived).toString(), page: '1', filter: 'ALL' })}
+                         className={`px-4 py-2 mono text-xs font-black uppercase border-4 border-[#262626] transition-colors ${isArchived
                               ? 'bg-[#262626] text-white'
                               : 'bg-white hover:bg-gray-100'
                               }`}
                     >
-                         📦 Archivados ({archivedStats.total})
+                         📦 Archivados
                     </button>
                </div>
 
                {/* Tabs de Estado para Archivados */}
-               {showArchived && (
+               {isArchived && (
                     <div className="flex gap-2 flex-wrap">
                          {[
-                              { status: 'CANCELLED', icon: '🗑️', label: 'Canceladas', count: archivedStats.cancelled },
-                              { status: 'PENDING', icon: '⏸️', label: 'Pendientes', count: archivedStats.pending },
-                              { status: 'COMPLETED', icon: '✅', label: 'Completadas', count: archivedStats.completed },
-                              { status: 'VERIFYING', icon: '🔍', label: 'Verificando', count: archivedStats.verifying },
+                              { status: 'ALL', icon: '📁', label: 'Todas' },
+                              { status: 'CANCELLED', icon: '🗑️', label: 'Canceladas' },
+                              { status: 'PENDING', icon: '⏸️', label: 'Pendientes' },
+                              { status: 'COMPLETED', icon: '✅', label: 'Completadas' },
+                              { status: 'VERIFYING', icon: '🔍', label: 'Verificando' },
                          ].map(tab => (
                               <button
                                    key={tab.status}
-                                   onClick={() => setArchivedFilter(tab.status as any)}
-                                   className={`px-4 py-2 mono text-xs font-bold uppercase border-4 transition-all ${archivedFilter === tab.status
+                                   onClick={() => updateParams({ filter: tab.status, page: '1' })}
+                                   className={`px-4 py-2 mono text-xs font-bold uppercase border-4 transition-all ${currentFilter === tab.status
                                         ? 'bg-[#FF4D00] text-white border-[#FF4D00]'
                                         : 'bg-gray-100 hover:bg-gray-200 border-gray-300'
                                         }`}
                               >
-                                   {tab.icon} {tab.label} ({tab.count})
+                                   {tab.icon} {tab.label}
                               </button>
                          ))}
                     </div>
@@ -266,15 +255,37 @@ export function AdminDashboard({ user, orders, stats, currentRate, paraleloRate 
 
                {/* Orders List */}
                <Slab className="p-6">
-                    <h2 className="mono text-sm font-black uppercase mb-6 flex items-center gap-2">
-                         <span className="w-2 h-2 bg-[#FF4D00]"></span>
-                         Órdenes ({filteredOrders.length})
-                    </h2>
+                    <div className="flex justify-between items-center mb-6">
+                         <h2 className="mono text-sm font-black uppercase flex items-center gap-2">
+                              <span className="w-2 h-2 bg-[#FF4D00]"></span>
+                              Órdenes ({orders.length})
+                         </h2>
+                         {/* Pagination Controls */}
+                         <div className="flex gap-2 items-center">
+                              <button
+                                   disabled={page <= 1}
+                                   onClick={() => updateParams({ page: (page - 1).toString() })}
+                                   className="px-3 py-1 bg-white border-2 border-black mono text-xs font-bold disabled:opacity-30 disabled:cursor-not-allowed hover:bg-gray-100"
+                              >
+                                   ← Prev
+                              </button>
+                              <span className="mono text-xs font-bold">
+                                   Pág {page} de {totalPages || 1}
+                              </span>
+                              <button
+                                   disabled={page >= totalPages}
+                                   onClick={() => updateParams({ page: (page + 1).toString() })}
+                                   className="px-3 py-1 bg-white border-2 border-black mono text-xs font-bold disabled:opacity-30 disabled:cursor-not-allowed hover:bg-gray-100"
+                              >
+                                   Next →
+                              </button>
+                         </div>
+                    </div>
 
                     {filteredOrders.length === 0 ? (
                          <div className="text-center py-12">
                               <p className="mono text-sm font-bold text-gray-400">
-                                   No hay órdenes con este filtro.
+                                   No hay órdenes en esta página.
                               </p>
                          </div>
                     ) : (
@@ -290,6 +301,26 @@ export function AdminDashboard({ user, orders, stats, currentRate, paraleloRate 
                                         getStatusColor={getStatusColor}
                                    />
                               ))}
+                         </div>
+                    )}
+
+                    {/* Pagination Bottom */}
+                    {totalPages > 1 && (
+                         <div className="flex justify-center mt-8 gap-2">
+                              <button
+                                   disabled={page <= 1}
+                                   onClick={() => updateParams({ page: (page - 1).toString() })}
+                                   className="px-4 py-2 bg-white border-4 border-black mono text-xs font-black uppercase hover:bg-gray-100 disabled:opacity-30"
+                              >
+                                   ← Anterior
+                              </button>
+                              <button
+                                   disabled={page >= totalPages}
+                                   onClick={() => updateParams({ page: (page + 1).toString() })}
+                                   className="px-4 py-2 bg-white border-4 border-black mono text-xs font-black uppercase hover:bg-gray-100 disabled:opacity-30"
+                              >
+                                   Siguiente →
+                              </button>
                          </div>
                     )}
                </Slab>

@@ -79,6 +79,7 @@
 - [x] Refactorización completa de `dashboard-content.tsx` (1505 → 390 líneas)
 - [x] Extraído `new-order-form.tsx` (formulario nueva orden)
 - [x] Extraído `profile-modal.tsx` (modal de perfil)
+- [x] **Paginación Admin**: Implementada paginación server-side con URL parameters (20 items/page).
 - [x] Creado `lib/utils/order-utils.ts` (funciones compartidas)
 - [x] IIFE reemplazada por `useMemo` para filtrado de órdenes
 - [x] `useCallback` aplicado a handlers
@@ -103,7 +104,7 @@
 
 | # | Funcionalidad | Descripción | Est. |
 |---|---------------|-------------|------|
-| 6 | **Paginación Admin** | Paginar lista de órdenes | ~2h |
+
 | 7 | **Búsqueda Admin** | Buscar por ID/email/ticket | ~3h |
 | 8 | **Exportar CSV** | Descargar órdenes en CSV | ~2h |
 | 9 | **Historial Tasas Real** | Guardar tasas en BD, gráfico con datos reales | ~4h |
