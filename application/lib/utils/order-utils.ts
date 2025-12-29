@@ -227,7 +227,7 @@ export function generateInvoicePDF(order: ExchangeOrder): void {
                y += 8;
           };
 
-          addRow('Concepto:', 'Servicio de Asesoría Profesional personalizada');
+          addRow('Concepto:', 'Servicio de Asesoría Profesional');
           addRow('Monto enviado:', `$${amountUSD.toFixed(2)} USD`);
           addRow('Comisión PayPal (5.4% + $0.30):', `-$${paypalFee.toFixed(2)} USD`);
           addRow('Comisión servicio (12%):', `-$${serviceFee.toFixed(2)} USD`);
