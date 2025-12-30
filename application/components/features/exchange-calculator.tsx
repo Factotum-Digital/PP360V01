@@ -35,6 +35,11 @@ export const ExchangeTerminal: React.FC = () => {
           phone: '',
           whatsapp: ''
      });
+     // Estados para prefijos
+     const [idPrefix, setIdPrefix] = useState('V');
+     const [phoneCountryCode, setPhoneCountryCode] = useState('+58');
+     const [whatsappCountryCode, setWhatsappCountryCode] = useState('+58');
+
      const [logs, setLogs] = useState<TerminalLog[]>([]);
      const [errors, setErrors] = useState<{ [key: string]: string }>({});
      const [isSubmitting, setIsSubmitting] = useState(false);
@@ -142,8 +147,18 @@ export const ExchangeTerminal: React.FC = () => {
      };
 
      const validateEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-     const validatePhone = (phone: string) => /^(?:\+58)?0?4\d{9}$/.test(phone.replace(/\s/g, ''));
-     const validateIdNumber = (id: string) => /^[VEJGC]-?\d{6,9}$/i.test(id.replace(/\s/g, ''));
+
+     // Validar teléfono: acepta números de 10+ dígitos
+     const validatePhone = (phone: string) => {
+          const clean = phone.replace(/[\s\-]/g, '').replace(/^0+/, ''); // Quitar espacios, guiones y ceros iniciales
+          return clean.length >= 10 && /^\d+$/.test(clean);
+     };
+
+     // Validar cédula: 6-8 dígitos (acepta con o sin puntos)
+     const validateIdNumber = (id: string) => {
+          const clean = id.replace(/[.\s]/g, '').trim(); // Quitar puntos y espacios
+          return /^\d{6,8}$/.test(clean);
+     };
 
      const handleFinalize = async () => {
           const newErrors: { [key: string]: string } = {};
@@ -151,14 +166,14 @@ export const ExchangeTerminal: React.FC = () => {
           if (!data.email?.trim()) newErrors.email = 'Email PayPal es obligatorio';
           else if (!validateEmail(data.email)) newErrors.email = 'Email no válido';
 
-          if (!data.idNumber?.trim()) newErrors.idNumber = 'Cédula / RIF es obligatorio';
-          else if (!validateIdNumber(data.idNumber)) newErrors.idNumber = 'Formato: V-12345678';
+          if (!data.idNumber?.trim()) newErrors.idNumber = 'Cédula es obligatoria';
+          else if (!validateIdNumber(data.idNumber)) newErrors.idNumber = 'Cédula: 6-8 dígitos';
 
           if (!data.phone?.trim()) newErrors.phone = 'Teléfono es obligatorio';
-          else if (!validatePhone(data.phone)) newErrors.phone = 'Formato: 04XX1234567';
+          else if (!validatePhone(data.phone)) newErrors.phone = 'Ej: 04123456789';
 
           if (!data.whatsapp?.trim()) newErrors.whatsapp = 'WhatsApp es obligatorio';
-          else if (!validatePhone(data.whatsapp)) newErrors.whatsapp = 'Formato: 04XX1234567';
+          else if (!validatePhone(data.whatsapp)) newErrors.whatsapp = 'Ej: 04123456789';
 
           if (Object.keys(newErrors).length > 0) {
                setErrors(newErrors);
@@ -170,6 +185,11 @@ export const ExchangeTerminal: React.FC = () => {
           setIsSubmitting(true);
           addLog(`ENCRYPTING_ORDER_DATA...`, "info");
 
+          // Formatear datos antes de enviar
+          const cleanIdNumber = `${idPrefix}-${data.idNumber.replace(/\./g, '').trim()}`;
+          const cleanPhone = `${phoneCountryCode} ${data.phone.replace(/^0/, '').trim()}`;
+          const cleanWhatsapp = `${whatsappCountryCode} ${data.whatsapp.replace(/^0/, '').trim()}`;
+
           try {
                const response = await fetch('/api/orders/guest', {
                     method: 'POST',
@@ -180,9 +200,9 @@ export const ExchangeTerminal: React.FC = () => {
                          rate: data.rate,
                          email: data.email,
                          bank: data.bank,
-                         idNumber: data.idNumber,
-                         phone: data.phone,
-                         whatsapp: data.whatsapp
+                         idNumber: cleanIdNumber,
+                         phone: cleanPhone,
+                         whatsapp: cleanWhatsapp
                     })
                });
 
@@ -383,22 +403,44 @@ export const ExchangeTerminal: React.FC = () => {
                                         </div>
                                         <div className="space-y-2">
                                              <label className="mono text-[10px] font-black uppercase">Cédula / RIF <span className="text-[#FF4D00]">*</span></label>
-                                             <input
-                                                  className={`w-full border-2 sm:border-4 ${errors.idNumber ? 'border-[#FF4D00] bg-red-50' : 'border-[#262626]'} p-3 sm:p-4 font-bold mono text-sm focus:bg-gray-50 outline-none`}
-                                                  placeholder="V-12345678"
-                                                  value={data.idNumber}
-                                                  onChange={e => setData({ ...data, idNumber: e.target.value })}
-                                             />
+                                             <div className="flex gap-2">
+                                                  <select
+                                                       value={idPrefix}
+                                                       onChange={e => setIdPrefix(e.target.value)}
+                                                       className="border-2 sm:border-4 border-[#262626] p-3 sm:p-4 font-bold mono text-sm bg-[#262626] text-white outline-none"
+                                                  >
+                                                       <option>V</option>
+                                                       <option>E</option>
+                                                       <option>J</option>
+                                                       <option>P</option>
+                                                  </select>
+                                                  <input
+                                                       className={`flex-1 border-2 sm:border-4 ${errors.idNumber ? 'border-[#FF4D00] bg-red-50' : 'border-[#262626]'} p-3 sm:p-4 font-bold mono text-sm focus:bg-gray-50 outline-none`}
+                                                       placeholder="12.345.678"
+                                                       maxLength={10}
+                                                       value={data.idNumber}
+                                                       onChange={e => setData({ ...data, idNumber: e.target.value })}
+                                                  />
+                                             </div>
                                              {errors.idNumber && <p className="text-[#FF4D00] mono text-[10px] font-bold">{errors.idNumber}</p>}
                                         </div>
                                         <div className="space-y-2">
                                              <label className="mono text-[10px] font-black uppercase">Teléfono Pago Móvil <span className="text-[#FF4D00]">*</span></label>
-                                             <input
-                                                  className={`w-full border-2 sm:border-4 ${errors.phone ? 'border-[#FF4D00] bg-red-50' : 'border-[#262626]'} p-3 sm:p-4 font-bold mono text-sm focus:bg-gray-50 outline-none`}
-                                                  placeholder="04121234567"
-                                                  value={data.phone}
-                                                  onChange={e => setData({ ...data, phone: e.target.value })}
-                                             />
+                                             <div className="flex gap-2">
+                                                  <input
+                                                       type="text"
+                                                       value={phoneCountryCode}
+                                                       onChange={e => setPhoneCountryCode(e.target.value)}
+                                                       className="w-16 sm:w-20 border-2 sm:border-4 border-[#262626] p-3 sm:p-4 font-bold mono text-sm bg-[#262626] text-white text-center outline-none"
+                                                       placeholder="+58"
+                                                  />
+                                                  <input
+                                                       className={`flex-1 border-2 sm:border-4 ${errors.phone ? 'border-[#FF4D00] bg-red-50' : 'border-[#262626]'} p-3 sm:p-4 font-bold mono text-sm focus:bg-gray-50 outline-none`}
+                                                       placeholder="4121234567"
+                                                       value={data.phone}
+                                                       onChange={e => setData({ ...data, phone: e.target.value })}
+                                                  />
+                                             </div>
                                              {errors.phone && <p className="text-[#FF4D00] mono text-[10px] font-bold">{errors.phone}</p>}
                                         </div>
                                         <div className="space-y-2 sm:col-span-2">
@@ -407,12 +449,21 @@ export const ExchangeTerminal: React.FC = () => {
                                                   WhatsApp <span className="text-[#FF4D00]">*</span>
                                                   <span className="text-gray-400 text-[8px] normal-case">(Te contactaremos aquí)</span>
                                              </label>
-                                             <input
-                                                  className={`w-full border-2 sm:border-4 ${errors.whatsapp ? 'border-[#FF4D00] bg-red-50' : 'border-[#262626]'} p-3 sm:p-4 font-bold mono text-sm focus:bg-gray-50 outline-none`}
-                                                  placeholder="04121234567"
-                                                  value={data.whatsapp}
-                                                  onChange={e => setData({ ...data, whatsapp: e.target.value })}
-                                             />
+                                             <div className="flex gap-2">
+                                                  <input
+                                                       type="text"
+                                                       value={whatsappCountryCode}
+                                                       onChange={e => setWhatsappCountryCode(e.target.value)}
+                                                       className="w-16 sm:w-20 border-2 sm:border-4 border-[#262626] p-3 sm:p-4 font-bold mono text-sm bg-[#262626] text-white text-center outline-none"
+                                                       placeholder="+58"
+                                                  />
+                                                  <input
+                                                       className={`flex-1 border-2 sm:border-4 ${errors.whatsapp ? 'border-[#FF4D00] bg-red-50' : 'border-[#262626]'} p-3 sm:p-4 font-bold mono text-sm focus:bg-gray-50 outline-none`}
+                                                       placeholder="4121234567"
+                                                       value={data.whatsapp}
+                                                       onChange={e => setData({ ...data, whatsapp: e.target.value })}
+                                                  />
+                                             </div>
                                              {errors.whatsapp && <p className="text-[#FF4D00] mono text-[10px] font-bold">{errors.whatsapp}</p>}
                                         </div>
                                    </div>
@@ -529,7 +580,7 @@ export const ExchangeTerminal: React.FC = () => {
                                              </div>
 
                                              <a
-                                                  href={`https://wa.me/584121030740?text=Hola!%20Mi%20ticket%20es%20${paymentInfo.ticketId}`}
+                                                  href={`https://wa.me/15557745095?text=Hola!%20Mi%20ticket%20es%20${paymentInfo.ticketId}`}
                                                   target="_blank"
                                                   rel="noopener noreferrer"
                                                   className="block w-full bg-white text-green-600 p-3 text-center font-black uppercase mono border-4 border-green-600 hover:bg-green-50 transition-colors text-xs"

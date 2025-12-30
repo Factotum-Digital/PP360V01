@@ -35,7 +35,9 @@ export function ProfileModal({ userId, onClose }: ProfileModalProps) {
      const [countryCode, setCountryCode] = useState('+58');
      const [whatsappPrimary, setWhatsappPrimary] = useState('');
      const [whatsappSecondary, setWhatsappSecondary] = useState('');
+     const [whatsappSecondaryCode, setWhatsappSecondaryCode] = useState('+58');
      const [idNumber, setIdNumber] = useState('');
+     const [idPrefix, setIdPrefix] = useState('V');
 
      // Payment Fields
      const [bank, setBank] = useState('Banesco');
@@ -48,6 +50,7 @@ export function ProfileModal({ userId, onClose }: ProfileModalProps) {
      const [pagoMovilBank, setPagoMovilBank] = useState('Banesco');
      const [pagoMovilPhone, setPagoMovilPhone] = useState('');
      const [pagoMovilCedula, setPagoMovilCedula] = useState('');
+     const [pagoMovilCedulaPrefix, setPagoMovilCedulaPrefix] = useState('V');
 
      // PayPal Fields
      const [paypalEmail, setPaypalEmail] = useState('');
@@ -75,7 +78,16 @@ export function ProfileModal({ userId, onClose }: ProfileModalProps) {
                     if (data.country_code) setCountryCode(data.country_code);
                     if (data.whatsapp_primary) setWhatsappPrimary(data.whatsapp_primary);
                     if (data.whatsapp_secondary) setWhatsappSecondary(data.whatsapp_secondary);
-                    if (data.id_number) setIdNumber(data.id_number);
+                    // Parsear cédula con formato V-12345678
+                    if (data.id_number) {
+                         const match = data.id_number.match(/^([VEJP])-?(.+)$/i);
+                         if (match) {
+                              setIdPrefix(match[1].toUpperCase());
+                              setIdNumber(match[2]);
+                         } else {
+                              setIdNumber(data.id_number);
+                         }
+                    }
                     if (data.bank_name) setBank(data.bank_name);
                     if (data.account_type) setAccountType(data.account_type);
                     if (data.account_number) setAccountNumber(data.account_number);
@@ -83,7 +95,16 @@ export function ProfileModal({ userId, onClose }: ProfileModalProps) {
                     if (data.enable_transfer !== undefined) setEnableTransfer(data.enable_transfer);
                     if (data.pago_movil_bank) setPagoMovilBank(data.pago_movil_bank);
                     if (data.pago_movil_phone) setPagoMovilPhone(data.pago_movil_phone);
-                    if (data.pago_movil_cedula) setPagoMovilCedula(data.pago_movil_cedula);
+                    // Parsear cédula pago móvil con formato V-12345678
+                    if (data.pago_movil_cedula) {
+                         const match = data.pago_movil_cedula.match(/^([VEJP])-?(.+)$/i);
+                         if (match) {
+                              setPagoMovilCedulaPrefix(match[1].toUpperCase());
+                              setPagoMovilCedula(match[2]);
+                         } else {
+                              setPagoMovilCedula(data.pago_movil_cedula);
+                         }
+                    }
                     if (data.paypal_email) setPaypalEmail(data.paypal_email);
                     if (data.paypal_status) setPaypalStatus(data.paypal_status);
                }
@@ -102,7 +123,7 @@ export function ProfileModal({ userId, onClose }: ProfileModalProps) {
                country_code: countryCode,
                whatsapp_primary: whatsappPrimary || null,
                whatsapp_secondary: whatsappSecondary || null,
-               id_number: idNumber || null,
+               id_number: idPrefix && idNumber ? `${idPrefix}-${idNumber}` : null,
                bank_name: bank,
                account_type: accountType,
                account_number: accountNumber || null,
@@ -110,7 +131,7 @@ export function ProfileModal({ userId, onClose }: ProfileModalProps) {
                enable_transfer: enableTransfer,
                pago_movil_bank: pagoMovilBank,
                pago_movil_phone: pagoMovilPhone || null,
-               pago_movil_cedula: pagoMovilCedula || null,
+               pago_movil_cedula: pagoMovilCedulaPrefix && pagoMovilCedula ? `${pagoMovilCedulaPrefix}-${pagoMovilCedula}` : null,
                paypal_email: paypalEmail || null,
                paypal_status: paypalStatus,
                profile_completion: completion,
@@ -205,20 +226,33 @@ export function ProfileModal({ userId, onClose }: ProfileModalProps) {
                                              />
                                         </div>
 
-                                        {/* ID Number */}
+                                        {/* ID Number with Prefix */}
                                         <div className="space-y-1">
                                              <label className="mono text-[10px] font-black uppercase flex items-center gap-2">
                                                   Cédula / RIF *
-                                                  {/^[VEJP]-?\d{6,9}$/i.test(idNumber) && <span className="text-green-500">✓</span>}
+                                                  {idNumber.length >= 6 && <span className="text-green-500">✓</span>}
                                              </label>
-                                             <input
-                                                  type="text"
-                                                  value={idNumber}
-                                                  onChange={(e) => setIdNumber(e.target.value.toUpperCase())}
-                                                  className={`w-full border-4 p-3 font-bold mono outline-none transition-colors ${/^[VEJP]-?\d{6,9}$/i.test(idNumber) ? 'border-green-500' : 'border-[#262626]'}`}
-                                                  placeholder="V-12345678"
-                                             />
-                                             <p className="mono text-[9px] text-gray-400">Formato: V/E/J/P seguido de 6-9 dígitos</p>
+                                             <div className="flex gap-2">
+                                                  <select
+                                                       value={idPrefix}
+                                                       onChange={(e) => setIdPrefix(e.target.value)}
+                                                       className="border-4 border-[#262626] p-3 font-bold mono outline-none bg-[#262626] text-white"
+                                                  >
+                                                       <option>V</option>
+                                                       <option>E</option>
+                                                       <option>J</option>
+                                                       <option>P</option>
+                                                  </select>
+                                                  <input
+                                                       type="text"
+                                                       value={idNumber}
+                                                       onChange={(e) => setIdNumber(e.target.value.replace(/\D/g, '').slice(0, 8))}
+                                                       className={`flex-1 border-4 p-3 font-bold mono outline-none transition-colors ${idNumber.length >= 6 ? 'border-green-500' : 'border-[#262626]'}`}
+                                                       placeholder="12345678"
+                                                       maxLength={8}
+                                                  />
+                                             </div>
+                                             <p className="mono text-[9px] text-gray-400">6-8 dígitos</p>
                                         </div>
 
                                         {/* WhatsApp Primary */}
@@ -254,16 +288,19 @@ export function ProfileModal({ userId, onClose }: ProfileModalProps) {
                                              </label>
                                              <div className="flex gap-2">
                                                   <select
-                                                       className="border-4 border-gray-300 p-3 font-bold mono outline-none bg-gray-50 text-gray-500"
-                                                       disabled
+                                                       value={whatsappSecondaryCode}
+                                                       onChange={(e) => setWhatsappSecondaryCode(e.target.value)}
+                                                       className="border-4 border-[#262626] p-3 font-bold mono outline-none bg-gray-50"
                                                   >
-                                                       <option>{countryCode}</option>
+                                                       {COUNTRY_CODES.map(c => (
+                                                            <option key={c.code} value={c.code}>{c.country} ({c.code})</option>
+                                                       ))}
                                                   </select>
                                                   <input
                                                        type="text"
                                                        value={whatsappSecondary}
                                                        onChange={(e) => setWhatsappSecondary(e.target.value.replace(/\D/g, ''))}
-                                                       className="flex-1 border-4 border-gray-300 p-3 font-bold mono outline-none"
+                                                       className="flex-1 border-4 border-[#262626] p-3 font-bold mono outline-none"
                                                        placeholder="Número alternativo"
                                                   />
                                              </div>
@@ -384,13 +421,26 @@ export function ProfileModal({ userId, onClose }: ProfileModalProps) {
                                         {/* Pago Movil Cedula */}
                                         <div className="space-y-1">
                                              <label className="mono text-[10px] font-black uppercase">Cédula Asociada</label>
-                                             <input
-                                                  type="text"
-                                                  value={pagoMovilCedula}
-                                                  onChange={(e) => setPagoMovilCedula(e.target.value.toUpperCase())}
-                                                  className="w-full border-4 border-[#262626] p-3 font-bold mono outline-none"
-                                                  placeholder="V-12345678"
-                                             />
+                                             <div className="flex gap-2">
+                                                  <select
+                                                       value={pagoMovilCedulaPrefix}
+                                                       onChange={(e) => setPagoMovilCedulaPrefix(e.target.value)}
+                                                       className="border-4 border-[#262626] p-3 font-bold mono outline-none bg-[#262626] text-white"
+                                                  >
+                                                       <option>V</option>
+                                                       <option>E</option>
+                                                       <option>J</option>
+                                                       <option>P</option>
+                                                  </select>
+                                                  <input
+                                                       type="text"
+                                                       value={pagoMovilCedula}
+                                                       onChange={(e) => setPagoMovilCedula(e.target.value.replace(/\D/g, '').slice(0, 8))}
+                                                       className="flex-1 border-4 border-[#262626] p-3 font-bold mono outline-none"
+                                                       placeholder="12345678"
+                                                       maxLength={8}
+                                                  />
+                                             </div>
                                         </div>
 
                                         {/* Enable Transfer Toggle */}

@@ -41,8 +41,11 @@ export function NewOrderForm({ currentRate, paraleloRate, onComplete }: NewOrder
      const [emailPaypal, setEmailPaypal] = useState('');
      const [bank, setBank] = useState('Banesco');
      const [phone, setPhone] = useState('');
+     const [phoneCountryCode, setPhoneCountryCode] = useState('+58');
      const [idNumber, setIdNumber] = useState('');
+     const [idPrefix, setIdPrefix] = useState('V');
      const [whatsapp, setWhatsapp] = useState('');
+     const [whatsappCountryCode, setWhatsappCountryCode] = useState('+58');
      const [paymentMethod, setPaymentMethod] = useState<'pago_movil' | 'transferencia'>('pago_movil');
      const [accountNumber, setAccountNumber] = useState('');
      const [accountHolder, setAccountHolder] = useState('');
@@ -92,20 +95,28 @@ export function NewOrderForm({ currentRate, paraleloRate, onComplete }: NewOrder
           if (!emailPaypal.trim() || !emailPaypal.includes('@')) {
                newErrors.email = 'Email PayPal es obligatorio';
           }
-          if (!idNumber.trim() || idNumber.length < 6) {
-               newErrors.id = 'Cédula/RIF es obligatorio';
+
+          // Validar cédula: 6-8 dígitos (acepta con o sin puntos)
+          const cleanId = idNumber.replace(/[.\s]/g, '').trim();
+          if (!cleanId || cleanId.length < 6 || cleanId.length > 8 || !/^\d+$/.test(cleanId)) {
+               newErrors.id = 'Cédula: 6-8 dígitos';
           }
-          if (!whatsapp.trim() || whatsapp.length < 10) {
-               newErrors.whatsapp = 'WhatsApp es obligatorio (mín. 10 dígitos)';
+
+          // Validar WhatsApp: acepta números de 10+ dígitos
+          const cleanWhatsapp = whatsapp.replace(/[\s\-]/g, '').replace(/^0+/, '');
+          if (!cleanWhatsapp || cleanWhatsapp.length < 10 || !/^\d+$/.test(cleanWhatsapp)) {
+               newErrors.whatsapp = 'WhatsApp inválido (mín. 10 dígitos)';
           }
 
           if (paymentMethod === 'pago_movil') {
-               if (!phone.trim() || phone.length < 10) {
-                    newErrors.phone = 'Teléfono Pago Móvil es obligatorio';
+               const cleanPhone = phone.replace(/[\s\-]/g, '').replace(/^0+/, '');
+               if (!cleanPhone || cleanPhone.length < 10 || !/^\d+$/.test(cleanPhone)) {
+                    newErrors.phone = 'Teléfono inválido (mín. 10 dígitos)';
                }
           } else {
-               if (!phone.trim() || phone.length < 10) {
-                    newErrors.phone = 'Teléfono asociado es obligatorio';
+               const cleanPhone = phone.replace(/[\s\-]/g, '').replace(/^0+/, '');
+               if (!cleanPhone || cleanPhone.length < 10 || !/^\d+$/.test(cleanPhone)) {
+                    newErrors.phone = 'Teléfono inválido (mín. 10 dígitos)';
                }
                if (!accountNumber.trim() || accountNumber.length < 20) {
                     newErrors.accountNumber = 'Número de cuenta inválido (min 20 dígitos)';
@@ -134,6 +145,11 @@ export function NewOrderForm({ currentRate, paraleloRate, onComplete }: NewOrder
 
           const ticketId = generateTicketId();
 
+          // Limpiar y formatear valores antes de guardar
+          const cleanIdNumber = `${idPrefix}-${idNumber.replace(/\./g, '').trim()}`;
+          const cleanPhone = `${phoneCountryCode} ${phone.replace(/^0/, '').trim()}`;
+          const cleanWhatsapp = `${whatsappCountryCode} ${whatsapp.replace(/^0/, '').trim()}`;
+
           const { error } = await supabase.from('exchange_orders').insert({
                user_id: user.id,
                amount_sent: amountNum,
@@ -143,9 +159,9 @@ export function NewOrderForm({ currentRate, paraleloRate, onComplete }: NewOrder
                status: 'PENDING',
                paypal_email: emailPaypal,
                bank_name: bank,
-               phone_pago_movil: phone,
-               id_number: idNumber,
-               whatsapp: whatsapp,
+               phone_pago_movil: cleanPhone,
+               id_number: cleanIdNumber,
+               whatsapp: cleanWhatsapp,
                ticket_id: ticketId,
                is_guest: false,
                exchange_rate: shownRate,
@@ -358,14 +374,27 @@ export function NewOrderForm({ currentRate, paraleloRate, onComplete }: NewOrder
                                    <label className="mono text-[10px] font-black uppercase">
                                         Cédula / RIF <span className="text-red-500">*</span>
                                    </label>
-                                   <input
-                                        type="text"
-                                        value={idNumber}
-                                        onChange={(e) => { setIdNumber(e.target.value); clearError('id'); }}
-                                        className={`w-full border-4 p-4 font-bold mono outline-none ${errors.id ? 'border-red-500 bg-red-50' : 'border-[#262626]'}`}
-                                        placeholder="V-12345678"
-                                        required
-                                   />
+                                   <div className="flex gap-2">
+                                        <select
+                                             value={idPrefix}
+                                             onChange={(e) => setIdPrefix(e.target.value)}
+                                             className="border-4 border-[#262626] p-4 font-bold mono outline-none bg-[#262626] text-white"
+                                        >
+                                             <option>V</option>
+                                             <option>E</option>
+                                             <option>J</option>
+                                             <option>P</option>
+                                        </select>
+                                        <input
+                                             type="text"
+                                             value={idNumber}
+                                             onChange={(e) => { setIdNumber(e.target.value); clearError('id'); }}
+                                             className={`flex-1 border-4 p-4 font-bold mono outline-none ${errors.id ? 'border-red-500 bg-red-50' : 'border-[#262626]'}`}
+                                             placeholder="12.345.678"
+                                             maxLength={10}
+                                             required
+                                        />
+                                   </div>
                                    {errors.id && <p className="mono text-[10px] text-red-500 font-bold">{errors.id}</p>}
                               </div>
 
@@ -375,14 +404,23 @@ export function NewOrderForm({ currentRate, paraleloRate, onComplete }: NewOrder
                                         <label className="mono text-[10px] font-black uppercase">
                                              📱 Teléfono Pago Móvil <span className="text-red-500">*</span>
                                         </label>
-                                        <input
-                                             type="text"
-                                             value={phone}
-                                             onChange={(e) => { setPhone(e.target.value); clearError('phone'); }}
-                                             className={`w-full border-4 p-4 font-bold mono outline-none ${errors.phone ? 'border-red-500 bg-red-50' : 'border-[#262626]'}`}
-                                             placeholder="04121234567"
-                                             required
-                                        />
+                                        <div className="flex gap-2">
+                                             <input
+                                                  type="text"
+                                                  value={phoneCountryCode}
+                                                  onChange={(e) => setPhoneCountryCode(e.target.value)}
+                                                  className="w-20 border-4 border-[#262626] p-4 font-bold mono outline-none bg-[#262626] text-white text-center"
+                                                  placeholder="+58"
+                                             />
+                                             <input
+                                                  type="text"
+                                                  value={phone}
+                                                  onChange={(e) => { setPhone(e.target.value); clearError('phone'); }}
+                                                  className={`flex-1 border-4 p-4 font-bold mono outline-none ${errors.phone ? 'border-red-500 bg-red-50' : 'border-[#262626]'}`}
+                                                  placeholder="4121234567"
+                                                  required
+                                             />
+                                        </div>
                                         {errors.phone && <p className="mono text-[10px] text-red-500 font-bold">{errors.phone}</p>}
                                    </div>
                               ) : (
@@ -419,14 +457,23 @@ export function NewOrderForm({ currentRate, paraleloRate, onComplete }: NewOrder
                                              <label className="mono text-[10px] font-black uppercase">
                                                   📱 Teléfono Asociado <span className="text-red-500">*</span>
                                              </label>
-                                             <input
-                                                  type="text"
-                                                  value={phone}
-                                                  onChange={(e) => { setPhone(e.target.value); clearError('phone'); }}
-                                                  className={`w-full border-4 p-4 font-bold mono outline-none ${errors.phone ? 'border-red-500 bg-red-50' : 'border-[#262626]'}`}
-                                                  placeholder="04121234567"
-                                                  required
-                                             />
+                                             <div className="flex gap-2">
+                                                  <input
+                                                       type="text"
+                                                       value={phoneCountryCode}
+                                                       onChange={(e) => setPhoneCountryCode(e.target.value)}
+                                                       className="w-20 border-4 border-[#262626] p-4 font-bold mono outline-none bg-[#262626] text-white text-center"
+                                                       placeholder="+58"
+                                                  />
+                                                  <input
+                                                       type="text"
+                                                       value={phone}
+                                                       onChange={(e) => { setPhone(e.target.value); clearError('phone'); }}
+                                                       className={`flex-1 border-4 p-4 font-bold mono outline-none ${errors.phone ? 'border-red-500 bg-red-50' : 'border-[#262626]'}`}
+                                                       placeholder="4121234567"
+                                                       required
+                                                  />
+                                             </div>
                                              {errors.phone && <p className="mono text-[10px] text-red-500 font-bold">{errors.phone}</p>}
                                         </div>
                                    </>
@@ -441,14 +488,23 @@ export function NewOrderForm({ currentRate, paraleloRate, onComplete }: NewOrder
                                         WhatsApp <span className="text-red-500">*</span>
                                         <span className="text-gray-400 font-normal">(Te contactaremos aquí)</span>
                                    </label>
-                                   <input
-                                        type="text"
-                                        value={whatsapp}
-                                        onChange={(e) => { setWhatsapp(e.target.value); clearError('whatsapp'); }}
-                                        className={`w-full border-4 p-4 font-bold mono outline-none ${errors.whatsapp ? 'border-red-500 bg-red-50' : 'border-[#262626]'}`}
-                                        placeholder="04121234567"
-                                        required
-                                   />
+                                   <div className="flex gap-2">
+                                        <input
+                                             type="text"
+                                             value={whatsappCountryCode}
+                                             onChange={(e) => setWhatsappCountryCode(e.target.value)}
+                                             className="w-20 border-4 border-[#262626] p-4 font-bold mono outline-none bg-[#262626] text-white text-center"
+                                             placeholder="+58"
+                                        />
+                                        <input
+                                             type="text"
+                                             value={whatsapp}
+                                             onChange={(e) => { setWhatsapp(e.target.value); clearError('whatsapp'); }}
+                                             className={`flex-1 border-4 p-4 font-bold mono outline-none ${errors.whatsapp ? 'border-red-500 bg-red-50' : 'border-[#262626]'}`}
+                                             placeholder="4121234567"
+                                             required
+                                        />
+                                   </div>
                                    {errors.whatsapp && <p className="mono text-[10px] text-red-500 font-bold">{errors.whatsapp}</p>}
                               </div>
                          </div>

@@ -1,13 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
 import { calculateOrderMetrics } from "@/lib/rate-calculator";
-
-// Generar ticket ID único
-function generateTicketId(): string {
-     const prefix = "P360";
-     const random = Math.floor(1000 + Math.random() * 9000);
-     return `${prefix}-${random}`;
-}
+import { generateTicketId } from "@/lib/utils/order-utils";
 
 export async function POST(request: NextRequest) {
      try {
@@ -54,11 +48,23 @@ export async function POST(request: NextRequest) {
                );
           }
 
-          // Validar formato de teléfono venezolano
-          const phoneRegex = /^(?:\+58)?0?4\d{9}$/;
-          if (!phoneRegex.test(phone.replace(/\s/g, ''))) {
+          // Validar formato de cédula (ya viene formateada V-XXXXXXXX desde el frontend)
+          const idRegex = /^[VEJP]-\d{6,8}$/i;
+          if (!idRegex.test(idNumber.replace(/\./g, ''))) {
                return NextResponse.json(
-                    { error: "Formato de teléfono no válido (04XX1234567)" },
+                    { error: "Formato de cédula no válido" },
+                    { status: 400 }
+               );
+          }
+
+          // Validar formato de teléfono - más flexible
+          // Quitar todo excepto dígitos, luego quitar prefijos internacionales
+          const phoneDigits = phone.replace(/[^0-9]/g, '');
+          // Si empieza con 58 (Venezuela), quitarlo
+          const phoneClean = phoneDigits.replace(/^58/, '').replace(/^0+/, '');
+          if (phoneClean.length < 9) {
+               return NextResponse.json(
+                    { error: "Teléfono inválido" },
                     { status: 400 }
                );
           }
@@ -79,12 +85,17 @@ export async function POST(request: NextRequest) {
                     amount_sent: usdAmount,
                     amount_received: vesAmount,
                     exchange_rate: effectiveRate,
+                    currency_sent: 'USD_PAYPAL',
+                    currency_received: 'VES',
                     bank_name: bank,
                     id_number: idNumber,
                     phone_pago_movil: phone,
                     whatsapp: whatsapp,
                     status: "PENDING",
                     is_guest: true,
+                    destination_data: {
+                         payment_method: 'pago_movil'
+                    },
                     created_at: new Date().toISOString()
                })
                .select()
