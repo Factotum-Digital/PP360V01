@@ -50,6 +50,11 @@ export function NewOrderForm({ currentRate, paraleloRate, onComplete }: NewOrder
      const [accountNumber, setAccountNumber] = useState('');
      const [accountHolder, setAccountHolder] = useState('');
 
+     // Locked Fields State
+     const [isIdLocked, setIsIdLocked] = useState(false);
+     const [isPhoneLocked, setIsPhoneLocked] = useState(false);
+     const [isAccountLocked, setIsAccountLocked] = useState(false);
+
      // UI state
      const [loading, setLoading] = useState(false);
      const [errors, setErrors] = useState<FormErrors>({});
@@ -78,10 +83,35 @@ export function NewOrderForm({ currentRate, paraleloRate, onComplete }: NewOrder
 
                if (paymentData) {
                     if (paymentData.bank_name) setBank(paymentData.bank_name);
-                    if (paymentData.id_number) setIdNumber(paymentData.id_number);
-                    if (paymentData.phone_pago_movil) setPhone(paymentData.phone_pago_movil);
-                    if (paymentData.account_number) setAccountNumber(paymentData.account_number);
-                    if (paymentData.account_holder) setAccountHolder(paymentData.account_holder);
+
+                    if (paymentData.id_number) {
+                         // Parse V-12345678
+                         const match = paymentData.id_number.match(/^([VEJP])-?(.+)$/i);
+                         if (match) {
+                              setIdPrefix(match[1].toUpperCase());
+                              setIdNumber(match[2]);
+                         } else {
+                              setIdNumber(paymentData.id_number);
+                         }
+                         setIsIdLocked(true);
+                    }
+
+                    if (paymentData.phone_pago_movil) {
+                         const match = paymentData.phone_pago_movil.match(/^(\+\d+)\s*(.+)$/);
+                         if (match) {
+                              setPhoneCountryCode(match[1]);
+                              setPhone(match[2]);
+                         } else {
+                              setPhone(paymentData.phone_pago_movil.replace('+58', '').trim());
+                         }
+                         setIsPhoneLocked(true);
+                    }
+
+                    if (paymentData.account_number) {
+                         setAccountNumber(paymentData.account_number);
+                         setAccountHolder(paymentData.account_holder || '');
+                         setIsAccountLocked(true);
+                    }
                }
           };
 
@@ -143,65 +173,47 @@ export function NewOrderForm({ currentRate, paraleloRate, onComplete }: NewOrder
                return;
           }
 
-          const ticketId = generateTicketId();
-
-          // Limpiar y formatear valores antes de guardar
+          // Build complete values for API
           const cleanIdNumber = `${idPrefix}-${idNumber.replace(/\./g, '').trim()}`;
           const cleanPhone = `${phoneCountryCode} ${phone.replace(/^0/, '').trim()}`;
           const cleanWhatsapp = `${whatsappCountryCode} ${whatsapp.replace(/^0/, '').trim()}`;
 
-          const { error } = await supabase.from('exchange_orders').insert({
-               user_id: user.id,
-               amount_sent: amountNum,
-               currency_sent: 'USD_PAYPAL',
-               amount_received: vesAmount,
-               currency_received: 'VES',
-               status: 'PENDING',
-               paypal_email: emailPaypal,
-               bank_name: bank,
-               phone_pago_movil: cleanPhone,
-               id_number: cleanIdNumber,
-               whatsapp: cleanWhatsapp,
-               ticket_id: ticketId,
-               is_guest: false,
-               exchange_rate: shownRate,
-               destination_data: {
-                    payment_method: paymentMethod,
-                    ...(paymentMethod === 'transferencia' && {
-                         account_number: accountNumber,
-                         account_holder: accountHolder,
-                    }),
-               },
-          }).select().single();
+          try {
+               const response = await fetch('/api/orders/create', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                         amount: amount,
+                         emailPaypal: emailPaypal,
+                         bank: bank,
+                         idNumber: cleanIdNumber,
+                         phone: cleanPhone,
+                         whatsapp: cleanWhatsapp,
+                         paymentMethod: paymentMethod,
+                         accountNumber: accountNumber,
+                         accountHolder: accountHolder
+                    })
+               });
 
-          if (error) {
-               alert('Error al crear la orden: ' + error.message);
-               setLoading(false);
-          } else {
-               // Guardar/actualizar datos bancarios del usuario
-               await supabase.from('user_payment_data').upsert({
-                    user_id: user.id,
-                    bank_name: bank,
-                    id_number: idNumber,
-                    phone_pago_movil: phone,
-                    account_number: accountNumber || null,
-                    account_holder: accountHolder || null,
-               }, { onConflict: 'user_id' });
+               const data = await response.json();
 
+               if (!response.ok) {
+                    throw new Error(data.error || 'Error al procesar la orden');
+               }
+
+               // Success
                setPaymentInfo({
-                    ticketId: ticketId,
+                    ticketId: data.ticketId,
                     paypalDestination: 'pagos@pp360ve.com',
-                    instructions: [
-                         `1. Envía $${amountNum.toFixed(2)} USD a: pagos@pp360ve.com`,
-                         `2. En la nota del pago coloca: ${ticketId}`,
-                         `3. Envía captura del pago por WhatsApp`,
-                         `4. Recibirás Bs. ${vesAmount.toLocaleString('es-VE', { minimumFractionDigits: 2 })} en tu cuenta`
-                    ]
+                    instructions: data.instructions
                });
                setStep(3);
+          } catch (error: any) {
+               alert(error.message);
+          } finally {
                setLoading(false);
           }
-     }, [validateStep2, supabase, amountNum, vesAmount, emailPaypal, bank, phone, idNumber, whatsapp, shownRate, paymentMethod, accountNumber, accountHolder]);
+     }, [validateStep2, amount, emailPaypal, bank, phone, idNumber, whatsapp, paymentMethod, accountNumber, accountHolder, idPrefix, phoneCountryCode, whatsappCountryCode]);
 
      const handleUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
           if (!e.target.files || e.target.files.length === 0 || !paymentInfo) return;
@@ -371,29 +383,40 @@ export function NewOrderForm({ currentRate, paraleloRate, onComplete }: NewOrder
 
                               {/* Cédula/RIF */}
                               <div className="space-y-2">
-                                   <label className="mono text-[10px] font-black uppercase">
-                                        Cédula / RIF <span className="text-red-500">*</span>
+                                   <label className="mono text-[10px] font-black uppercase flex justify-between">
+                                        <span>Cédula / RIF <span className="text-red-500">*</span></span>
                                    </label>
-                                   <div className="flex gap-2">
+                                   <div className="flex gap-2 relative">
                                         <select
                                              value={idPrefix}
                                              onChange={(e) => setIdPrefix(e.target.value)}
-                                             className="border-4 border-[#262626] p-4 font-bold mono outline-none bg-[#262626] text-white"
+                                             disabled={isIdLocked}
+                                             className={`border-4 border-[#262626] p-4 font-bold mono outline-none ${isIdLocked ? 'bg-gray-200 text-gray-500 cursor-not-allowed' : 'bg-[#262626] text-white'}`}
                                         >
                                              <option>V</option>
                                              <option>E</option>
                                              <option>J</option>
                                              <option>P</option>
                                         </select>
-                                        <input
-                                             type="text"
-                                             value={idNumber}
-                                             onChange={(e) => { setIdNumber(e.target.value); clearError('id'); }}
-                                             className={`flex-1 border-4 p-4 font-bold mono outline-none ${errors.id ? 'border-red-500 bg-red-50' : 'border-[#262626]'}`}
-                                             placeholder="12.345.678"
-                                             maxLength={10}
-                                             required
-                                        />
+                                        <div className="relative flex-1">
+                                             <input
+                                                  type="text"
+                                                  value={idNumber}
+                                                  onChange={(e) => { setIdNumber(e.target.value); clearError('id'); }}
+                                                  disabled={isIdLocked}
+                                                  className={`w-full border-4 p-4 font-bold mono outline-none ${errors.id ? 'border-red-500 bg-red-50' : 'border-[#262626]'} ${isIdLocked ? 'bg-gray-100 text-gray-600 cursor-not-allowed' : ''}`}
+                                                  placeholder="12.345.678"
+                                                  maxLength={10}
+                                                  required
+                                             />
+                                             {isIdLocked && (
+                                                  <div className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400">
+                                                       <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                                                       </svg>
+                                                  </div>
+                                             )}
+                                        </div>
                                    </div>
                                    {errors.id && <p className="mono text-[10px] text-red-500 font-bold">{errors.id}</p>}
                               </div>
@@ -401,56 +424,87 @@ export function NewOrderForm({ currentRate, paraleloRate, onComplete }: NewOrder
                               {/* Campos condicionales según método de pago */}
                               {paymentMethod === 'pago_movil' ? (
                                    <div className="space-y-2">
-                                        <label className="mono text-[10px] font-black uppercase">
-                                             📱 Teléfono Pago Móvil <span className="text-red-500">*</span>
+                                        <label className="mono text-[10px] font-black uppercase flex justify-between">
+                                             <span>📱 Teléfono Pago Móvil <span className="text-red-500">*</span></span>
                                         </label>
                                         <div className="flex gap-2">
                                              <input
                                                   type="text"
                                                   value={phoneCountryCode}
                                                   onChange={(e) => setPhoneCountryCode(e.target.value)}
-                                                  className="w-20 border-4 border-[#262626] p-4 font-bold mono outline-none bg-[#262626] text-white text-center"
+                                                  disabled={isPhoneLocked}
+                                                  className={`w-20 border-4 border-[#262626] p-4 font-bold mono outline-none text-center ${isPhoneLocked ? 'bg-gray-200 text-gray-500 cursor-not-allowed' : 'bg-[#262626] text-white'}`}
                                                   placeholder="+58"
                                              />
-                                             <input
-                                                  type="text"
-                                                  value={phone}
-                                                  onChange={(e) => { setPhone(e.target.value); clearError('phone'); }}
-                                                  className={`flex-1 border-4 p-4 font-bold mono outline-none ${errors.phone ? 'border-red-500 bg-red-50' : 'border-[#262626]'}`}
-                                                  placeholder="4121234567"
-                                                  required
-                                             />
+                                             <div className="relative flex-1">
+                                                  <input
+                                                       type="text"
+                                                       value={phone}
+                                                       onChange={(e) => { setPhone(e.target.value); clearError('phone'); }}
+                                                       disabled={isPhoneLocked}
+                                                       className={`w-full border-4 p-4 font-bold mono outline-none ${errors.phone ? 'border-red-500 bg-red-50' : 'border-[#262626]'} ${isPhoneLocked ? 'bg-gray-100 text-gray-600 cursor-not-allowed' : ''}`}
+                                                       placeholder="4121234567"
+                                                       required
+                                                  />
+                                                  {isPhoneLocked && (
+                                                       <div className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                                                            </svg>
+                                                       </div>
+                                                  )}
+                                             </div>
                                         </div>
                                         {errors.phone && <p className="mono text-[10px] text-red-500 font-bold">{errors.phone}</p>}
                                    </div>
                               ) : (
                                    <>
                                         <div className="space-y-2">
-                                             <label className="mono text-[10px] font-black uppercase">
-                                                  🏦 Número de Cuenta <span className="text-red-500">*</span>
+                                             <label className="mono text-[10px] font-black uppercase flex justify-between">
+                                                  <span>🏦 Número de Cuenta <span className="text-red-500">*</span></span>
                                              </label>
-                                             <input
-                                                  type="text"
-                                                  value={accountNumber}
-                                                  onChange={(e) => { setAccountNumber(e.target.value); clearError('accountNumber'); }}
-                                                  className={`w-full border-4 p-4 font-bold mono outline-none ${errors.accountNumber ? 'border-red-500 bg-red-50' : 'border-[#262626]'}`}
-                                                  placeholder="01340123456789012345"
-                                                  required
-                                             />
+                                             <div className="relative">
+                                                  <input
+                                                       type="text"
+                                                       value={accountNumber}
+                                                       onChange={(e) => { setAccountNumber(e.target.value); clearError('accountNumber'); }}
+                                                       disabled={isAccountLocked}
+                                                       className={`w-full border-4 p-4 font-bold mono outline-none ${errors.accountNumber ? 'border-red-500 bg-red-50' : 'border-[#262626]'} ${isAccountLocked ? 'bg-gray-100 text-gray-600 cursor-not-allowed' : ''}`}
+                                                       placeholder="01340123456789012345"
+                                                       required
+                                                  />
+                                                  {isAccountLocked && (
+                                                       <div className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                                                            </svg>
+                                                       </div>
+                                                  )}
+                                             </div>
                                              {errors.accountNumber && <p className="mono text-[10px] text-red-500 font-bold">{errors.accountNumber}</p>}
                                         </div>
                                         <div className="space-y-2 md:col-span-2">
-                                             <label className="mono text-[10px] font-black uppercase">
-                                                  👤 Titular de la Cuenta <span className="text-red-500">*</span>
+                                             <label className="mono text-[10px] font-black uppercase flex justify-between">
+                                                  <span>👤 Titular de la Cuenta <span className="text-red-500">*</span></span>
                                              </label>
-                                             <input
-                                                  type="text"
-                                                  value={accountHolder}
-                                                  onChange={(e) => { setAccountHolder(e.target.value); clearError('accountHolder'); }}
-                                                  className={`w-full border-4 p-4 font-bold mono outline-none ${errors.accountHolder ? 'border-red-500 bg-red-50' : 'border-[#262626]'}`}
-                                                  placeholder="Nombre como aparece en el banco"
-                                                  required
-                                             />
+                                             <div className="relative">
+                                                  <input
+                                                       type="text"
+                                                       value={accountHolder}
+                                                       onChange={(e) => { setAccountHolder(e.target.value); clearError('accountHolder'); }}
+                                                       disabled={isAccountLocked}
+                                                       className={`w-full border-4 p-4 font-bold mono outline-none ${errors.accountHolder ? 'border-red-500 bg-red-50' : 'border-[#262626]'} ${isAccountLocked ? 'bg-gray-100 text-gray-600 cursor-not-allowed' : ''}`}
+                                                       placeholder="Nombre como aparece en el banco"
+                                                       required
+                                                  />
+                                                  {isAccountLocked && (
+                                                       <div className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400">
+                                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                                                            </svg>
+                                                       </div>
+                                                  )}
+                                             </div>
                                              {errors.accountHolder && <p className="mono text-[10px] text-red-500 font-bold">{errors.accountHolder}</p>}
                                         </div>
                                         <div className="space-y-2">

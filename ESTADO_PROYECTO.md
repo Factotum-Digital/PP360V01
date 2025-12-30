@@ -1,6 +1,6 @@
 # PP360VE - Estado del Proyecto
 
-**Última actualización:** 29 de Diciembre de 2025 (Exportar Factura PDF + CSV)
+**Última actualización:** 30 de Diciembre de 2025 (Seguridad y Datos del Usuario)
 **Avance estimado:** ~88% (Core funcional + Exportación PDF/CSV + Refactorización Modular)
 
 ---
@@ -43,6 +43,9 @@
 | **🆕 Búsqueda Admin** | Campo de búsqueda por ID, email o ticket en panel de administración |
 | **🆕 Exportar Factura PDF** | Usuarios descargan factura profesional de su orden (desglose comisiones, logo, footer) |
 | **🆕 Exportar CSV/PDF Admin** | Selección múltiple con checkboxes, exportación masiva o individual |
+
+| **🆕 Seguridad de Datos** | Validación Server-Side en `/api/orders/create`, bloqueo de edición de campos críticos (ID, Banco, Tlf) si ya existen datos. |
+| **🆕 Bloqueo Perfil** | UI de candado en `ProfileModal` y `NewOrderForm`, enlace "Solicitar Cambio" a WhatsApp. |
 
 ### 🐞 Errores Críticos Resueltos
 
@@ -90,6 +93,26 @@
 - [x] Backup de seguridad: `backup-pre-refactor-2024-12-28`
 - [x] **Sync BD**: Creada migración local `006_enhance_user_payment_data.sql` para sincronizar con producción
 - [x] **Admin Dashboard Refactor**: `admin-dashboard.tsx` actualizado para usar `order-utils.ts` centralizado
+
+### Auditoría de Código (30 Dic 2025)
+
+**Estado General: ✅ Bueno** - El código está bien estructurado con buenas prácticas.
+
+#### ✅ Aspectos Positivos
+- Utilidades centralizadas en `order-utils.ts` (getStatusColor, archiveOrder, uploadProof)
+- Configuración unificada en `config/site.ts` (comisiones, límites)
+- Memoización correcta en `profile-modal.tsx`, `dashboard-content.tsx`, `new-order-form.tsx`
+- Cálculos de tasas unificados en `rate-calculator.ts`
+
+#### ⚠️ Mejoras Menores Identificadas
+| Prioridad | Archivo | Problema |
+|-----------|---------|----------|
+| 🟡 | `profile-modal.tsx` | Faltan 3 dependencias en useCallback: `idPrefix`, `pagoMovilCedulaPrefix`, `whatsappSecondaryCode` |
+| 🟢 | `admin-dashboard.tsx` | Cliente Supabase sin `useMemo` (línea 60) |
+| 🟢 | `new-order-form.tsx` | WhatsApp `15557745095` hardcodeado |
+| 🟢 | API guest | `pagos@pp360ve.com` hardcodeado |
+
+**Sugerencia:** Mover contactos a `SITE_CONFIG.contact`
 
 ---
 

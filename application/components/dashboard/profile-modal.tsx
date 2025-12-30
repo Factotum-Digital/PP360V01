@@ -56,6 +56,13 @@ export function ProfileModal({ userId, onClose }: ProfileModalProps) {
      const [paypalEmail, setPaypalEmail] = useState('');
      const [paypalStatus, setPaypalStatus] = useState<'verified' | 'pending' | 'unverified'>('unverified');
 
+     // Lock States
+     const [isNameLocked, setIsNameLocked] = useState(false);
+     const [isIdLocked, setIsIdLocked] = useState(false);
+     const [isPhoneLocked, setIsPhoneLocked] = useState(false);
+     const [isBankLocked, setIsBankLocked] = useState(false);
+     const [isPagoMovilLocked, setIsPagoMovilLocked] = useState(false);
+
      // Memoized completion calculation
      const completion = useMemo(() => {
           let completed = 0;
@@ -73,11 +80,18 @@ export function ProfileModal({ userId, onClose }: ProfileModalProps) {
                     .single();
 
                if (data) {
-                    if (data.full_name) setFullName(data.full_name);
+                    if (data.full_name) {
+                         setFullName(data.full_name);
+                         setIsNameLocked(true);
+                    }
                     if (data.email) setEmail(data.email);
                     if (data.country_code) setCountryCode(data.country_code);
-                    if (data.whatsapp_primary) setWhatsappPrimary(data.whatsapp_primary);
+                    if (data.whatsapp_primary) {
+                         setWhatsappPrimary(data.whatsapp_primary);
+                         setIsPhoneLocked(true);
+                    }
                     if (data.whatsapp_secondary) setWhatsappSecondary(data.whatsapp_secondary);
+
                     // Parsear cédula con formato V-12345678
                     if (data.id_number) {
                          const match = data.id_number.match(/^([VEJP])-?(.+)$/i);
@@ -87,14 +101,23 @@ export function ProfileModal({ userId, onClose }: ProfileModalProps) {
                          } else {
                               setIdNumber(data.id_number);
                          }
+                         setIsIdLocked(true);
                     }
+
                     if (data.bank_name) setBank(data.bank_name);
                     if (data.account_type) setAccountType(data.account_type);
-                    if (data.account_number) setAccountNumber(data.account_number);
+                    if (data.account_number) {
+                         setAccountNumber(data.account_number);
+                         setIsBankLocked(true);
+                    }
                     if (data.account_holder) setAccountHolder(data.account_holder);
                     if (data.enable_transfer !== undefined) setEnableTransfer(data.enable_transfer);
+
                     if (data.pago_movil_bank) setPagoMovilBank(data.pago_movil_bank);
-                    if (data.pago_movil_phone) setPagoMovilPhone(data.pago_movil_phone);
+                    if (data.pago_movil_phone) {
+                         setPagoMovilPhone(data.pago_movil_phone);
+                         setIsPagoMovilLocked(true);
+                    }
                     // Parsear cédula pago móvil con formato V-12345678
                     if (data.pago_movil_cedula) {
                          const match = data.pago_movil_cedula.match(/^([VEJP])-?(.+)$/i);
@@ -213,71 +236,93 @@ export function ProfileModal({ userId, onClose }: ProfileModalProps) {
 
                                         {/* Full Name */}
                                         <div className="space-y-1">
-                                             <label className="mono text-[10px] font-black uppercase flex items-center gap-2">
-                                                  Nombre Completo *
-                                                  {fullName.length >= 3 && <span className="text-green-500">✓</span>}
-                                             </label>
-                                             <input
-                                                  type="text"
-                                                  value={fullName}
-                                                  onChange={(e) => setFullName(e.target.value)}
-                                                  className={`w-full border-4 p-3 font-bold mono outline-none transition-colors ${fullName.length >= 3 ? 'border-green-500' : 'border-[#262626]'}`}
-                                                  placeholder="Como aparece en tus documentos"
-                                             />
+                                             <div className="space-y-1">
+                                                  <label className="mono text-[10px] font-black uppercase flex items-center justify-between">
+                                                       <span>Nombre Completo * {fullName.length >= 3 && <span className="text-green-500">✓</span>}</span>
+                                                       {isNameLocked && (
+                                                            <a href="https://wa.me/15557745095?text=Deseo%20actualizar%20mi%20Nombre" target="_blank" rel="noopener noreferrer" className="text-[9px] text-gray-400 hover:text-[#FF4D00]">Solicitar Cambio ↗</a>
+                                                       )}
+                                                  </label>
+                                                  <div className="relative">
+                                                       <input
+                                                            type="text"
+                                                            value={fullName}
+                                                            onChange={(e) => setFullName(e.target.value)}
+                                                            disabled={isNameLocked}
+                                                            className={`w-full border-4 p-3 font-bold mono outline-none transition-colors ${fullName.length >= 3 ? 'border-green-500' : 'border-[#262626]'} ${isNameLocked ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''}`}
+                                                            placeholder="Como aparece en tus documentos"
+                                                       />
+                                                       {isNameLocked && <span className="absolute right-3 top-3 text-gray-400"><svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg></span>}
+                                                  </div>
+                                             </div>
                                         </div>
 
                                         {/* ID Number with Prefix */}
                                         <div className="space-y-1">
-                                             <label className="mono text-[10px] font-black uppercase flex items-center gap-2">
-                                                  Cédula / RIF *
-                                                  {idNumber.length >= 6 && <span className="text-green-500">✓</span>}
+                                             <label className="mono text-[10px] font-black uppercase flex items-center justify-between">
+                                                  <span>Cédula / RIF * {idNumber.length >= 6 && <span className="text-green-500">✓</span>}</span>
+                                                  {isIdLocked && (
+                                                       <a href="https://wa.me/15557745095?text=Deseo%20actualizar%20mi%20Cedula" target="_blank" rel="noopener noreferrer" className="text-[9px] text-gray-400 hover:text-[#FF4D00]">Solicitar Cambio ↗</a>
+                                                  )}
                                              </label>
-                                             <div className="flex gap-2">
+                                             <div className="flex gap-2 relative">
                                                   <select
                                                        value={idPrefix}
                                                        onChange={(e) => setIdPrefix(e.target.value)}
-                                                       className="border-4 border-[#262626] p-3 font-bold mono outline-none bg-[#262626] text-white"
+                                                       disabled={isIdLocked}
+                                                       className={`border-4 border-[#262626] p-3 font-bold mono outline-none ${isIdLocked ? 'bg-gray-200 text-gray-500' : 'bg-[#262626] text-white'}`}
                                                   >
                                                        <option>V</option>
                                                        <option>E</option>
                                                        <option>J</option>
                                                        <option>P</option>
                                                   </select>
-                                                  <input
-                                                       type="text"
-                                                       value={idNumber}
-                                                       onChange={(e) => setIdNumber(e.target.value.replace(/\D/g, '').slice(0, 8))}
-                                                       className={`flex-1 border-4 p-3 font-bold mono outline-none transition-colors ${idNumber.length >= 6 ? 'border-green-500' : 'border-[#262626]'}`}
-                                                       placeholder="12345678"
-                                                       maxLength={8}
-                                                  />
+                                                  <div className="relative flex-1">
+                                                       <input
+                                                            type="text"
+                                                            value={idNumber}
+                                                            onChange={(e) => setIdNumber(e.target.value.replace(/\D/g, '').slice(0, 8))}
+                                                            disabled={isIdLocked}
+                                                            className={`w-full border-4 p-3 font-bold mono outline-none transition-colors ${idNumber.length >= 6 ? 'border-green-500' : 'border-[#262626]'} ${isIdLocked ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''}`}
+                                                            placeholder="12345678"
+                                                            maxLength={8}
+                                                       />
+                                                       {isIdLocked && <span className="absolute right-3 top-3 text-gray-400"><svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg></span>}
+                                                  </div>
                                              </div>
                                              <p className="mono text-[9px] text-gray-400">6-8 dígitos</p>
                                         </div>
 
                                         {/* WhatsApp Primary */}
                                         <div className="space-y-1">
-                                             <label className="mono text-[10px] font-black uppercase flex items-center gap-2">
-                                                  WhatsApp Principal *
-                                                  {whatsappPrimary.length >= 10 && <span className="text-green-500">✓</span>}
+                                             <label className="mono text-[10px] font-black uppercase flex items-center justify-between">
+                                                  <span>WhatsApp Principal * {whatsappPrimary.length >= 10 && <span className="text-green-500">✓</span>}</span>
+                                                  {isPhoneLocked && (
+                                                       <a href="https://wa.me/15557745095?text=Deseo%20actualizar%20mi%20Telefono" target="_blank" rel="noopener noreferrer" className="text-[9px] text-gray-400 hover:text-[#FF4D00]">Solicitar Cambio ↗</a>
+                                                  )}
                                              </label>
-                                             <div className="flex gap-2">
+                                             <div className="flex gap-2 relative">
                                                   <select
                                                        value={countryCode}
                                                        onChange={(e) => setCountryCode(e.target.value)}
-                                                       className="border-4 border-[#262626] p-3 font-bold mono outline-none bg-gray-50"
+                                                       disabled={isPhoneLocked}
+                                                       className={`border-4 border-[#262626] p-3 font-bold mono outline-none ${isPhoneLocked ? 'bg-gray-200 text-gray-500' : 'bg-gray-50'}`}
                                                   >
                                                        {COUNTRY_CODES.map(c => (
                                                             <option key={c.code} value={c.code}>{c.country} ({c.code})</option>
                                                        ))}
                                                   </select>
-                                                  <input
-                                                       type="text"
-                                                       value={whatsappPrimary}
-                                                       onChange={(e) => setWhatsappPrimary(e.target.value.replace(/\D/g, ''))}
-                                                       className={`flex-1 border-4 p-3 font-bold mono outline-none transition-colors ${whatsappPrimary.length >= 10 ? 'border-green-500' : 'border-[#262626]'}`}
-                                                       placeholder="4121234567"
-                                                  />
+                                                  <div className="relative flex-1">
+                                                       <input
+                                                            type="text"
+                                                            value={whatsappPrimary}
+                                                            onChange={(e) => setWhatsappPrimary(e.target.value.replace(/\D/g, ''))}
+                                                            disabled={isPhoneLocked}
+                                                            className={`w-full border-4 p-3 font-bold mono outline-none transition-colors ${whatsappPrimary.length >= 10 ? 'border-green-500' : 'border-[#262626]'} ${isPhoneLocked ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''}`}
+                                                            placeholder="4121234567"
+                                                       />
+                                                       {isPhoneLocked && <span className="absolute right-3 top-3 text-gray-400"><svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg></span>}
+                                                  </div>
                                              </div>
                                         </div>
 
@@ -333,12 +378,19 @@ export function ProfileModal({ userId, onClose }: ProfileModalProps) {
 
                                         <div className="grid grid-cols-2 gap-4">
                                              {/* Bank */}
+                                             {/* Bank */}
                                              <div className="space-y-1">
-                                                  <label className="mono text-[10px] font-black uppercase">Banco Principal *</label>
+                                                  <label className="mono text-[10px] font-black uppercase flex justify-between">
+                                                       <span>Banco Principal *</span>
+                                                       {isBankLocked && (
+                                                            <a href="https://wa.me/15557745095?text=Deseo%20actualizar%20mis%20Datos%20Bancarios" target="_blank" rel="noopener noreferrer" className="text-[9px] text-gray-400 hover:text-[#FF4D00]">Solicitar Cambio ↗</a>
+                                                       )}
+                                                  </label>
                                                   <select
                                                        value={bank}
                                                        onChange={(e) => setBank(e.target.value)}
-                                                       className="w-full border-4 border-[#262626] p-3 font-bold mono outline-none"
+                                                       disabled={isBankLocked}
+                                                       className={`w-full border-4 border-[#262626] p-3 font-bold mono outline-none ${isBankLocked ? 'bg-gray-200 text-gray-500 cursor-not-allowed' : ''}`}
                                                   >
                                                        {VENEZUELAN_BANKS.map(b => <option key={b}>{b}</option>)}
                                                   </select>
@@ -350,7 +402,8 @@ export function ProfileModal({ userId, onClose }: ProfileModalProps) {
                                                   <select
                                                        value={accountType}
                                                        onChange={(e) => setAccountType(e.target.value as 'CORRIENTE' | 'AHORRO')}
-                                                       className="w-full border-4 border-[#262626] p-3 font-bold mono outline-none"
+                                                       disabled={isBankLocked}
+                                                       className={`w-full border-4 border-[#262626] p-3 font-bold mono outline-none ${isBankLocked ? 'bg-gray-200 text-gray-500 cursor-not-allowed' : ''}`}
                                                   >
                                                        <option value="CORRIENTE">Corriente</option>
                                                        <option value="AHORRO">Ahorro</option>
@@ -364,13 +417,17 @@ export function ProfileModal({ userId, onClose }: ProfileModalProps) {
                                                   Número de Cuenta
                                                   {accountNumber.length === 20 && <span className="text-green-500">✓ 20 dígitos</span>}
                                              </label>
-                                             <input
-                                                  type="text"
-                                                  value={accountNumber}
-                                                  onChange={(e) => setAccountNumber(e.target.value.replace(/\D/g, '').slice(0, 20))}
-                                                  className={`w-full border-4 p-3 font-bold mono outline-none transition-colors ${accountNumber.length === 20 ? 'border-green-500' : 'border-[#262626]'}`}
-                                                  placeholder="01340123456789012345"
-                                             />
+                                             <div className="relative">
+                                                  <input
+                                                       type="text"
+                                                       value={accountNumber}
+                                                       onChange={(e) => setAccountNumber(e.target.value.replace(/\D/g, '').slice(0, 20))}
+                                                       disabled={isBankLocked}
+                                                       className={`w-full border-4 p-3 font-bold mono outline-none transition-colors ${accountNumber.length === 20 ? 'border-green-500' : 'border-[#262626]'} ${isBankLocked ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''}`}
+                                                       placeholder="01340123456789012345"
+                                                  />
+                                                  {isBankLocked && <span className="absolute right-3 top-3 text-gray-400"><svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg></span>}
+                                             </div>
                                         </div>
 
                                         {/* Account Holder */}
@@ -380,7 +437,8 @@ export function ProfileModal({ userId, onClose }: ProfileModalProps) {
                                                   type="text"
                                                   value={accountHolder}
                                                   onChange={(e) => setAccountHolder(e.target.value)}
-                                                  className="w-full border-4 border-[#262626] p-3 font-bold mono outline-none"
+                                                  disabled={isBankLocked}
+                                                  className={`w-full border-4 border-[#262626] p-3 font-bold mono outline-none ${isBankLocked ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''}`}
                                                   placeholder="Nombre como aparece en el banco"
                                              />
                                         </div>
@@ -395,11 +453,17 @@ export function ProfileModal({ userId, onClose }: ProfileModalProps) {
                                         <div className="grid grid-cols-2 gap-4">
                                              {/* Pago Movil Bank */}
                                              <div className="space-y-1">
-                                                  <label className="mono text-[10px] font-black uppercase">Banco Pago Móvil</label>
+                                                  <label className="mono text-[10px] font-black uppercase flex justify-between">
+                                                       <span>Banco Pago Móvil</span>
+                                                       {isPagoMovilLocked && (
+                                                            <a href="https://wa.me/15557745095?text=Deseo%20actualizar%20mi%20Pago%20Movil" target="_blank" rel="noopener noreferrer" className="text-[9px] text-gray-400 hover:text-[#FF4D00]">Solicitar Cambio ↗</a>
+                                                       )}
+                                                  </label>
                                                   <select
                                                        value={pagoMovilBank}
                                                        onChange={(e) => setPagoMovilBank(e.target.value)}
-                                                       className="w-full border-4 border-[#262626] p-3 font-bold mono outline-none"
+                                                       disabled={isPagoMovilLocked}
+                                                       className={`w-full border-4 border-[#262626] p-3 font-bold mono outline-none ${isPagoMovilLocked ? 'bg-gray-200 text-gray-500 cursor-not-allowed' : ''}`}
                                                   >
                                                        {VENEZUELAN_BANKS.map(b => <option key={b}>{b}</option>)}
                                                   </select>
@@ -408,38 +472,47 @@ export function ProfileModal({ userId, onClose }: ProfileModalProps) {
                                              {/* Pago Movil Phone */}
                                              <div className="space-y-1">
                                                   <label className="mono text-[10px] font-black uppercase">Teléfono</label>
-                                                  <input
-                                                       type="text"
-                                                       value={pagoMovilPhone}
-                                                       onChange={(e) => setPagoMovilPhone(e.target.value.replace(/\D/g, ''))}
-                                                       className="w-full border-4 border-[#262626] p-3 font-bold mono outline-none"
-                                                       placeholder="04121234567"
-                                                  />
+                                                  <div className="relative">
+                                                       <input
+                                                            type="text"
+                                                            value={pagoMovilPhone}
+                                                            onChange={(e) => setPagoMovilPhone(e.target.value.replace(/\D/g, ''))}
+                                                            disabled={isPagoMovilLocked}
+                                                            className={`w-full border-4 border-[#262626] p-3 font-bold mono outline-none ${isPagoMovilLocked ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''}`}
+                                                            placeholder="04121234567"
+                                                       />
+                                                       {isPagoMovilLocked && <span className="absolute right-3 top-3 text-gray-400"><svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg></span>}
+                                                  </div>
                                              </div>
                                         </div>
 
                                         {/* Pago Movil Cedula */}
                                         <div className="space-y-1">
                                              <label className="mono text-[10px] font-black uppercase">Cédula Asociada</label>
-                                             <div className="flex gap-2">
+                                             <div className="flex gap-2 relative">
                                                   <select
                                                        value={pagoMovilCedulaPrefix}
                                                        onChange={(e) => setPagoMovilCedulaPrefix(e.target.value)}
-                                                       className="border-4 border-[#262626] p-3 font-bold mono outline-none bg-[#262626] text-white"
+                                                       disabled={isPagoMovilLocked}
+                                                       className={`border-4 border-[#262626] p-3 font-bold mono outline-none ${isPagoMovilLocked ? 'bg-gray-200 text-gray-500' : 'bg-[#262626] text-white'}`}
                                                   >
                                                        <option>V</option>
                                                        <option>E</option>
                                                        <option>J</option>
                                                        <option>P</option>
                                                   </select>
-                                                  <input
-                                                       type="text"
-                                                       value={pagoMovilCedula}
-                                                       onChange={(e) => setPagoMovilCedula(e.target.value.replace(/\D/g, '').slice(0, 8))}
-                                                       className="flex-1 border-4 border-[#262626] p-3 font-bold mono outline-none"
-                                                       placeholder="12345678"
-                                                       maxLength={8}
-                                                  />
+                                                  <div className="relative flex-1">
+                                                       <input
+                                                            type="text"
+                                                            value={pagoMovilCedula}
+                                                            onChange={(e) => setPagoMovilCedula(e.target.value.replace(/\D/g, '').slice(0, 8))}
+                                                            disabled={isPagoMovilLocked}
+                                                            className={`w-full border-4 border-[#262626] p-3 font-bold mono outline-none ${isPagoMovilLocked ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''}`}
+                                                            placeholder="12345678"
+                                                            maxLength={8}
+                                                       />
+                                                       {isPagoMovilLocked && <span className="absolute right-3 top-3 text-gray-400">🔒</span>}
+                                                  </div>
                                              </div>
                                         </div>
 
