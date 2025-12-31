@@ -143,6 +143,51 @@ export function ProfileModal({ userId, onClose }: ProfileModalProps) {
                     if (data.paypal_email) setPaypalEmail(data.paypal_email);
                     if (data.paypal_status) setPaypalStatus(data.paypal_status);
                }
+
+               // [AUTO-LINK] Vincular órdenes de guest al usuario registrado por ID
+               // Esto permite que si alguien compró como guest antes de registrarse,
+               // sus órdenes se vinculen automáticamente a su cuenta
+               if (data?.id_number) {
+                    try {
+                         // Normalizar el ID para comparación (quitar espacios, puntos, todo mayúsculas)
+                         const normalizedId = data.id_number.replace(/[.\s]/g, '').toUpperCase();
+
+                         // Buscar órdenes de guest con el mismo id_number
+                         const { data: guestOrders, error: fetchError } = await supabase
+                              .from('exchange_orders')
+                              .select('order_id, id_number')
+                              .eq('is_guest', true)
+                              .is('user_id', null);
+
+                         if (!fetchError && guestOrders && guestOrders.length > 0) {
+                              // Filtrar las que tienen el mismo ID (normalizado)
+                              const matchingOrders = guestOrders.filter(order => {
+                                   const orderIdNormalized = order.id_number?.replace(/[.\s-]/g, '').toUpperCase() || '';
+                                   return orderIdNormalized === normalizedId;
+                              });
+
+                              if (matchingOrders.length > 0) {
+                                   const orderIds = matchingOrders.map(o => o.order_id);
+
+                                   // Vincular las órdenes al usuario actual
+                                   const { error: updateError } = await supabase
+                                        .from('exchange_orders')
+                                        .update({
+                                             user_id: userId,
+                                             is_guest: false
+                                        })
+                                        .in('order_id', orderIds);
+
+                                   if (!updateError) {
+                                        console.log(`[AUTO-LINK] ✅ ${matchingOrders.length} orden(es) de guest vinculada(s) al usuario`);
+                                   }
+                              }
+                         }
+                    } catch (linkError) {
+                         console.log('[AUTO-LINK] Error al vincular órdenes de guest:', linkError);
+                    }
+               }
+
                setLoading(false);
           };
           loadData();
