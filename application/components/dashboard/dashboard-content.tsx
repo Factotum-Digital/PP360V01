@@ -131,7 +131,7 @@ export function DashboardContent({ user, orders, currentRate, paraleloRate }: Da
                               Panel de Usuario
                          </h1>
                          <p className="mono text-xs font-bold text-gray-500 mt-2">
-                              {user.email} // SESSION_ACTIVE
+                              {user.email} {/* SESSION_ACTIVE */}
                          </p>
                     </div>
                     <div className="flex gap-2">
@@ -332,7 +332,11 @@ const OrderCard = React.memo(function OrderCard({
                               <button
                                    onClick={(e) => {
                                         e.stopPropagation();
-                                        order.is_archived ? onUnarchive() : onArchive();
+                                        if (order.is_archived) {
+                                             onUnarchive();
+                                        } else {
+                                             onArchive();
+                                        }
                                    }}
                                    className={`px-3 py-1 text-xs font-black border-2 transition-colors uppercase ${order.is_archived
                                         ? 'border-green-500 text-green-500 hover:bg-green-50'

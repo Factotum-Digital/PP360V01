@@ -84,7 +84,7 @@ export const ExchangeTerminal: React.FC = () => {
                     sentiment: "STABLE"
                });
                addLog(`SISTEMA SINCRONIZADO | TASA DE PAGO: ${payRate.toFixed(2)} VES`, "success");
-          } catch (error) {
+          } catch {
                addLog("RATE_FETCH_FAILED: USING_FALLBACK", "warning");
                setChartData(generateChartData(FALLBACK_RATE));
 

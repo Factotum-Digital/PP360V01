@@ -61,7 +61,8 @@ export function ProfileModal({ userId, onClose }: ProfileModalProps) {
      const [isIdLocked, setIsIdLocked] = useState(false);
      const [isPhoneLocked, setIsPhoneLocked] = useState(false);
      const [isBankLocked, setIsBankLocked] = useState(false);
-     const [isPagoMovilLocked, setIsPagoMovilLocked] = useState(false);
+     const [isPagoMovilPhoneLocked, setIsPagoMovilPhoneLocked] = useState(false);
+     const [isPagoMovilCedulaLocked, setIsPagoMovilCedulaLocked] = useState(false);
 
      // Memoized completion calculation
      const completion = useMemo(() => {
@@ -114,19 +115,23 @@ export function ProfileModal({ userId, onClose }: ProfileModalProps) {
                     if (data.enable_transfer !== undefined) setEnableTransfer(data.enable_transfer);
 
                     if (data.pago_movil_bank) setPagoMovilBank(data.pago_movil_bank);
+
+                    // Teléfono Pago Móvil - bloquear solo si tiene valor
                     if (data.pago_movil_phone) {
                          setPagoMovilPhone(data.pago_movil_phone);
-                         setIsPagoMovilLocked(true);
+                         setIsPagoMovilPhoneLocked(true);
                     }
-                    // Parsear cédula pago móvil con formato V-12345678
+
+                    // Cédula Asociada Pago Móvil - bloquear solo si tiene valor
                     if (data.pago_movil_cedula) {
                          const match = data.pago_movil_cedula.match(/^([VEJP])-?(.+)$/i);
                          if (match) {
-                              setPagoMovilCedulaPrefix(match[1].toUpperCase());
+                              setPagoMovilCedulaPrefix(match[1].toUpperCase() as 'V' | 'E' | 'J' | 'P');
                               setPagoMovilCedula(match[2]);
                          } else {
                               setPagoMovilCedula(data.pago_movil_cedula);
                          }
+                         setIsPagoMovilCedulaLocked(true);
                     }
                     if (data.paypal_email) setPaypalEmail(data.paypal_email);
                     if (data.paypal_status) setPaypalStatus(data.paypal_status);
@@ -139,7 +144,7 @@ export function ProfileModal({ userId, onClose }: ProfileModalProps) {
      const handleSave = useCallback(async () => {
           setSaving(true);
 
-          await supabase.from('user_payment_data').upsert({
+          const { error } = await supabase.from('user_payment_data').upsert({
                user_id: userId,
                full_name: fullName || null,
                email: email || null,
@@ -158,11 +163,46 @@ export function ProfileModal({ userId, onClose }: ProfileModalProps) {
                paypal_email: paypalEmail || null,
                paypal_status: paypalStatus,
                profile_completion: completion,
-          }, { onConflict: 'user_id' });
+          }, { onConflict: 'user_id' }).select().single();
 
+          if (error) {
+               console.error('Error al guardar perfil:', error);
+
+               // Manejar errores específicos de PostgreSQL
+               if (error.code === '23505') {
+                    // Duplicado - extraer campo del mensaje
+                    const fieldMap: Record<string, string> = {
+                         'unique_id_number': 'Cédula/Pasaporte',
+                         'unique_email': 'Correo electrónico',
+                         'unique_whatsapp': 'WhatsApp',
+                         'unique_pago_movil': 'Teléfono Pago Móvil',
+                         'unique_account_number': 'Cuenta bancaria',
+                    };
+
+                    let fieldName = 'dato';
+                    for (const [key, label] of Object.entries(fieldMap)) {
+                         if (error.message.includes(key)) {
+                              fieldName = label;
+                              break;
+                         }
+                    }
+
+                    alert(`⚠️ El ${fieldName} ya está registrado por otro usuario. Por favor verifica tus datos.`);
+               } else if (error.code === '23514') {
+                    alert('❌ Formato inválido. Revisa cédula, email, teléfono y cuenta bancaria.');
+               } else {
+                    alert('🔧 Error al guardar. Por favor intenta nuevamente.');
+               }
+
+               setSaving(false);
+               return;
+          }
+
+          // Éxito
+          alert('✅ Perfil actualizado correctamente');
           setSaving(false);
           onClose();
-     }, [supabase, userId, fullName, email, countryCode, whatsappPrimary, whatsappSecondary, idNumber, bank, accountType, accountNumber, accountHolder, enableTransfer, pagoMovilBank, pagoMovilPhone, pagoMovilCedula, paypalEmail, paypalStatus, completion, onClose]);
+     }, [supabase, userId, fullName, email, countryCode, whatsappPrimary, whatsappSecondary, idNumber, idPrefix, bank, accountType, accountNumber, accountHolder, enableTransfer, pagoMovilBank, pagoMovilPhone, pagoMovilCedula, pagoMovilCedulaPrefix, paypalEmail, paypalStatus, completion, onClose]);
 
      return (
           <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
@@ -455,15 +495,15 @@ export function ProfileModal({ userId, onClose }: ProfileModalProps) {
                                              <div className="space-y-1">
                                                   <label className="mono text-[10px] font-black uppercase flex justify-between">
                                                        <span>Banco Pago Móvil</span>
-                                                       {isPagoMovilLocked && (
+                                                       {isPagoMovilPhoneLocked && (
                                                             <a href="https://wa.me/15557745095?text=Deseo%20actualizar%20mi%20Pago%20Movil" target="_blank" rel="noopener noreferrer" className="text-[9px] text-gray-400 hover:text-[#FF4D00]">Solicitar Cambio ↗</a>
                                                        )}
                                                   </label>
                                                   <select
                                                        value={pagoMovilBank}
                                                        onChange={(e) => setPagoMovilBank(e.target.value)}
-                                                       disabled={isPagoMovilLocked}
-                                                       className={`w-full border-4 border-[#262626] p-3 font-bold mono outline-none ${isPagoMovilLocked ? 'bg-gray-200 text-gray-500 cursor-not-allowed' : ''}`}
+                                                       disabled={isPagoMovilPhoneLocked}
+                                                       className={`w-full border-4 border-[#262626] p-3 font-bold mono outline-none ${isPagoMovilPhoneLocked ? 'bg-gray-200 text-gray-500 cursor-not-allowed' : ''}`}
                                                   >
                                                        {VENEZUELAN_BANKS.map(b => <option key={b}>{b}</option>)}
                                                   </select>
@@ -477,11 +517,11 @@ export function ProfileModal({ userId, onClose }: ProfileModalProps) {
                                                             type="text"
                                                             value={pagoMovilPhone}
                                                             onChange={(e) => setPagoMovilPhone(e.target.value.replace(/\D/g, ''))}
-                                                            disabled={isPagoMovilLocked}
-                                                            className={`w-full border-4 border-[#262626] p-3 font-bold mono outline-none ${isPagoMovilLocked ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''}`}
+                                                            disabled={isPagoMovilPhoneLocked}
+                                                            className={`w-full border-4 border-[#262626] p-3 font-bold mono outline-none ${isPagoMovilPhoneLocked ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''}`}
                                                             placeholder="04121234567"
                                                        />
-                                                       {isPagoMovilLocked && <span className="absolute right-3 top-3 text-gray-400"><svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg></span>}
+                                                       {isPagoMovilPhoneLocked && <span className="absolute right-3 top-3 text-gray-400"><svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg></span>}
                                                   </div>
                                              </div>
                                         </div>
@@ -493,8 +533,8 @@ export function ProfileModal({ userId, onClose }: ProfileModalProps) {
                                                   <select
                                                        value={pagoMovilCedulaPrefix}
                                                        onChange={(e) => setPagoMovilCedulaPrefix(e.target.value)}
-                                                       disabled={isPagoMovilLocked}
-                                                       className={`border-4 border-[#262626] p-3 font-bold mono outline-none ${isPagoMovilLocked ? 'bg-gray-200 text-gray-500' : 'bg-[#262626] text-white'}`}
+                                                       disabled={isPagoMovilCedulaLocked}
+                                                       className={`border-4 border-[#262626] p-3 font-bold mono outline-none ${isPagoMovilCedulaLocked ? 'bg-gray-200 text-gray-500' : 'bg-[#262626] text-white'}`}
                                                   >
                                                        <option>V</option>
                                                        <option>E</option>
@@ -506,12 +546,12 @@ export function ProfileModal({ userId, onClose }: ProfileModalProps) {
                                                             type="text"
                                                             value={pagoMovilCedula}
                                                             onChange={(e) => setPagoMovilCedula(e.target.value.replace(/\D/g, '').slice(0, 8))}
-                                                            disabled={isPagoMovilLocked}
-                                                            className={`w-full border-4 border-[#262626] p-3 font-bold mono outline-none ${isPagoMovilLocked ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''}`}
+                                                            disabled={isPagoMovilCedulaLocked}
+                                                            className={`w-full border-4 border-[#262626] p-3 font-bold mono outline-none ${isPagoMovilCedulaLocked ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''}`}
                                                             placeholder="12345678"
                                                             maxLength={8}
                                                        />
-                                                       {isPagoMovilLocked && <span className="absolute right-3 top-3 text-gray-400">🔒</span>}
+                                                       {isPagoMovilCedulaLocked && <span className="absolute right-3 top-3 text-gray-400">🔒</span>}
                                                   </div>
                                              </div>
                                         </div>

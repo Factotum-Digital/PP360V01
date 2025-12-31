@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { Slab, Tag } from '@/components/ui/brutalist-system';
-import { PayPalServiceButton } from '@/components/features/paypal-service-button';
+
 
 export const LandingSections: React.FC = () => (
      <div className="space-y-24 mt-32">

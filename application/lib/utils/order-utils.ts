@@ -152,8 +152,7 @@ export function generateInvoicePDF(order: ExchangeOrder): void {
           const pageWidth = doc.internal.pageSize.getWidth();
 
           // Colors
-          const orange = '#FF4D00';
-          const dark = '#262626';
+
 
           // ===== HEADER =====
           doc.setFillColor(38, 38, 38);

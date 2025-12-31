@@ -61,7 +61,7 @@ export default async function AdminPage(props: {
      const searchTerm = (searchParams?.search as string)?.toLowerCase().trim() || '';
      const itemsPerPage = 20;
 
-     let filteredOrders = orders.filter(order => {
+     const filteredOrders = orders.filter(order => {
           // 0. Búsqueda por texto (ID, email, ticket)
           if (searchTerm) {
                const matchesId = order.order_id.toLowerCase().includes(searchTerm);

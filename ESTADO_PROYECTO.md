@@ -46,6 +46,7 @@
 
 | **🆕 Seguridad de Datos** | Validación Server-Side en `/api/orders/create`, bloqueo de edición de campos críticos (ID, Banco, Tlf) si ya existen datos. |
 | **🆕 Bloqueo Perfil** | UI de candado en `ProfileModal` y `NewOrderForm`, enlace "Solicitar Cambio" a WhatsApp. |
+| **🆕 Mantenimiento** | Limpieza de código, corrección de errores de linter, fix de hidratación y manejo de errores estricto. |
 
 ### 🐞 Errores Críticos Resueltos
 
@@ -93,6 +94,7 @@
 - [x] Backup de seguridad: `backup-pre-refactor-2024-12-28`
 - [x] **Sync BD**: Creada migración local `006_enhance_user_payment_data.sql` para sincronizar con producción
 - [x] **Admin Dashboard Refactor**: `admin-dashboard.tsx` actualizado para usar `order-utils.ts` centralizado
+- [x] **Corrección de Errores (30 Dic)**: Eliminación de variables no usadas (`isPagoMovilLocked`), limpieza de `any`, y corrección de hidratación.
 
 ### Auditoría de Código (30 Dic 2025)
 

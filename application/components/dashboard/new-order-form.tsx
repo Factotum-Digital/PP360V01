@@ -8,7 +8,7 @@ import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
 import { VENEZUELAN_BANKS } from '@/constants/banks';
 import { calculateOrderMetrics } from '@/lib/rate-calculator';
-import { uploadPaymentProof, updateOrderWithProof, generateTicketId } from '@/lib/utils/order-utils';
+import { uploadPaymentProof, updateOrderWithProof } from '@/lib/utils/order-utils';
 
 interface NewOrderFormProps {
      currentRate: number;
@@ -61,6 +61,8 @@ export function NewOrderForm({ currentRate, paraleloRate, onComplete }: NewOrder
      const [paymentInfo, setPaymentInfo] = useState<PaymentInfo | null>(null);
      const [uploading, setUploading] = useState(false);
      const [uploadSuccess, setUploadSuccess] = useState(false);
+     const [errorMessage, setErrorMessage] = useState<string | null>(null);
+     const [errorField, setErrorField] = useState<string | null>(null);
 
      // Cálculos memoizados
      const amountNum = useMemo(() => parseFloat(amount) || 0, [amount]);
@@ -96,13 +98,13 @@ export function NewOrderForm({ currentRate, paraleloRate, onComplete }: NewOrder
                          setIsIdLocked(true);
                     }
 
-                    if (paymentData.phone_pago_movil) {
-                         const match = paymentData.phone_pago_movil.match(/^(\+\d+)\s*(.+)$/);
+                    if (paymentData.pago_movil_phone) {
+                         const match = paymentData.pago_movil_phone.match(/^(\+\d+)\s*(.+)$/);
                          if (match) {
                               setPhoneCountryCode(match[1]);
                               setPhone(match[2]);
                          } else {
-                              setPhone(paymentData.phone_pago_movil.replace('+58', '').trim());
+                              setPhone(paymentData.pago_movil_phone.replace('+58', '').trim());
                          }
                          setIsPhoneLocked(true);
                     }
@@ -198,7 +200,34 @@ export function NewOrderForm({ currentRate, paraleloRate, onComplete }: NewOrder
                const data = await response.json();
 
                if (!response.ok) {
-                    throw new Error(data.error || 'Error al procesar la orden');
+                    // Limpiar errores previos
+                    setErrorMessage(null);
+                    setErrorField(null);
+
+                    // Extraer información del error
+                    const errorMsg = data.error || 'Error al procesar la orden';
+                    const errorCode = data.code;
+                    const fieldName = data.field;
+
+                    // Configurar mensaje de error visible
+                    setErrorMessage(errorMsg);
+                    if (fieldName) {
+                         setErrorField(fieldName);
+                    }
+
+                    // También mostrar alert para asegurar que el usuario lo vea
+                    if (errorCode === 'DUPLICATE_DATA') {
+                         alert(`⚠️ DATOS DUPLICADOS\n\n${errorMsg}\n\nEste dato ya está registrado por otro usuario. Por favor verifica tu información.`);
+                    } else if (errorCode === 'DATA_MISMATCH') {
+                         alert(`⚠️ DATOS INCONSISTENTES\n\n${errorMsg}\n\nLos datos que ingresaste no coinciden con tu perfil registrado.`);
+                    } else if (errorCode === 'INVALID_FORMAT') {
+                         alert(`❌ FORMATO INVÁLIDO\n\n${errorMsg}\n\nVerifica el formato de tus datos (email, teléfono, cuenta bancaria).`);
+                    } else {
+                         alert(`❌ ERROR\n\n${errorMsg}`);
+                    }
+
+                    setLoading(false);
+                    return;
                }
 
                // Success
@@ -208,12 +237,14 @@ export function NewOrderForm({ currentRate, paraleloRate, onComplete }: NewOrder
                     instructions: data.instructions
                });
                setStep(3);
-          } catch (error: any) {
-               alert(error.message);
+          } catch (error) {
+               console.error('Error de conexión:', error);
+               setErrorMessage('Error de conexión. Verifica tu internet e intenta nuevamente.');
+               alert('❌ ERROR DE CONEXIÓN\n\nNo se pudo conectar con el servidor. Verifica tu conexión a internet e intenta nuevamente.');
           } finally {
                setLoading(false);
           }
-     }, [validateStep2, amount, emailPaypal, bank, phone, idNumber, whatsapp, paymentMethod, accountNumber, accountHolder, idPrefix, phoneCountryCode, whatsappCountryCode]);
+     }, [validateStep2, amount, emailPaypal, bank, phone, idNumber, whatsapp, paymentMethod, accountNumber, accountHolder, idPrefix, phoneCountryCode, whatsappCountryCode, supabase]);
 
      const handleUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
           if (!e.target.files || e.target.files.length === 0 || !paymentInfo) return;
@@ -351,6 +382,30 @@ export function NewOrderForm({ currentRate, paraleloRate, onComplete }: NewOrder
                                    <span className="mono text-[10px] font-black bg-[#262626] text-white px-2">STEP_02</span>
                               </div>
                          </div>
+
+                         {/* Banner de Error Visible */}
+                         {errorMessage && (
+                              <div className="bg-red-50 border-l-4 border-red-500 p-4 space-y-2 animate-pulse">
+                                   <div className="flex items-center gap-2">
+                                        <span className="text-2xl">⚠️</span>
+                                        <p className="mono text-sm font-black text-red-800 uppercase">
+                                             {errorField ? `${errorField} ya registrado` : 'Error de Validación'}
+                                        </p>
+                                   </div>
+                                   <p className="mono text-xs text-red-700 font-bold">
+                                        {errorMessage}
+                                   </p>
+                                   <button
+                                        onClick={() => {
+                                             setErrorMessage(null);
+                                             setErrorField(null);
+                                        }}
+                                        className="mono text-[10px] text-red-600 hover:text-red-800 underline font-bold"
+                                   >
+                                        Cerrar mensaje
+                                   </button>
+                              </div>
+                         )}
 
                          <div className="grid md:grid-cols-2 gap-4">
                               {/* Email PayPal */}

@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
-import { useRouter } from 'next/navigation';
+// import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
 export default function RegisterPage() {
@@ -12,7 +12,7 @@ export default function RegisterPage() {
      const [error, setError] = useState('');
      const [loading, setLoading] = useState(false);
      const [success, setSuccess] = useState(false);
-     const router = useRouter();
+     // const router = useRouter();
      const supabase = createClient();
 
      const handleRegister = async (e: React.FormEvent) => {

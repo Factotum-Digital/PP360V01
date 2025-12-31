@@ -11,7 +11,10 @@ export default function Home() {
      const [session, setSession] = useState("FF-000-000");
 
      useEffect(() => {
-          setSession(`SESS-${Math.floor(Math.random() * 9000 + 1000)}`);
+          const timeout = setTimeout(() => {
+               setSession(`SESS-${Math.floor(Math.random() * 9000 + 1000)}`);
+          }, 0);
+          return () => clearTimeout(timeout);
      }, []);
 
      return (
@@ -21,7 +24,7 @@ export default function Home() {
                     <div className="flex justify-between items-start mb-6 w-full">
                          <div className="flex items-center gap-4">
                               <Tag active>Sistema: En Línea</Tag>
-                              <span className="mono text-xs text-gray-400 font-bold tracking-widest uppercase">{session} // OPERADORES ACTIVOS</span>
+                              <span className="mono text-xs text-gray-400 font-bold tracking-widest uppercase">{session} {/* OPERADORES ACTIVOS */}</span>
                          </div>
                          <div className="button-group">
                               <Link href="/login">

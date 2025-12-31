@@ -59,7 +59,8 @@ export const GridComets = () => {
      const [mounted, setMounted] = useState(false);
 
      useEffect(() => {
-          setMounted(true);
+          const timer = setTimeout(() => setMounted(true), 0);
+          return () => clearTimeout(timer);
      }, []);
 
      // Configuración de los cometas

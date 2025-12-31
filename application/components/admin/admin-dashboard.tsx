@@ -186,7 +186,7 @@ export function AdminDashboard({
                               Panel Administrativo
                          </h1>
                          <p className="mono text-xs font-bold text-gray-500 mt-2">
-                              {user.email} // SUPERUSER_ACCESS
+                              {user.email} {/* SUPERUSER_ACCESS */}
                          </p>
                     </div>
                     <div className="flex gap-2">
@@ -554,7 +554,7 @@ function OrderCard({
 
                                         {/* Payment Method Badge */}
                                         {(() => {
-                                             const data = order.destination_data as any;
+                                             const data = order.destination_data as { payment_method?: string };
                                              const method = data?.payment_method;
 
                                              // GUESTS are always Pago Móvil
@@ -574,8 +574,8 @@ function OrderCard({
                                    {hasPaymentData ? (
                                         <div className="mono text-xs space-y-1">
                                              <p><span className="opacity-50">Método:</span> <span className="font-bold uppercase bg-gray-100 px-1">{
-                                                  order.is_guest || (order.destination_data as any)?.payment_method === 'pago_movil' ? 'Pago Móvil' :
-                                                       (order.destination_data as any)?.payment_method === 'transferencia' ? 'Transferencia' : 'N/A'
+                                                  order.is_guest || (order.destination_data as { payment_method?: string })?.payment_method === 'pago_movil' ? 'Pago Móvil' :
+                                                       (order.destination_data as { payment_method?: string })?.payment_method === 'transferencia' ? 'Transferencia' : 'N/A'
                                              }</span></p>
                                              <p><span className="opacity-50">Banco:</span> <span className="font-bold">{order.bank_name || 'N/A'}</span></p>
                                              <p><span className="opacity-50">Cédula:</span> <span className="font-bold">{order.id_number || 'N/A'}</span></p>
@@ -665,6 +665,7 @@ function OrderCard({
                                              rel="noopener noreferrer"
                                              className="inline-block"
                                         >
+                                             {/* eslint-disable-next-line @next/next/no-img-element */}
                                              <img
                                                   src={order.payment_proof_url}
                                                   alt="Comprobante"

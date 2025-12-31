@@ -3,20 +3,106 @@ import { NextRequest, NextResponse } from "next/server";
 import { calculateOrderMetrics } from "@/lib/rate-calculator";
 import { generateTicketId } from "@/lib/utils/order-utils";
 
+// Tipos
+interface PaymentData {
+     user_id: string;
+     id_number: string;
+     email: string;
+     whatsapp_primary: string;
+     pago_movil_phone?: string | null;
+     account_number?: string | null;
+     paypal_email?: string | null;
+     bank_name: string;
+     full_name?: string;
+     account_holder?: string | null;
+     pago_movil_cedula?: string | null;
+     pago_movil_bank?: string | null;
+}
+
+interface OrderData {
+     user_id: string;
+     amount_sent: number;
+     currency_sent: string;
+     amount_received: number;
+     currency_received: string;
+     exchange_rate: number;
+     status: string;
+     paypal_email: string;
+     bank_name: string;
+     phone_pago_movil?: string;
+     id_number: string;
+     whatsapp: string;
+     is_guest: boolean;
+     destination_data: Record<string, unknown>;
+     ticket_id: string;
+}
+
+// Función auxiliar para extraer el campo duplicado del error
+function extractDuplicateField(errorMessage: string): string {
+     const fieldMap: Record<string, string> = {
+          'unique_id_number': 'Cédula/Pasaporte',
+          'unique_email': 'Correo electrónico',
+          'unique_whatsapp': 'WhatsApp',
+          'unique_pago_movil': 'Teléfono Pago Móvil',
+          'unique_account_number': 'Cuenta bancaria',
+     };
+
+     for (const [key, label] of Object.entries(fieldMap)) {
+          if (errorMessage.includes(key)) return label;
+     }
+     return 'dato';
+}
+
+// Función auxiliar para sanitizar datos
+function sanitizePaymentData(data: Partial<PaymentData>): Partial<PaymentData> {
+     // Función para normalizar teléfonos venezolanos
+     // +584123530231, +5804123530231, 04123530231, 4123530231 → 4123530231
+     const normalizePhone = (phone?: string | null): string | null => {
+          if (!phone) return null;
+
+          // Eliminar todo excepto números
+          let digits = phone.replace(/\D/g, '');
+
+          // Si empieza con código de país 58, quitarlo
+          if (digits.startsWith('58')) {
+               digits = digits.substring(2);
+          }
+
+          // Si empieza con 0, quitarlo (número venezolano con 0 inicial)
+          if (digits.startsWith('0')) {
+               digits = digits.substring(1);
+          }
+
+          // Retornar los 10 dígitos finales
+          return digits.slice(-10);
+     };
+
+     return {
+          ...data,
+          id_number: data.id_number?.trim().toUpperCase(),
+          email: data.email?.trim().toLowerCase(),
+          whatsapp_primary: normalizePhone(data.whatsapp_primary) || undefined,
+          pago_movil_phone: normalizePhone(data.pago_movil_phone) || undefined,
+          account_number: data.account_number?.replace(/\D/g, '') || undefined,
+          paypal_email: data.paypal_email?.trim().toLowerCase() || undefined,
+     };
+}
+
 export async function POST(request: NextRequest) {
      try {
           const supabase = await createClient();
-          const {
-               data: { user },
-          } = await supabase.auth.getUser();
 
-          if (!user) {
+          // PASO 1: Verificar autenticación
+          const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+          if (authError || !user) {
                return NextResponse.json(
-                    { error: "No autorizado. Debe iniciar sesión." },
+                    { error: 'No autorizado. Inicia sesión primero.' },
                     { status: 401 }
                );
           }
 
+          // PASO 2: Parsear y validar request body
           const body = await request.json();
           const {
                amount,
@@ -27,61 +113,122 @@ export async function POST(request: NextRequest) {
                whatsapp,
                paymentMethod,
                accountNumber,
-               accountHolder,
+               accountHolder
           } = body;
 
-          // 1. Obtener datos PRE-VERIFICADOS del perfil del usuario
-          const { data: profile } = await supabase
-               .from("user_payment_data")
-               .select("*")
-               .eq("user_id", user.id)
-               .single();
+          if (!amount || !emailPaypal || !bank || !idNumber || !whatsapp) {
+               return NextResponse.json(
+                    { error: 'Datos incompletos en la solicitud' },
+                    { status: 400 }
+               );
+          }
 
-          // 2. VALIDACIÓN DE SEGURIDAD (CRÍTICO)
-          // Si el usuario tiene datos registrados, el payload DEBE coincidir
-          if (profile) {
-               // Validar Cédula/RIF
-               if (profile.id_number) {
-                    // Normalizar para comparación (quitar espacios, guiones, mayúsculas)
-                    const normalize = (s: string) => s?.replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
-                    if (normalize(idNumber) !== normalize(profile.id_number)) {
-                         console.error(`Security Alert: User ${user.id} tried to modify locked ID. Expected ${profile.id_number}, got ${idNumber}`);
-                         return NextResponse.json(
-                              { error: "Error de validación: La cédula no coincide con su perfil verificado." },
-                              { status: 400 }
-                         );
+          // PASO 3: Verificar si el usuario ya tiene perfil de pago
+          const { data: existingProfile } = await supabase
+               .from('user_payment_data')
+               .select('*')
+               .eq('user_id', user.id)
+               .maybeSingle();
+
+          // Sanitizar datos recibidos
+          const sanitizedData = sanitizePaymentData({
+               user_id: user.id,
+               id_number: idNumber,
+               email: emailPaypal,
+               whatsapp_primary: whatsapp,
+               pago_movil_phone: paymentMethod === 'pago_movil' ? phone : null,
+               account_number: paymentMethod === 'transferencia' ? accountNumber : null,
+               paypal_email: emailPaypal,
+               bank_name: bank,
+               account_holder: paymentMethod === 'transferencia' ? accountHolder : null,
+          });
+
+          // PASO 4A: Si NO tiene perfil -> PRIMERO validar e insertar datos
+          if (!existingProfile) {
+               console.log('[CREATE ORDER] Usuario sin perfil. Validando datos nuevos...');
+
+               const { data: newProfile, error: insertError } = await supabase
+                    .from('user_payment_data')
+                    .insert(sanitizedData)
+                    .select()
+                    .single();
+
+               // CRÍTICO: Capturar violaciones de UNIQUE ANTES de crear orden
+               if (insertError) {
+                    console.error('[CREATE ORDER] Error al insertar perfil:', insertError);
+
+                    // Error de duplicado (código PostgreSQL 23505)
+                    if (insertError.code === '23505') {
+                         const field = extractDuplicateField(insertError.message);
+                         return NextResponse.json({
+                              error: `El ${field} ya está registrado por otro usuario. Por favor verifica tus datos.`,
+                              code: 'DUPLICATE_DATA',
+                              field: field
+                         }, { status: 400 });
+                    }
+
+                    // Error de formato (código PostgreSQL 23514 - CHECK violation)
+                    if (insertError.code === '23514') {
+                         return NextResponse.json({
+                              error: 'Uno o más campos tienen formato inválido. Verifica cédula, email, teléfono y cuenta bancaria.',
+                              code: 'INVALID_FORMAT'
+                         }, { status: 400 });
+                    }
+
+                    // Otros errores de base de datos
+                    return NextResponse.json({
+                         error: 'Error al guardar tus datos de pago. Intenta nuevamente.',
+                         code: 'DATABASE_ERROR'
+                    }, { status: 500 });
+               }
+
+               console.log('[CREATE ORDER] Perfil creado exitosamente:', newProfile.id);
+          }
+          // PASO 4B: Si tiene perfil -> Validar coherencia de datos críticos
+          else {
+               console.log('[CREATE ORDER] Usuario con perfil existente. Validando coherencia...');
+
+               // Validar que datos críticos coincidan (prevenir suplantación)
+               const mismatches = [];
+
+               const normalize = (s: string) => s?.replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
+
+               if (existingProfile.id_number && normalize(idNumber) !== normalize(existingProfile.id_number)) {
+                    mismatches.push('Cédula/Pasaporte');
+               }
+               if (existingProfile.email && sanitizedData.email !== existingProfile.email?.toLowerCase()) {
+                    mismatches.push('Correo electrónico');
+               }
+
+               // Validar cuenta bancaria solo si el método de pago es transferencia
+               if (paymentMethod === 'transferencia' && existingProfile.account_number) {
+                    const normalizeAcc = (s: string) => s?.replace(/\D/g, '');
+                    if (normalizeAcc(accountNumber) !== normalizeAcc(existingProfile.account_number)) {
+                         mismatches.push('Cuenta bancaria');
                     }
                }
 
-               // Validar Teléfono Pago Móvil
-               if (paymentMethod === 'pago_movil' && profile.pago_movil_phone) {
-                    const normalizePhone = (s: string) => s?.replace(/\D/g, ""); // Solo números
-                    // Comparamos los últimos 10 dígitos para evitar problemas con +58/0
+               // Validar teléfono pago móvil solo si el método de pago es pago_movil
+               if (paymentMethod === 'pago_movil' && existingProfile.pago_movil_phone) {
+                    const normalizePhone = (s: string) => s?.replace(/\D/g, '');
                     const payloadPhone = normalizePhone(phone).slice(-10);
-                    const profilePhone = normalizePhone(profile.pago_movil_phone).slice(-10);
+                    const profilePhone = normalizePhone(existingProfile.pago_movil_phone).slice(-10);
 
                     if (payloadPhone !== profilePhone) {
-                         console.error(`Security Alert: User ${user.id} tried to modify locked Phone. Expected end with ${profilePhone}, got ${payloadPhone}`);
-                         return NextResponse.json(
-                              { error: "Error de validación: El teléfono de pago móvil no coincide con su perfil verificado." },
-                              { status: 400 }
-                         );
+                         mismatches.push('Teléfono Pago Móvil');
                     }
                }
 
-               // Validar Cuenta Bancaria (si aplica)
-               if (paymentMethod === 'transferencia' && profile.account_number) {
-                    const normalizeAcc = (s: string) => s?.replace(/\D/g, "");
-                    if (normalizeAcc(accountNumber) !== normalizeAcc(profile.account_number)) {
-                         return NextResponse.json(
-                              { error: "Error de validación: El número de cuenta no coincide con su perfil verificado." },
-                              { status: 400 }
-                         );
-                    }
+               if (mismatches.length > 0) {
+                    return NextResponse.json({
+                         error: `Los siguientes datos no coinciden con tu perfil registrado: ${mismatches.join(', ')}`,
+                         code: 'DATA_MISMATCH',
+                         fields: mismatches
+                    }, { status: 400 });
                }
           }
 
-          // 3. Recálculos de Seguridad (Monto, Tasa)
+          // PASO 5: Recálculos de Seguridad (Monto, Tasa)
           const ratesRes = await fetch(`${request.nextUrl.origin}/api/rates`);
           const ratesData = await ratesRes.json();
           const parallelRate = ratesData.baseRate || ratesData.paralelo || 0;
@@ -93,7 +240,9 @@ export async function POST(request: NextRequest) {
                return NextResponse.json({ error: "El monto mínimo es $5 USD" }, { status: 400 });
           }
 
-          // 4. Crear la Orden
+          // PASO 6: SOLO si pasamos todas las validaciones -> Crear la orden
+          console.log('[CREATE ORDER] Validaciones exitosas. Creando orden...');
+
           const ticketId = generateTicketId();
 
           // Preparar datos de destino
@@ -105,7 +254,7 @@ export async function POST(request: NextRequest) {
                }),
           };
 
-          const { data: order, error } = await supabase.from('exchange_orders').insert({
+          const orderPayload: OrderData = {
                user_id: user.id,
                ticket_id: ticketId,
                amount_sent: amountNum,
@@ -116,32 +265,29 @@ export async function POST(request: NextRequest) {
                status: 'PENDING',
                paypal_email: emailPaypal,
                bank_name: bank,
-               phone_pago_movil: phone, // Guardamos el enviado (ya validado si existía perfil)
-               id_number: idNumber,     // Guardamos el enviado (ya validado si existía perfil)
+               phone_pago_movil: phone,
+               id_number: idNumber,
                whatsapp: whatsapp,
                is_guest: false,
                destination_data: destinationData,
-          }).select().single();
+          };
 
-          if (error) {
-               console.error("Database error:", error);
-               return NextResponse.json({ error: "Error al crear la orden: " + error.message }, { status: 500 });
+          const { data: order, error: orderError } = await supabase
+               .from('exchange_orders')
+               .insert(orderPayload)
+               .select()
+               .single();
+
+          if (orderError) {
+               console.error('[CREATE ORDER] Error al crear orden:', orderError);
+               return NextResponse.json({
+                    error: 'Error al crear la orden. Intenta nuevamente.',
+                    code: 'ORDER_CREATION_FAILED'
+               }, { status: 500 });
           }
 
-          // 5. Actualizar Datos (Solo si NO existían previamente y pasaron validación básica)
-          // Nota: La política es que si ya existen NO se actualizan aquí, se usa el endpoint de perfil.
-          // Pero si el usuario es nuevo y no tenía perfil, guardamos estos como iniciales.
-          if (!profile) {
-               await supabase.from('user_payment_data').upsert({
-                    user_id: user.id,
-                    bank_name: bank,
-                    id_number: idNumber,
-                    phone_pago_movil: paymentMethod === 'pago_movil' ? phone : null,
-                    account_number: paymentMethod === 'transferencia' ? accountNumber : null,
-                    account_holder: paymentMethod === 'transferencia' ? accountHolder : null,
-                    // No sobreescribimos email/whatsapp si ya existen en otro lado, pero aquí asumimos upsert seguro
-               }, { onConflict: 'user_id' });
-          }
+          // PASO 7: Éxito - Devolver orden creada
+          console.log('[CREATE ORDER] Orden creada exitosamente:', order.order_id);
 
           return NextResponse.json({
                success: true,
@@ -153,10 +299,13 @@ export async function POST(request: NextRequest) {
                     `3. Envía captura del pago por WhatsApp`,
                     `4. Recibirás Bs. ${vesAmount.toLocaleString('es-VE', { minimumFractionDigits: 2 })} en tu cuenta`
                ]
-          });
+          }, { status: 201 });
 
-     } catch (err: any) {
-          console.error("API Error:", err);
-          return NextResponse.json({ error: "Error interno del servidor" }, { status: 500 });
+     } catch (error: unknown) {
+          console.error('[CREATE ORDER] Error inesperado:', error);
+          return NextResponse.json({
+               error: 'Error del servidor. Por favor intenta más tarde.',
+               code: 'INTERNAL_ERROR'
+          }, { status: 500 });
      }
 }
