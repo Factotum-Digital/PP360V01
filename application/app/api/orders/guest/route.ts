@@ -1,10 +1,23 @@
-import { createClient } from "@/lib/supabase/server";
+import { createAnonClient } from "@/lib/supabase/server";
 import { NextRequest, NextResponse } from "next/server";
 import { calculateOrderMetrics } from "@/lib/rate-calculator";
 import { generateTicketId } from "@/lib/utils/order-utils";
+import { RateLimit } from "@/lib/rate-limit";
 
 export async function POST(request: NextRequest) {
      try {
+          // 1. Rate Limiting Check (Security)
+          // Usar IP o un identificador de sesión. En Next.js local/edge, 'x-forwarded-for' es común.
+          const ip = request.headers.get("x-forwarded-for") || "unknown-ip";
+
+          if (!RateLimit.check(ip)) {
+               console.warn(`[RATE LIMIT] IP bloequeada temporalmente: ${ip}`);
+               return NextResponse.json(
+                    { error: "Demasiados intentos. Por favor espera un momento." },
+                    { status: 429 }
+               );
+          }
+
           const body = await request.json();
 
           const {
@@ -72,8 +85,8 @@ export async function POST(request: NextRequest) {
           // Generar ticket ID
           const ticketId = generateTicketId();
 
-          // Crear cliente Supabase
-          const supabase = await createClient();
+          // Crear cliente Supabase anónimo (para guest orders)
+          const supabase = createAnonClient();
 
           // Insertar orden en la base de datos
           const { data: order, error } = await supabase

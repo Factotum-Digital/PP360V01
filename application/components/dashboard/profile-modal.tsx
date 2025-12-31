@@ -80,6 +80,13 @@ export function ProfileModal({ userId, onClose }: ProfileModalProps) {
                     .eq('user_id', userId)
                     .single();
 
+               // [SECURITY FIX] Siempre obtener el email real de la cuenta de autenticación
+               // Esto previene que el usuario intente usar otro email y cause conflictos
+               const { data: { user } } = await supabase.auth.getUser();
+               if (user?.email) {
+                    setEmail(user.email);
+               }
+
                if (data) {
                     if (data.full_name) {
                          setFullName(data.full_name);
@@ -292,7 +299,9 @@ export function ProfileModal({ userId, onClose }: ProfileModalProps) {
                                                             className={`w-full border-4 p-3 font-bold mono outline-none transition-colors ${fullName.length >= 3 ? 'border-green-500' : 'border-[#262626]'} ${isNameLocked ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''}`}
                                                             placeholder="Como aparece en tus documentos"
                                                        />
-                                                       {isNameLocked && <span className="absolute right-3 top-3 text-gray-400"><svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg></span>}
+                                                       {isNameLocked && <span className="absolute right-3 top-3 text-gray-400"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-3 h-3 text-gray-300 transform translate-y-[1px]">
+                                                            <path fillRule="evenodd" d="M12 1.5a5.25 5.25 0 0 0-5.25 5.25v3a3 3 0 0 0-3 3v6.75a3 3 0 0 0 3 3h10.5a3 3 0 0 0 3-3v-6.75a3 3 0 0 0-3-3v-3c0-2.9-2.35-5.25-5.25-5.25Zm3.75 8.25v-3a3.75 3.75 0 1 0-7.5 0v3h7.5Z" clipRule="evenodd" />
+                                                       </svg></span>}
                                                   </div>
                                              </div>
                                         </div>
@@ -327,7 +336,9 @@ export function ProfileModal({ userId, onClose }: ProfileModalProps) {
                                                             placeholder="12345678"
                                                             maxLength={8}
                                                        />
-                                                       {isIdLocked && <span className="absolute right-3 top-3 text-gray-400"><svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg></span>}
+                                                       {isIdLocked && <span className="absolute right-3 top-3 text-gray-400"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-3 h-3 text-gray-300 transform translate-y-[1px]">
+                                                            <path fillRule="evenodd" d="M12 1.5a5.25 5.25 0 0 0-5.25 5.25v3a3 3 0 0 0-3 3v6.75a3 3 0 0 0 3 3h10.5a3 3 0 0 0 3-3v-6.75a3 3 0 0 0-3-3v-3c0-2.9-2.35-5.25-5.25-5.25Zm3.75 8.25v-3a3.75 3.75 0 1 0-7.5 0v3h7.5Z" clipRule="evenodd" />
+                                                       </svg></span>}
                                                   </div>
                                              </div>
                                              <p className="mono text-[9px] text-gray-400">6-8 dígitos</p>
@@ -337,16 +348,12 @@ export function ProfileModal({ userId, onClose }: ProfileModalProps) {
                                         <div className="space-y-1">
                                              <label className="mono text-[10px] font-black uppercase flex items-center justify-between">
                                                   <span>WhatsApp Principal * {whatsappPrimary.length >= 10 && <span className="text-green-500">✓</span>}</span>
-                                                  {isPhoneLocked && (
-                                                       <a href="https://wa.me/15557745095?text=Deseo%20actualizar%20mi%20Telefono" target="_blank" rel="noopener noreferrer" className="text-[9px] text-gray-400 hover:text-[#FF4D00]">Solicitar Cambio ↗</a>
-                                                  )}
                                              </label>
                                              <div className="flex gap-2 relative">
                                                   <select
                                                        value={countryCode}
                                                        onChange={(e) => setCountryCode(e.target.value)}
-                                                       disabled={isPhoneLocked}
-                                                       className={`border-4 border-[#262626] p-3 font-bold mono outline-none ${isPhoneLocked ? 'bg-gray-200 text-gray-500' : 'bg-gray-50'}`}
+                                                       className="border-4 border-[#262626] p-3 font-bold mono outline-none bg-gray-50"
                                                   >
                                                        {COUNTRY_CODES.map(c => (
                                                             <option key={c.code} value={c.code}>{c.country} ({c.code})</option>
@@ -357,11 +364,9 @@ export function ProfileModal({ userId, onClose }: ProfileModalProps) {
                                                             type="text"
                                                             value={whatsappPrimary}
                                                             onChange={(e) => setWhatsappPrimary(e.target.value.replace(/\D/g, ''))}
-                                                            disabled={isPhoneLocked}
-                                                            className={`w-full border-4 p-3 font-bold mono outline-none transition-colors ${whatsappPrimary.length >= 10 ? 'border-green-500' : 'border-[#262626]'} ${isPhoneLocked ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''}`}
+                                                            className={`w-full border-4 p-3 font-bold mono outline-none transition-colors ${whatsappPrimary.length >= 10 ? 'border-green-500' : 'border-[#262626]'}`}
                                                             placeholder="4121234567"
                                                        />
-                                                       {isPhoneLocked && <span className="absolute right-3 top-3 text-gray-400"><svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg></span>}
                                                   </div>
                                              </div>
                                         </div>
@@ -393,15 +398,20 @@ export function ProfileModal({ userId, onClose }: ProfileModalProps) {
 
                                         {/* Email */}
                                         <div className="space-y-1">
-                                             <label className="mono text-[10px] font-black uppercase flex items-center gap-2">
-                                                  Correo Electrónico
-                                                  {/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) && <span className="text-green-500">✓</span>}
+                                             <label className="mono text-[10px] font-black uppercase flex items-center justify-between">
+                                                  <span className="flex items-center gap-2">
+                                                       Correo Electrónico
+                                                       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-3 h-3 text-gray-300">
+                                                            <path fillRule="evenodd" d="M12 1.5a5.25 5.25 0 0 0-5.25 5.25v3a3 3 0 0 0-3 3v6.75a3 3 0 0 0 3 3h10.5a3 3 0 0 0 3-3v-6.75a3 3 0 0 0-3-3v-3c0-2.9-2.35-5.25-5.25-5.25Zm3.75 8.25v-3a3.75 3.75 0 1 0-7.5 0v3h7.5Z" clipRule="evenodd" />
+                                                       </svg>
+                                                  </span>
+                                                  <a href="https://wa.me/15557745095?text=Deseo%20actualizar%20mi%20Email%20de%20Registro" target="_blank" rel="noopener noreferrer" className="text-[9px] text-gray-400 hover:text-[#FF4D00]">Solicitar Cambio ↗</a>
                                              </label>
                                              <input
                                                   type="email"
                                                   value={email}
-                                                  onChange={(e) => setEmail(e.target.value)}
-                                                  className={`w-full border-4 p-3 font-bold mono outline-none transition-colors ${/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) ? 'border-green-500' : 'border-[#262626]'}`}
+                                                  disabled={true}
+                                                  className="w-full border-4 p-3 font-bold mono outline-none border-gray-200 bg-gray-100 text-gray-500 cursor-not-allowed"
                                                   placeholder="tu@email.com"
                                              />
                                         </div>
@@ -466,7 +476,9 @@ export function ProfileModal({ userId, onClose }: ProfileModalProps) {
                                                        className={`w-full border-4 p-3 font-bold mono outline-none transition-colors ${accountNumber.length === 20 ? 'border-green-500' : 'border-[#262626]'} ${isBankLocked ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''}`}
                                                        placeholder="01340123456789012345"
                                                   />
-                                                  {isBankLocked && <span className="absolute right-3 top-3 text-gray-400"><svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg></span>}
+                                                  {isBankLocked && <span className="absolute right-3 top-3 text-gray-400"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-3 h-3 text-gray-300 transform translate-y-[1px]">
+                                                       <path fillRule="evenodd" d="M12 1.5a5.25 5.25 0 0 0-5.25 5.25v3a3 3 0 0 0-3 3v6.75a3 3 0 0 0 3 3h10.5a3 3 0 0 0 3-3v-6.75a3 3 0 0 0-3-3v-3c0-2.9-2.35-5.25-5.25-5.25Zm3.75 8.25v-3a3.75 3.75 0 1 0-7.5 0v3h7.5Z" clipRule="evenodd" />
+                                                  </svg></span>}
                                              </div>
                                         </div>
 
@@ -511,7 +523,12 @@ export function ProfileModal({ userId, onClose }: ProfileModalProps) {
 
                                              {/* Pago Movil Phone */}
                                              <div className="space-y-1">
-                                                  <label className="mono text-[10px] font-black uppercase">Teléfono</label>
+                                                  <label className="mono text-[10px] font-black uppercase flex justify-between">
+                                                       <span>Teléfono</span>
+                                                       {isPagoMovilPhoneLocked && (
+                                                            <a href="https://wa.me/15557745095?text=Deseo%20actualizar%20mi%20Telefono%20Pago%20Movil" target="_blank" rel="noopener noreferrer" className="text-[9px] text-gray-400 hover:text-[#FF4D00]">Solicitar Cambio ↗</a>
+                                                       )}
+                                                  </label>
                                                   <div className="relative">
                                                        <input
                                                             type="text"
@@ -521,20 +538,32 @@ export function ProfileModal({ userId, onClose }: ProfileModalProps) {
                                                             className={`w-full border-4 border-[#262626] p-3 font-bold mono outline-none ${isPagoMovilPhoneLocked ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''}`}
                                                             placeholder="04121234567"
                                                        />
-                                                       {isPagoMovilPhoneLocked && <span className="absolute right-3 top-3 text-gray-400"><svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" /></svg></span>}
+                                                       {isPagoMovilPhoneLocked && <span className="absolute right-3 top-3 text-gray-400"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-3 h-3 text-gray-300">
+                                                            <path fillRule="evenodd" d="M12 1.5a5.25 5.25 0 0 0-5.25 5.25v3a3 3 0 0 0-3 3v6.75a3 3 0 0 0 3 3h10.5a3 3 0 0 0 3-3v-6.75a3 3 0 0 0-3-3v-3c0-2.9-2.35-5.25-5.25-5.25Zm3.75 8.25v-3a3.75 3.75 0 1 0-7.5 0v3h7.5Z" clipRule="evenodd" /></svg></span>}
                                                   </div>
                                              </div>
                                         </div>
 
-                                        {/* Pago Movil Cedula */}
+                                        {/* Pago Movil Cedula - Auto-filled from main ID */}
                                         <div className="space-y-1">
-                                             <label className="mono text-[10px] font-black uppercase">Cédula Asociada</label>
+                                             <label className="mono text-[10px] font-black uppercase flex items-center justify-between">
+                                                  <span className="flex items-center gap-2">
+                                                       Cédula Asociada
+                                                       {isIdLocked && (
+                                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-3 h-3 text-gray-300">
+                                                                 <path fillRule="evenodd" d="M12 1.5a5.25 5.25 0 0 0-5.25 5.25v3a3 3 0 0 0-3 3v6.75a3 3 0 0 0 3 3h10.5a3 3 0 0 0 3-3v-6.75a3 3 0 0 0-3-3v-3c0-2.9-2.35-5.25-5.25-5.25Zm3.75 8.25v-3a3.75 3.75 0 1 0-7.5 0v3h7.5Z" clipRule="evenodd" />
+                                                            </svg>
+                                                       )}
+                                                  </span>
+                                                  {isIdLocked && (
+                                                       <a href="https://wa.me/15557745095?text=Deseo%20actualizar%20mi%20Cedula" target="_blank" rel="noopener noreferrer" className="text-[9px] text-gray-400 hover:text-[#FF4D00]">Solicitar Cambio ↗</a>
+                                                  )}
+                                             </label>
                                              <div className="flex gap-2 relative">
                                                   <select
-                                                       value={pagoMovilCedulaPrefix}
-                                                       onChange={(e) => setPagoMovilCedulaPrefix(e.target.value)}
-                                                       disabled={isPagoMovilCedulaLocked}
-                                                       className={`border-4 border-[#262626] p-3 font-bold mono outline-none ${isPagoMovilCedulaLocked ? 'bg-gray-200 text-gray-500' : 'bg-[#262626] text-white'}`}
+                                                       value={idPrefix}
+                                                       disabled={true}
+                                                       className="border-4 border-[#262626] p-3 font-bold mono outline-none bg-gray-200 text-gray-500 cursor-not-allowed"
                                                   >
                                                        <option>V</option>
                                                        <option>E</option>
@@ -544,16 +573,17 @@ export function ProfileModal({ userId, onClose }: ProfileModalProps) {
                                                   <div className="relative flex-1">
                                                        <input
                                                             type="text"
-                                                            value={pagoMovilCedula}
-                                                            onChange={(e) => setPagoMovilCedula(e.target.value.replace(/\D/g, '').slice(0, 8))}
-                                                            disabled={isPagoMovilCedulaLocked}
-                                                            className={`w-full border-4 border-[#262626] p-3 font-bold mono outline-none ${isPagoMovilCedulaLocked ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''}`}
+                                                            value={idNumber}
+                                                            disabled={true}
+                                                            className="w-full border-4 border-[#262626] p-3 font-bold mono outline-none bg-gray-100 text-gray-500 cursor-not-allowed"
                                                             placeholder="12345678"
                                                             maxLength={8}
                                                        />
-                                                       {isPagoMovilCedulaLocked && <span className="absolute right-3 top-3 text-gray-400">🔒</span>}
+                                                       <span className="absolute right-3 top-3 text-gray-400"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-3 h-3 text-gray-300">
+                                                            <path fillRule="evenodd" d="M12 1.5a5.25 5.25 0 0 0-5.25 5.25v3a3 3 0 0 0-3 3v6.75a3 3 0 0 0 3 3h10.5a3 3 0 0 0 3-3v-6.75a3 3 0 0 0-3-3v-3c0-2.9-2.35-5.25-5.25-5.25Zm3.75 8.25v-3a3.75 3.75 0 1 0-7.5 0v3h7.5Z" clipRule="evenodd" /></svg></span>
                                                   </div>
                                              </div>
+                                             <p className="mono text-[9px] text-gray-400">Se usa la misma cédula de tu perfil</p>
                                         </div>
 
                                         {/* Enable Transfer Toggle */}

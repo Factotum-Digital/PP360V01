@@ -1,4 +1,5 @@
 import { createServerClient } from '@supabase/ssr';
+import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import { cookies } from 'next/headers';
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from './config';
 
@@ -24,4 +25,9 @@ export async function createClient() {
                },
           }
      );
+}
+
+// Anonymous client for guest operations (no cookie auth)
+export function createAnonClient() {
+     return createSupabaseClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 }

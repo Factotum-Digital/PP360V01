@@ -134,7 +134,7 @@ export async function POST(request: NextRequest) {
           const sanitizedData = sanitizePaymentData({
                user_id: user.id,
                id_number: idNumber,
-               email: emailPaypal,
+               email: user.email, // Use Auth Email for identity, not PayPal email
                whatsapp_primary: whatsapp,
                pago_movil_phone: paymentMethod === 'pago_movil' ? phone : null,
                account_number: paymentMethod === 'transferencia' ? accountNumber : null,
