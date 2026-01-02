@@ -44,8 +44,11 @@ import {
      Globe,
      Shield,
      Calendar,
-     Landmark
+     Landmark,
+     Percent
 } from 'lucide-react';
+import Link from 'next/link';
+import type { ExchangeOrder } from '@/lib/supabase/database.types';
 import { useRouter } from 'next/navigation';
 
 // ==========================================
@@ -82,6 +85,28 @@ interface EarningsPanelProps {
      rates: any;
      stats: any;
      userPaymentData: any[];
+}
+
+interface Campaign {
+     id: string;
+     code: string;
+     type: string;
+     owner?: string;
+     discount?: number;
+     discount_percent?: number;
+     uses?: number;
+     uses_count?: number;
+     generated_rev?: number;
+     active: boolean;
+     created?: string;
+}
+
+interface Offer {
+     id: string;
+     title: string;
+     discount: number;
+     duration: string;
+     active: boolean;
 }
 
 interface UserInfo {
@@ -443,9 +468,9 @@ export function EarningsPanel(props: EarningsPanelProps) {
                          <div className="flex flex-col lg:flex-row justify-between items-start lg:items-end gap-6">
                               <div className="flex-1">
                                    <div className="flex items-center gap-3 mb-3 flex-wrap">
-                                        <button onClick={() => router.push('/admin')} className="bg-gray-200 text-black font-black text-xs px-3 py-1.5 border-2 border-black shadow-[3px_3px_0px_0px_#000] hover:bg-gray-300 flex items-center gap-1">
+                                        <Link href="/admin" className="bg-gray-200 text-black font-black text-xs px-3 py-1.5 border-2 border-black shadow-[3px_3px_0px_0px_#000] hover:bg-gray-300 flex items-center gap-1">
                                              <ArrowLeft size={14} /> VOLVER
-                                        </button>
+                                        </Link>
                                         <span className="bg-blue-600 text-white font-black text-xs px-3 py-1.5 border-2 border-black transform -rotate-1 shadow-[3px_3px_0px_0px_#000]">ADMIN v3.5</span>
                                         <span className="text-orange-600 font-bold text-xs tracking-widest uppercase">/// Sistema Financiero</span>
                                         <span className="bg-green-400 text-black font-black text-[10px] px-2 py-1 border border-black">LIVE</span>
@@ -489,8 +514,8 @@ export function EarningsPanel(props: EarningsPanelProps) {
                     {activeTab === 'orders' && (
                          <>
                               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                                   <BrutalCard title="Volumen Total Procesado" value={formatCurrency(metrics.totalGross)} subValue={`Promedio: ${formatCurrency(metrics.avgTicket)} por orden`} icon={Wallet} colorClass="bg-blue-600" textColor="text-white" trend={metrics.grossTrend} />
-                                   <BrutalCard title="Ganancia Neta (12%)" value={formatCurrency(metrics.totalNet)} subValue={`Calculado sobre $${metrics.totalGross.toFixed(0)} Brutos`} icon={TrendingUp} colorClass="bg-white" trend={metrics.netTrend} />
+                                   <BrutalCard title="Volumen Total Procesado" value={formatCurrency(metrics.totalGross)} subValue={`Promedio: ${formatCurrency(metrics.avgTicket)} por orden`} icon={Wallet} colorClass="bg-blue-600" textColor="text-white" trend={metrics.grossTrend.direction} trendValue={metrics.grossTrend.value} />
+                                   <BrutalCard title="Ganancia Neta (12%)" value={formatCurrency(metrics.totalNet)} subValue={`Calculado sobre $${metrics.totalGross.toFixed(0)} Brutos`} icon={TrendingUp} colorClass="bg-white" trend={metrics.netTrend.direction} trendValue={metrics.netTrend.value} />
                                    <BrutalCard title="Disputas Abiertas" value={data.disputes.filter(d => d.status === 'OPEN').length} subValue="Requieren atención inmediata" icon={Gavel} colorClass="bg-red-500" textColor="text-white" />
                                    <BrutalCard title="Tasa de Conversión" value={`${metrics.conversionRate.toFixed(1)}%`} subValue={`${data.orders.filter(o => o.status === 'COMPLETED').length} de ${data.orders.length} completadas`} icon={Activity} colorClass="bg-orange-500" />
                               </div>

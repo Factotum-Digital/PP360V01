@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { Slab, Tag } from '@/components/ui/brutalist-system';
 import { createClient } from '@/lib/supabase/client';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import type { User } from '@supabase/supabase-js';
 import type { ExchangeOrder } from '@/lib/supabase/database.types';
@@ -235,13 +236,14 @@ export function AdminDashboard({
                          <div className="text-2xl font-black text-green-600">{stats.completed}</div>
                          <div className="mono text-[10px] font-bold uppercase">Completadas</div>
                     </Slab>
-                    <Slab
-                         className="p-4 text-center bg-[#FF4D00] text-white cursor-pointer transition-transform hover:scale-105 hover:shadow-lg"
-                         onClick={() => router.push('/admin/earnings')}
-                    >
-                         <div className="text-2xl font-black">${stats.totalUSD.toFixed(0)}</div>
-                         <div className="mono text-[10px] font-bold uppercase">Total USD</div>
-                    </Slab>
+                    <Link href="/admin/earnings" className="contents">
+                         <Slab
+                              className="p-4 text-center bg-[#FF4D00] text-white cursor-pointer transition-transform hover:scale-105 hover:shadow-lg"
+                         >
+                              <div className="text-2xl font-black">${stats.totalUSD.toFixed(0)}</div>
+                              <div className="mono text-[10px] font-bold uppercase">Total USD</div>
+                         </Slab>
+                    </Link>
                     <Slab className="p-4 text-center bg-[#262626] text-white">
                          <div className="text-2xl font-black text-[#FF4D00]">{currentRate.toFixed(2)}</div>
                          <div className="mono text-[10px] font-bold uppercase">Tasa Pago</div>
