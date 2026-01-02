@@ -77,6 +77,7 @@
 
 #### Mantenimiento y Fixes
 - [x] **Fix Cálculo Perfil**: Se incluyó el `accountNumber` y `accountHolder` en la fórmula de completitud del perfil. Ahora el 100% es real.
+- [x] **Verificación Seguridad Datos**: Validada migración `007` y restricciones `UNIQUE` en base de datos productiva. Confirmada lógica de creación de órdenes atómica y manejo de duplicados en frontend.
 
 ### Cambios Recientes (28 Dic 2025)
 
