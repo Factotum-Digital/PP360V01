@@ -109,6 +109,28 @@ interface Offer {
      active: boolean;
 }
 
+interface Campaign {
+     id: string;
+     code: string;
+     type: string;
+     owner?: string;
+     discount?: number;
+     discount_percent?: number;
+     uses?: number;
+     uses_count?: number;
+     generated_rev?: number;
+     active: boolean;
+     created?: string;
+}
+
+interface Offer {
+     id: string;
+     title: string;
+     discount: number;
+     duration: string;
+     active: boolean;
+}
+
 interface UserInfo {
      email: string;
      fullName: string;
