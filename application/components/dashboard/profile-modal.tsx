@@ -67,10 +67,11 @@ export function ProfileModal({ userId, onClose }: ProfileModalProps) {
      // Memoized completion calculation
      const completion = useMemo(() => {
           let completed = 0;
-          const fields = [fullName, idNumber, whatsappPrimary, bank, paypalEmail];
+          // [FIX] Incluimos accountNumber y accountHolder para que el 100% sea real
+          const fields = [fullName, idNumber, whatsappPrimary, bank, accountNumber, accountHolder, paypalEmail];
           fields.forEach(f => { if (f && f.trim()) completed++; });
           return Math.round((completed / fields.length) * 100);
-     }, [fullName, idNumber, whatsappPrimary, bank, paypalEmail]);
+     }, [fullName, idNumber, whatsappPrimary, bank, accountNumber, accountHolder, paypalEmail]);
 
      useEffect(() => {
           const loadData = async () => {
