@@ -235,7 +235,10 @@ export function AdminDashboard({
                          <div className="text-2xl font-black text-green-600">{stats.completed}</div>
                          <div className="mono text-[10px] font-bold uppercase">Completadas</div>
                     </Slab>
-                    <Slab className="p-4 text-center bg-[#FF4D00] text-white">
+                    <Slab
+                         className="p-4 text-center bg-[#FF4D00] text-white cursor-pointer transition-transform hover:scale-105 hover:shadow-lg"
+                         onClick={() => router.push('/admin/earnings')}
+                    >
                          <div className="text-2xl font-black">${stats.totalUSD.toFixed(0)}</div>
                          <div className="mono text-[10px] font-bold uppercase">Total USD</div>
                     </Slab>
