@@ -1,6 +1,6 @@
 # PP360VE - Estado del Proyecto
 
-**Última actualización:** 30 de Diciembre de 2025 (Seguridad y Datos del Usuario)
+**Última actualización:** 02 de Enero de 2026 (Fix Cálculo Perfil)
 **Avance estimado:** ~88% (Core funcional + Exportación PDF/CSV + Refactorización Modular)
 
 ---
@@ -72,6 +72,11 @@
 | **Subida Comprobantes** | 100% | UI y backend funcionales ✅ |
 | **División de Monolitos** | ✅ 100% | `NewOrderForm`, `ProfileModal`, `OrderCard` extraídos |
 | **Centralización Utilidades** | ✅ 100% | `lib/utils/order-utils.ts` creado |
+
+### Cambios Recientes (02 Ene 2026)
+
+#### Mantenimiento y Fixes
+- [x] **Fix Cálculo Perfil**: Se incluyó el `accountNumber` y `accountHolder` en la fórmula de completitud del perfil. Ahora el 100% es real.
 
 ### Cambios Recientes (28 Dic 2025)
 
