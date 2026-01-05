@@ -36,7 +36,7 @@ export async function POST(request: Request) {
                               type: 'signup',
                               email,
                               password,
-                              options: { redirectTo: redirectTo || `${process.env.NEXT_PUBLIC_SITE_URL || 'https://pp360v01.vercel.app'}/auth/callback` }
+                              options: { redirectTo: redirectTo || 'https://pp360v01.vercel.app/auth/callback' }
                          });
                          if (error) throw error;
                          actionLink = data.properties.action_link;
@@ -51,7 +51,7 @@ export async function POST(request: Request) {
                          type: 'signup',
                          email,
                          password,
-                         options: { redirectTo: redirectTo || `${process.env.NEXT_PUBLIC_SITE_URL || 'https://pp360v01.vercel.app'}/auth/callback` }
+                         options: { redirectTo: redirectTo || 'https://pp360v01.vercel.app/auth/callback' }
                     });
 
                     if (error) {
@@ -66,7 +66,7 @@ export async function POST(request: Request) {
                const { data, error } = await supabaseAdmin.auth.admin.generateLink({
                     type: type === 'magiclink' ? 'magiclink' : 'recovery',
                     email,
-                    options: { redirectTo: redirectTo || `${process.env.NEXT_PUBLIC_SITE_URL || 'https://pp360v01.vercel.app'}/auth/callback` }
+                    options: { redirectTo: redirectTo || 'https://pp360v01.vercel.app/auth/callback' }
                });
 
                if (error) {
