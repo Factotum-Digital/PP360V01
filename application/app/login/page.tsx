@@ -74,26 +74,18 @@ export default function LoginPage() {
           setError('');
           setMagicLinkLoading(true);
 
-          try {
-               const response = await fetch('/api/auth/magic-link', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                         email: magicLinkEmail,
-                         type: 'magiclink'
-                    })
-               });
+          const { error } = await supabase.auth.signInWithOtp({
+               email: magicLinkEmail,
+               options: {
+                    emailRedirectTo: `${window.location.origin}/auth/callback`,
+               },
+          });
 
-               const data = await response.json();
-
-               if (!response.ok) {
-                    throw new Error(data.error || 'Failed to send magic link');
-               }
-
+          if (error) {
+               setError(error.message);
+               setMagicLinkLoading(false);
+          } else {
                setMagicLinkSent(true);
-          } catch (err: any) {
-               setError(err.message);
-          } finally {
                setMagicLinkLoading(false);
           }
      };
@@ -105,26 +97,15 @@ export default function LoginPage() {
           setError('');
           setForgotLoading(true);
 
-          try {
-               const response = await fetch('/api/auth/magic-link', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                         email: forgotEmail,
-                         type: 'recovery'
-                    })
-               });
+          const { error } = await supabase.auth.resetPasswordForEmail(forgotEmail, {
+               redirectTo: `${window.location.origin}/auth/callback?type=recovery`,
+          });
 
-               const data = await response.json();
-
-               if (!response.ok) {
-                    throw new Error(data.error || 'Failed to send recovery link');
-               }
-
+          if (error) {
+               setError(error.message);
+               setForgotLoading(false);
+          } else {
                setForgotSent(true);
-          } catch (err: any) {
-               setError(err.message);
-          } finally {
                setForgotLoading(false);
           }
      };
