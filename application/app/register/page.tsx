@@ -35,7 +35,7 @@ export default function RegisterPage() {
                email,
                password,
                options: {
-                    emailRedirectTo: `${window.location.origin}/auth/callback`,
+                    emailRedirectTo: `https://pp360v01.vercel.app/auth/callback`,
                },
           });
 
@@ -64,7 +64,7 @@ export default function RegisterPage() {
                const { error } = await supabase.auth.signInWithOAuth({
                     provider,
                     options: {
-                         redirectTo: `${window.location.origin}/auth/callback`,
+                         redirectTo: `https://pp360v01.vercel.app/auth/callback`,
                     },
                });
                if (error) throw error;
