@@ -83,7 +83,8 @@
 
 ### Cambios Recientes (05 Ene 2026)
 - [x] **Fix Email Delivery**: Credenciales de Supabase hardcodeadas en `config.ts` y `next.config.ts` para asegurar conectividad y envío de correos.
-- [x] **Limpieza de Código**: Eliminación de archivos no utilizados (`magic-link/route.ts`, `admin.ts`) y corrección de referencias en `upload-proof`.
+- [x] **Fix Redirect URLs**: URLs de redirección (`redirectTo`, `emailRedirectTo`) hardcodeadas a producción (`https://pp360v01.vercel.app`) para evitar errores de origen cruzado o respuestas vacías ("Unexpected end of JSON").
+- [x] **Limpieza de Código**: Eliminación de archivos no utilizados y corrección de referencias.
 
 ### Cambios Recientes (28 Dic 2025)
 
